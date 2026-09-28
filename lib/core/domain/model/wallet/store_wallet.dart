@@ -132,7 +132,8 @@ abstract class WalletStatus {
 abstract class WalletTransactionType {
   /// The only type that credits a store wallet today, written when an order
   /// reaches `completed` — **not** when it ships. The amount is
-  /// `grand_total` minus the platform commission (3.5% by default), so the
+  /// `grand_total` minus the platform commission (5% since API v1.6.0) and any
+  /// Xpedia Growth commission, so the
   /// ledger shows net proceeds rather than what the buyer paid.
   static const String revenue = 'revenue';
 

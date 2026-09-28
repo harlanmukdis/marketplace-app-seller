@@ -38,8 +38,8 @@ void main() {
     fail('Timed out waiting for: ${finder.describeMatch(Plurality.zero)}');
   }
 
-  /// The dashboard grows a row per domain as they land, so a target that used
-  /// to be on screen drifts below the fold — where a tap hits nothing.
+  /// A menu grows a row per domain as they land, so a target that used to be
+  /// on screen drifts below the fold — where a tap hits nothing.
   Future<void> tapText(WidgetTester tester, String text) async {
     final target = find.text(text).first;
     await tester.ensureVisible(target);
@@ -63,15 +63,21 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Every app bar's back button carries this tooltip, the redesigned
+  /// `XAppBar` and the restyled `customAppBar` alike.
   Future<void> back(WidgetTester tester) async {
-    await tester.tap(
-      find
-          .ancestor(
-            of: find.byIcon(Icons.arrow_back_ios_new_outlined),
-            matching: find.byType(GestureDetector),
-          )
-          .first,
-    );
+    await tester.tap(find.byTooltip('Kembali').first);
+    // Let the pop transition finish; until it does, the screen underneath is
+    // offstage and no finder can see it.
+    await tester.pump(const Duration(milliseconds: 600));
+  }
+
+  /// Since the Xpedia redesign, the modules outside the four main tabs are
+  /// reached from the fifth one, Akun.
+  Future<void> openFromAccount(WidgetTester tester, String label) async {
+    await tester.tap(find.text('Akun').last);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tapText(tester, label);
   }
 
   testWidgets('a new store submits verification and stocks a warehouse',
@@ -113,15 +119,18 @@ void main() {
     await tapButton(tester, 'Buka toko');
     await pumpUntil(tester, find.text('Beranda'));
 
-    // A store opens inactive, and the dashboard says so.
-    expect(find.text('Belum aktif'), findsOneWidget);
+    // A store opens inactive, and Beranda's status strip says so.
+    expect(find.textContaining('Toko belum aktif'), findsOneWidget);
 
     // ---------------------------------------------------------- verification
-    await tapText(tester, 'Verifikasi toko');
+    await openFromAccount(tester, 'Verifikasi Toko');
     await pumpUntil(tester, find.text('Ajukan verifikasi'));
 
     final vFields = find.byType(TextFormField);
-    await tester.enterText(vFields.at(0), '3171234567890001'); // KTP
+    // Unique per run: since API v1.7.0 a KTP number already on another
+    // seller's verification is refused with 409 DUPLICATE_IDENTITY.
+    final ktp = '3171${stamp.substring(stamp.length - 12)}';
+    await tester.enterText(vFields.at(0), ktp); // KTP
     await tester.enterText(vFields.at(2), 'BCA'); // bank
     await tester.enterText(vFields.at(3), 'E2E Probe'); // account holder
     await tester.enterText(vFields.at(4), '1234567890'); // account number
@@ -139,7 +148,7 @@ void main() {
     await pumpUntil(tester, find.text('Beranda'));
 
     // ------------------------------------------------------------- warehouse
-    await tapText(tester, 'Gudang & stok');
+    await openFromAccount(tester, 'Gudang & Stok');
     await pumpUntil(tester, find.textContaining('Belum ada gudang'));
 
     await tapButton(tester, 'Buat gudang pertama');
@@ -191,7 +200,7 @@ void main() {
     await pumpUntil(tester, find.text('Beranda'));
 
     // --------------------------------------------------------------- couriers
-    await tapText(tester, 'Kurir pengiriman');
+    await openFromAccount(tester, 'Kurir Aktif');
     await pumpUntil(tester, find.text('JNE'));
 
     // A new store has no restriction, which the backend treats as "every
@@ -216,7 +225,7 @@ void main() {
     await back(tester);
     await pumpUntil(tester, find.text('Beranda'));
 
-    await tapText(tester, 'Promosi');
+    await openFromAccount(tester, 'Campaign & Promo');
     await pumpUntil(tester, find.text('Belum ada voucher toko.'));
 
     // ------------------------------------------------------------- voucher
@@ -286,7 +295,7 @@ void main() {
     await back(tester); // leave promotions
     await pumpUntil(tester, find.text('Beranda'));
 
-    await tapText(tester, 'Bundel & etalase');
+    await openFromAccount(tester, 'Etalase & Bundel');
     await pumpUntil(tester, find.text('Belum ada bundel produk.'));
 
     // A bundle needs at least one product and this store has none, so the

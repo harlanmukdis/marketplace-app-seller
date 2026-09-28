@@ -22,6 +22,9 @@ class Store {
     this.ratingCount = 0,
     this.openedAt,
     this.createdAt,
+    this.primaryStatus = StorePrimaryStatus.unverified,
+    this.hasSignatureBadge = false,
+    this.skuQuota,
   });
 
   final int id;
@@ -38,6 +41,19 @@ class Store {
   final DateTime? openedAt;
   final DateTime? createdAt;
 
+  /// Seller status (API v1.14.0): set to verified individual/company when
+  /// verification is approved; official store and "managed by Xpedia" are
+  /// admin-curated. Design rule 8.
+  final String primaryStatus;
+
+  /// Xpedia Signature — a performance award evaluated nightly, separate from
+  /// [primaryStatus] and never purchasable.
+  final bool hasSignatureBadge;
+
+  /// Maximum products; null means unlimited. Set to 500 when a business
+  /// verification is approved (API v1.11.0), enforced as `SKU_QUOTA_EXCEEDED`.
+  final int? skuQuota;
+
   factory Store.fromJson(Map<String, dynamic> json) => Store(
         id: asInt(json['id']),
         name: asString(json['name']),
@@ -52,6 +68,12 @@ class Store {
         ratingCount: asInt(json['rating_count']),
         openedAt: asDateTime(json['opened_at']),
         createdAt: asCreatedDate(json),
+        primaryStatus: asString(
+          json['primary_status'],
+          fallback: StorePrimaryStatus.unverified,
+        ),
+        hasSignatureBadge: asBool(json['has_signature_badge']),
+        skuQuota: asIntOrNull(json['sku_quota']),
       );
 
   bool get isActive => status == StoreStatus.active;
@@ -89,4 +111,22 @@ abstract class StoreType {
         service => 'Jasa',
         _ => type ?? '-',
       };
+}
+
+abstract class StorePrimaryStatus {
+  static const String unverified = 'unverified';
+  static const String verifiedIndividual = 'verified_individual';
+  static const String verifiedCompany = 'verified_company';
+  static const String officialStore = 'official_store';
+  static const String managedByXpedia = 'managed_by_xpedia';
+
+  static String label(String? s) => switch (s) {
+        verifiedIndividual => 'Verified Individual',
+        verifiedCompany => 'Verified Company',
+        officialStore => 'Official Store',
+        managedByXpedia => 'Managed by Xpedia',
+        _ => 'Belum terverifikasi',
+      };
+
+  static bool isVerified(String? s) => s != null && s != unverified;
 }

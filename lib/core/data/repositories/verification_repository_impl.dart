@@ -39,6 +39,9 @@ class VerificationRepositoryImpl
     String? bankAccountName,
     String? bankAccountNumber,
     String? bankName,
+    String? picName,
+    String? picIdCardNumber,
+    String? picEmail,
   }) =>
       guard(() => _service.submit(
             storeId,
@@ -48,6 +51,9 @@ class VerificationRepositoryImpl
             bankAccountName: bankAccountName,
             bankAccountNumber: bankAccountNumber,
             bankName: bankName,
+            picName: picName,
+            picIdCardNumber: picIdCardNumber,
+            picEmail: picEmail,
           ));
 
   @override

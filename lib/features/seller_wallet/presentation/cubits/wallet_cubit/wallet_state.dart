@@ -19,15 +19,32 @@ final class WalletFailure extends WalletState {
 }
 
 final class WalletLoaded extends WalletState {
-  const WalletLoaded(this.wallet, {this.isBusy = false});
+  const WalletLoaded(
+    this.wallet, {
+    this.accounts = const <BankAccount>[],
+    this.isBusy = false,
+  });
 
   final StoreWallet wallet;
+
+  /// Saved payout accounts — per user, not per store.
+  final List<BankAccount> accounts;
   final bool isBusy;
 
   /// Nothing has ever moved through this wallet. Distinct from a zero balance
   /// after withdrawing everything, and the two deserve different words.
   bool get isUntouched => wallet.transactions.isEmpty && wallet.balance == 0;
 
-  WalletLoaded copyWith({StoreWallet? wallet, bool? isBusy}) =>
-      WalletLoaded(wallet ?? this.wallet, isBusy: isBusy ?? this.isBusy);
+  bool get canAddAccount => accounts.length < BankAccount.maxPerUser;
+
+  WalletLoaded copyWith({
+    StoreWallet? wallet,
+    List<BankAccount>? accounts,
+    bool? isBusy,
+  }) =>
+      WalletLoaded(
+        wallet ?? this.wallet,
+        accounts: accounts ?? this.accounts,
+        isBusy: isBusy ?? this.isBusy,
+      );
 }

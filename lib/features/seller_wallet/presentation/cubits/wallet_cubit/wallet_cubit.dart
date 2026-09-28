@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/data_state.dart';
+import '../../../../../core/domain/model/wallet/bank_account.dart';
 import '../../../../../core/domain/model/wallet/store_wallet.dart';
 import '../../../../../core/domain/repositories/auth_repository.dart';
 import '../../../../../core/domain/repositories/wallet_repository.dart';
@@ -29,12 +30,17 @@ class WalletCubit extends Cubit<WalletState> {
 
     emit(const WalletInProgress());
 
-    final result = await _wallet.getStoreWallet(storeId);
+    final results = await Future.wait<Object>(<Future<Object>>[
+      _wallet.getStoreWallet(storeId),
+      _wallet.getBankAccounts(),
+    ]);
     if (isClosed) return;
+    final result = results[0] as DataState<StoreWallet>;
+    final accounts = results[1] as DataState<List<BankAccount>>;
 
     switch (result) {
       case DataSuccess<StoreWallet>(:final value):
-        emit(WalletLoaded(value));
+        emit(WalletLoaded(value, accounts: _accountsOf(accounts)));
       case DataFailed<StoreWallet>(:final failure):
         emit(WalletFailure(failure));
       default:
@@ -47,35 +53,44 @@ class WalletCubit extends Cubit<WalletState> {
     }
   }
 
-  /// Files a withdrawal. Refuses locally first for the two things the server
-  /// checks — the minimum and the balance — so the seller is told before a
-  /// round trip rather than by a generic `WITHDRAWAL_REJECTED`.
+  List<BankAccount> _accountsOf(DataState<List<BankAccount>> result) =>
+      result is DataSuccess<List<BankAccount>>
+          ? result.value
+          : const <BankAccount>[];
+
+  /// Files a withdrawal. Refuses locally first for what the client can know —
+  /// frozen wallet, minimum, balance, PIN shape — so the seller is told before
+  /// a round trip rather than by a generic `WITHDRAWAL_REJECTED`.
   Future<DataError?> withdraw({
     required int amount,
-    required String bankName,
-    required String bankAccountNumber,
-    required String bankAccountName,
+    required int bankAccountId,
+    required String pin,
   }) async {
     final storeId = _auth.activeStoreId;
     final current = state;
     if (storeId == null || current is! WalletLoaded) return null;
 
-    final refusal = _refuse(current.wallet, amount);
+    final refusal = _refuse(current.wallet, amount) ??
+        (RegExp(r'^\d{6}$').hasMatch(pin)
+            ? null
+            : const DataError(
+                code: 'VALIDATION_ERROR',
+                message: 'PIN penarikan terdiri dari 6 digit angka.',
+              ));
     if (refusal != null) return refusal;
 
     emit(current.copyWith(isBusy: true));
     final result = await _wallet.requestWithdrawal(
       storeId,
       amount: amount,
-      bankName: bankName,
-      bankAccountNumber: bankAccountNumber,
-      bankAccountName: bankAccountName,
+      bankAccountId: bankAccountId,
+      pin: pin,
     );
     if (isClosed) return null;
 
     switch (result) {
       case DataSuccess<StoreWallet>(:final value):
-        emit(WalletLoaded(value));
+        emit(current.copyWith(wallet: value, isBusy: false));
         return null;
       case DataFailed<StoreWallet>(:final failure):
         emit(current.copyWith(isBusy: false));
@@ -84,6 +99,36 @@ class WalletCubit extends Cubit<WalletState> {
         await load();
         return null;
     }
+  }
+
+  Future<DataError?> addAccount({
+    required String bankName,
+    required String accountNumber,
+    required String holderName,
+  }) =>
+      _accountsAction(() => _wallet.addBankAccount(
+            bankName: bankName,
+            accountNumber: accountNumber,
+            holderName: holderName,
+          ));
+
+  Future<DataError?> deleteAccount(int id) =>
+      _accountsAction(() => _wallet.deleteBankAccount(id));
+
+  Future<DataError?> _accountsAction(
+    Future<DataState<List<BankAccount>>> Function() action,
+  ) async {
+    final current = state;
+    if (current is! WalletLoaded) return null;
+    emit(current.copyWith(isBusy: true));
+    final result = await action();
+    if (isClosed) return null;
+    if (result is DataFailed<List<BankAccount>>) {
+      emit(current.copyWith(isBusy: false));
+      return result.failure;
+    }
+    emit(current.copyWith(accounts: _accountsOf(result), isBusy: false));
+    return null;
   }
 
   DataError? _refuse(StoreWallet wallet, int amount) {

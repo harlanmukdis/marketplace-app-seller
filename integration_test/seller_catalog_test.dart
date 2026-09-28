@@ -8,7 +8,6 @@ import 'package:navy_wear/core/utils/app_routes.dart';
 import 'package:navy_wear/core/utils/local_network.dart';
 import 'package:navy_wear/di/injector.dart';
 import 'package:navy_wear/features/seller_catalog/presentation/views/widgets/product_card.dart';
-import 'package:navy_wear/features/seller_orders/presentation/views/widgets/order_status_pill.dart';
 import 'package:navy_wear/main.dart';
 
 /// Drives the real app against the **running** marketplace API.
@@ -64,17 +63,29 @@ void main() {
     fail('Timed out waiting for: ${finder.describeMatch(Plurality.zero)}');
   }
 
-  /// `customAppBar` rolls its own back button out of a GestureDetector, so
-  /// `pageBack()` — which looks for a Material or Cupertino one — finds nothing.
+  /// Every app bar's back button carries this tooltip, the redesigned
+  /// `XAppBar` and the restyled `customAppBar` alike.
   Future<void> back(WidgetTester tester) async {
-    await tester.tap(
-      find
-          .ancestor(
-            of: find.byIcon(Icons.arrow_back_ios_new_outlined),
-            matching: find.byType(GestureDetector),
-          )
-          .first,
-    );
+    await tester.tap(find.byTooltip('Kembali').first);
+    // Let the pop transition finish; until it does, the screen underneath is
+    // offstage and no finder can see it.
+    await tester.pump(const Duration(milliseconds: 600));
+  }
+
+  /// A bottom-navigation tab, by its label. `.last` because a tab's label can
+  /// also appear in the screen above it ("Produk" is both).
+  Future<void> openTab(WidgetTester tester, String label) async {
+    await tester.tap(find.text(label).last);
+    await tester.pump(const Duration(milliseconds: 300));
+  }
+
+  /// Modules outside the four main tabs are reached from Akun.
+  Future<void> openFromAccount(WidgetTester tester, String label) async {
+    await openTab(tester, 'Akun');
+    final target = find.text(label).first;
+    await tester.ensureVisible(target);
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.tap(target);
   }
 
   testWidgets('a seller signs in and works through the catalogue',
@@ -94,12 +105,14 @@ void main() {
     await tester.tap(find.text('Masuk'));
     await pumpUntil(tester, find.text('Beranda'));
 
-    // The dashboard names the store the session landed on, which is the proof
-    // that login -> GET /me -> GET /stores all came back.
-    expect(find.text('Kedai Kopi Nusantara'), findsOneWidget);
+    // Beranda's header names the store the session landed on, which is the
+    // proof that login -> GET /me -> GET /stores all came back.
+    await pumpUntil(tester, find.text('Kedai Kopi Nusantara'));
+    expect(find.text('Perlu Tindakan'), findsOneWidget);
+    expect(find.text('Ringkasan Toko'), findsOneWidget);
 
     // ------------------------------------------------------------ catalogue
-    await tester.tap(find.text('Produk'));
+    await openTab(tester, 'Produk');
     await pumpUntil(tester, find.byType(ProductCard));
 
     expect(find.byType(ProductCard), findsWidgets,
@@ -150,59 +163,37 @@ void main() {
     expect(find.text('Harga coret (opsional)'), findsOneWidget);
 
     // ------------------------------------------------------------- orders
+    // Produk is a tab now: back from the form lands on it, not on Beranda.
     await back(tester);
     await pumpUntil(tester, find.byType(ProductCard));
-    await back(tester);
-    await pumpUntil(tester, find.text('Beranda'));
 
-    await tester.tap(find.text('Pesanan'));
-    await pumpUntil(tester, find.text('Perlu tindakan'));
+    await openTab(tester, 'Pesanan');
+    await pumpUntil(tester, find.text('Daftar Pesanan'));
 
-    // Every seeded order is `pending`, so the default "needs action" filter is
-    // legitimately empty — and that has to read as "nothing to do" rather than
-    // as a failure.
-    expect(find.textContaining('Tidak ada pesanan yang menunggu tindakan'),
+    // The privacy notice is unconditional — design rule 1 — and the tab bar is
+    // the design's, with no "needs action"/accept vocabulary left.
+    expect(find.textContaining('Proteksi Privasi Pembeli Aktif'),
         findsOneWidget);
-
-    await tester.tap(find.text('Belum dibayar'));
-    await pumpUntil(tester, find.byType(OrderStatusPill));
-
-    // Opening one proves GET /orders/{id} parsed — items, totals, history.
-    await tester.tap(find.byType(OrderStatusPill).first);
-    await pumpUntil(tester, find.text('Detail pesanan'));
-    expect(find.text('Barang'), findsOneWidget);
-    expect(find.text('Pengiriman'), findsOneWidget);
-    expect(find.textContaining('Pembeli belum membayar'), findsOneWidget);
-
-    // A pending order offers cancellation and nothing else. The transition
-    // buttons must stay hidden: the server answers an out-of-turn action with
-    // an HTML exception page at HTTP 200, which cannot be reported usefully.
-    expect(find.text('Batalkan'), findsOneWidget);
+    expect(find.text('Dalam Pengiriman'), findsOneWidget);
     expect(find.text('Terima pesanan'), findsNothing);
-    expect(find.text('Tandai sudah dikemas'), findsNothing);
-    expect(find.text('Serahkan ke kurir'), findsNothing);
+
+    // Store 1 has no orders since the reseed; an empty tab has to read as
+    // "nothing here" rather than as a failure.
+    await pumpUntil(tester, find.textContaining('Belum ada pesanan'));
 
     // -------------------------------------------------------------- wallet
-    await back(tester);
-    await pumpUntil(tester, find.text('Perlu tindakan'));
-    await back(tester);
-    await pumpUntil(tester, find.text('Beranda'));
+    await openFromAccount(tester, 'Xpedia Wallet');
+    await pumpUntil(tester, find.text('Saldo Tersedia'));
 
-    final walletCard = find.text('Dompet toko').first;
-    await tester.ensureVisible(walletCard);
-    await tester.pump(const Duration(milliseconds: 250));
-    await tester.tap(walletCard);
-    await pumpUntil(tester, find.text('Saldo bisa ditarik'));
+    // The v1.24.0 payout setup is on screen: saved accounts, max three.
+    expect(find.text('Rekening Bank Pencairan'), findsOneWidget);
+    expect(find.text('(0/3)'), findsOneWidget);
+    expect(find.text('Riwayat Transaksi'), findsOneWidget);
 
-    // Seed store 1 has never earned, so the balance sits under the 50k floor
-    // and the button must be disabled rather than failing at the server.
-    expect(find.text('Belum ada transaksi.'), findsOneWidget);
-    expect(find.textContaining('mulai Rp 50.000'), findsOneWidget);
-
-    final withdrawButton =
-        tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Tarik dana'));
-    expect(withdrawButton.onPressed, isNull,
-        reason: 'an empty wallet cannot file a withdrawal');
+    // Seed store 1 has never earned, so withdrawing is refused on the client
+    // rather than at the server.
+    expect(find.text('Saldo belum mencapai minimum penarikan.'),
+        findsOneWidget);
 
     // ---------------------------------------------------------- promotions
     // Read-only against the seed store on purpose: a voucher or flash sale
@@ -210,12 +201,7 @@ void main() {
     // DELETE — so the write side is exercised in the onboarding test, which
     // works on a throwaway store.
     await back(tester);
-    await pumpUntil(tester, find.text('Beranda'));
-
-    final promotionCard = find.text('Promosi').first;
-    await tester.ensureVisible(promotionCard);
-    await tester.pump(const Duration(milliseconds: 250));
-    await tester.tap(promotionCard);
+    await openFromAccount(tester, 'Campaign & Promo');
     await pumpUntil(tester, find.textContaining('Voucher hanya bisa dibuat'));
 
     expect(find.text('Belum ada voucher toko.'), findsOneWidget,
@@ -237,12 +223,7 @@ void main() {
     // the next reseed, so the thread's contract is verified against the API
     // directly instead (read, reply, read-receipt and long-poll all confirmed).
     await back(tester);
-    await pumpUntil(tester, find.text('Beranda'));
-
-    final chatCard = find.text('Chat').first;
-    await tester.ensureVisible(chatCard);
-    await tester.pump(const Duration(milliseconds: 250));
-    await tester.tap(chatCard);
+    await openTab(tester, 'Chat');
     await pumpUntil(tester, find.text('Kotak masuk toko belum bisa dibuat'));
 
     // GET /chat/conversations answers 200 with the account's conversations as
@@ -257,13 +238,7 @@ void main() {
     expect(find.text('Buka percakapan lewat ID'), findsOneWidget);
 
     // --------------------------------------------------------- notifications
-    await back(tester);
-    await pumpUntil(tester, find.text('Beranda'));
-
-    final notificationCard = find.text('Notifikasi').first;
-    await tester.ensureVisible(notificationCard);
-    await tester.pump(const Duration(milliseconds: 250));
-    await tester.tap(notificationCard);
+    await openFromAccount(tester, 'Pusat Notifikasi');
     // Either a list or the empty state resolves; the settings action is on
     // the bar in both cases, so it is the stable thing to wait for.
     await pumpUntil(tester, find.byIcon(Icons.tune_rounded));

@@ -67,35 +67,98 @@ class OrderDetailCubit extends Cubit<OrderDetailState> {
     }
   }
 
-  Future<DataError?> accept() => _act(
-        guard: (order) => order.canAccept,
-        refusal: 'Pesanan ini belum dibayar, jadi belum bisa diproses.',
-        action: () => _orders.accept(orderId),
-      );
-
-  Future<DataError?> pack() => _act(
-        guard: (order) => order.canPack,
-        refusal: 'Pesanan harus diterima dulu sebelum ditandai siap kirim.',
-        action: () => _orders.pack(orderId),
-      );
-
-  Future<DataError?> ship({
+  /// "Cetak Resi" — the seller's one commitment on an order.
+  ///
+  /// The API still has two transitions behind it, `paid` -> `packed` and
+  /// `packed` -> `shipped`, so this runs whichever are left. If pack succeeds
+  /// and ship fails, the order is left `packed` and the next attempt resumes
+  /// at ship; the error is returned so the sheet can stay open with the input.
+  ///
+  /// Returns the failure, or null; a Secure+ seal code lands in
+  /// [OrderDetailLoaded.sealCode].
+  Future<DataError?> printWaybill({
     required String courierCode,
     required String awbNumber,
-  }) =>
-      _act(
-        guard: (order) => order.canShip,
-        refusal: 'Pesanan harus dikemas dulu sebelum diserahkan ke kurir.',
-        action: () => _orders.ship(
+    required String handoverMethod,
+    List<ShipmentEvidence> evidence = const <ShipmentEvidence>[],
+  }) async {
+    final current = state;
+    if (current is! OrderDetailLoaded) return null;
+    final order = current.order;
+
+    if (!order.canPrintWaybill) {
+      return DataError(
+        code: 'ORDER_STATE_INVALID',
+        message: order.awaitsCustomConfirmation
+            ? 'Konfirmasi custom order dulu sebelum mencetak resi.'
+            : order.awaitsPartialDecision
+                ? 'Menunggu keputusan pembeli atas pemenuhan sebagian.'
+                : 'Resi hanya bisa dicetak untuk pesanan yang sedang diproses.',
+        details: <String, dynamic>{'status': order.status},
+      );
+    }
+
+    emit(current.copyWith(isBusy: true));
+
+    if (order.canPack) {
+      final packed = await _orders.pack(orderId);
+      if (isClosed) return null;
+      if (packed is DataFailed<Order>) {
+        emit(current.copyWith(isBusy: false));
+        return packed.failure;
+      }
+    }
+
+    final shipped = await _orders.ship(
+      orderId,
+      courierCode: courierCode,
+      awbNumber: awbNumber,
+      handoverMethod: handoverMethod,
+      evidence: evidence,
+    );
+    if (isClosed) return null;
+
+    final refreshed = await _orders.getOrder(orderId);
+    if (isClosed) return null;
+    final latest = refreshed is DataSuccess<Order> ? refreshed.value : order;
+
+    switch (shipped) {
+      case DataFailed<ShipOutcome>(:final failure):
+        emit(OrderDetailLoaded(latest, shipment: current.shipment));
+        return failure;
+      case DataSuccess<ShipOutcome>(:final value):
+        emit(OrderDetailLoaded(latest, sealCode: value.sealCode));
+        await _loadTracking();
+        return null;
+      default:
+        emit(OrderDetailLoaded(latest));
+        await _loadTracking();
+        return null;
+    }
+  }
+
+  Future<DataError?> customConfirm(int leadTimeDays) => _act(
+        guard: (order) => order.canCustomConfirm,
+        refusal: 'Pesanan ini tidak menunggu konfirmasi custom order.',
+        action: () =>
+            _orders.customConfirm(orderId, leadTimeDays: leadTimeDays),
+      );
+
+  Future<DataError?> proposePartial(List<int> unavailableItemIds) => _act(
+        guard: (order) => order.canProposePartial,
+        refusal: 'Pemenuhan sebagian hanya bisa diajukan sekali, saat '
+            'pesanan masih diproses.',
+        action: () => _orders.proposePartialFulfillment(
           orderId,
-          courierCode: courierCode,
-          awbNumber: awbNumber,
+          unavailableItemIds: unavailableItemIds,
         ),
       );
 
+  /// "Tolak Pesanan". Recorded as the seller's fault and counted against the
+  /// store's performance score.
   Future<DataError?> cancel(String reason) => _act(
         guard: (order) => order.canCancel,
-        refusal: 'Pesanan yang sudah diproses tidak bisa dibatalkan di sini.',
+        refusal: 'Pesanan yang sudah dikemas tidak bisa ditolak lagi.',
         action: () => _orders.cancel(orderId, reason: reason),
       );
 

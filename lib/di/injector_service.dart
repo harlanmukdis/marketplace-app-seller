@@ -12,6 +12,7 @@ import '../core/data/datasources/remote/service/order_service.dart';
 import '../core/data/datasources/remote/service/promotion_service.dart';
 import '../core/data/datasources/remote/service/shipping_service.dart';
 import '../core/data/datasources/remote/service/store_service.dart';
+import '../core/data/datasources/remote/service/support_service.dart';
 import '../core/data/datasources/remote/service/verification_service.dart';
 import '../core/data/datasources/remote/service/wallet_service.dart';
 import '../config/network/dio_client.dart';
@@ -39,4 +40,5 @@ void initializeService() {
       () => MerchandisingService(dio));
   injector.registerLazySingleton<NotificationService>(
       () => NotificationService(dio));
+  injector.registerLazySingleton<SupportService>(() => SupportService(dio));
 }

@@ -76,6 +76,9 @@ class _SubmitFormState extends State<_SubmitForm> {
   final TextEditingController _bankName = TextEditingController();
   final TextEditingController _bankAccountName = TextEditingController();
   final TextEditingController _bankAccountNumber = TextEditingController();
+  final TextEditingController _picName = TextEditingController();
+  final TextEditingController _picIdCard = TextEditingController();
+  final TextEditingController _picEmail = TextEditingController();
 
   String _type = VerificationType.individual;
 
@@ -86,8 +89,13 @@ class _SubmitFormState extends State<_SubmitForm> {
     _bankName.dispose();
     _bankAccountName.dispose();
     _bankAccountNumber.dispose();
+    _picName.dispose();
+    _picIdCard.dispose();
+    _picEmail.dispose();
     super.dispose();
   }
+
+  bool get _isBusiness => _type == VerificationType.business;
 
   String? _emptyToNull(TextEditingController controller) {
     final value = controller.text.trim();
@@ -104,6 +112,9 @@ class _SubmitFormState extends State<_SubmitForm> {
       bankName: _emptyToNull(_bankName),
       bankAccountName: _emptyToNull(_bankAccountName),
       bankAccountNumber: _emptyToNull(_bankAccountNumber),
+      picName: _isBusiness ? _emptyToNull(_picName) : null,
+      picIdCardNumber: _isBusiness ? _emptyToNull(_picIdCard) : null,
+      picEmail: _isBusiness ? _emptyToNull(_picEmail) : null,
     );
 
     if (!mounted) return;
@@ -172,6 +183,38 @@ class _SubmitFormState extends State<_SubmitForm> {
                       ? Validators.required('NPWP')
                       : Validators.optional,
                 ),
+                if (_isBusiness) ...<Widget>[
+                  24.sbh,
+                  Text('Penanggung jawab (PIC)',
+                      style: AppStyles.styleMedium14(context)),
+                  4.sbh,
+                  Text(
+                    'Wajib untuk badan usaha. KTP PIC tidak boleh sudah '
+                    'terdaftar di akun seller lain.',
+                    style: AppStyles.styleRegular10(context)
+                        .copyWith(color: kLightThirdColor),
+                  ),
+                  12.sbh,
+                  CustomTextFormField(
+                    controller: _picName,
+                    labelText: 'Nama PIC',
+                    validator: Validators.required('Nama PIC'),
+                  ),
+                  16.sbh,
+                  CustomTextFormField(
+                    controller: _picIdCard,
+                    labelText: 'Nomor KTP PIC',
+                    keyboardType: TextInputType.number,
+                    validator: Validators.required('Nomor KTP PIC'),
+                  ),
+                  16.sbh,
+                  CustomTextFormField(
+                    controller: _picEmail,
+                    labelText: 'Email PIC',
+                    keyboardType: TextInputType.emailAddress,
+                    validator: Validators.required('Email PIC'),
+                  ),
+                ],
                 24.sbh,
                 Text('Rekening pencairan',
                     style: AppStyles.styleMedium14(context)),

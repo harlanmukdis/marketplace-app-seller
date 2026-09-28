@@ -9,24 +9,34 @@ import '../../../../../di/injector.dart';
 
 part 'order_list_state.dart';
 
-/// The store's incoming orders.
+/// The store's orders, across every status.
 ///
-/// The filter is sent to the server rather than applied locally, because unlike
-/// the catalogue this list is paged and long — filtering a single page would
-/// show a fraction of what matches.
+/// Loaded once without a status filter and split into tabs locally, so every
+/// tab count is known without a request per tab. The list endpoint is capped at
+/// 20 rows with no `meta`, so pages are walked until one comes back short.
+///
+/// List rows carry no items, while the order card shows the product, the total
+/// and the SLA — so the orders on the visible tab are then read in full, a few
+/// at a time. That is an N+1, deliberately bounded by [_detailLimit].
 class OrderListCubit extends Cubit<OrderListState> {
-  OrderListCubit() : super(const OrderListInProgress());
+  OrderListCubit({OrderFilter initial = OrderFilter.processing})
+      : _filter = initial,
+        super(const OrderListInProgress());
 
   static OrderListCubit get(BuildContext context) => BlocProvider.of(context);
 
   final OrderRepository _orders = injector<OrderRepository>();
   final AuthRepository _auth = injector<AuthRepository>();
 
-  OrderFilter _filter = OrderFilter.needsAction;
+  OrderFilter _filter;
 
-  Future<void> load({OrderFilter? filter}) async {
+  static const int _pageSize = 20;
+  static const int _pageCap = 10;
+  static const int _detailLimit = 30;
+  static const int _batch = 5;
+
+  Future<void> load() async {
     if (isClosed) return;
-    if (filter != null) _filter = filter;
 
     final storeId = _auth.activeStoreId;
     if (storeId == null) {
@@ -34,25 +44,23 @@ class OrderListCubit extends Cubit<OrderListState> {
       return;
     }
 
+    final previous = state;
     emit(const OrderListInProgress());
 
-    // "Needs action" is not a status the server knows, so it is assembled from
-    // the three statuses that each mean "the seller's move".
-    final statuses = _filter.statuses;
     final collected = <Order>[];
-
-    for (final status in statuses) {
-      final result = await _orders.getStoreOrders(storeId, status: status);
+    for (var page = 1; page <= _pageCap; page++) {
+      final result = await _orders.getStoreOrders(storeId, page: page);
       if (isClosed) return;
 
       switch (result) {
         case DataSuccess<List<Order>>(:final value):
           collected.addAll(value);
+          if (value.length < _pageSize) page = _pageCap;
         case DataFailed<List<Order>>(:final failure):
           emit(OrderListFailure(failure));
           return;
         default:
-          break;
+          page = _pageCap;
       }
     }
 
@@ -63,8 +71,49 @@ class OrderListCubit extends Cubit<OrderListState> {
       return right.compareTo(left);
     });
 
-    emit(OrderListLoaded(orders: collected, filter: _filter));
+    emit(OrderListLoaded(
+      all: collected,
+      filter: _filter,
+      query: previous is OrderListLoaded ? previous.query : '',
+    ));
+    await _loadDetails();
   }
 
-  Future<void> setFilter(OrderFilter filter) => load(filter: filter);
+  Future<void> setFilter(OrderFilter filter) async {
+    _filter = filter;
+    final current = state;
+    if (current is! OrderListLoaded) return;
+    emit(current.copyWith(filter: filter));
+    await _loadDetails();
+  }
+
+  void search(String query) {
+    final current = state;
+    if (current is OrderListLoaded) emit(current.copyWith(query: query));
+  }
+
+  Future<void> _loadDetails() async {
+    final current = state;
+    if (current is! OrderListLoaded) return;
+
+    final missing = current.all
+        .where((o) => current.filter.matches(o.status))
+        .where((o) => !current.details.containsKey(o.id))
+        .take(_detailLimit)
+        .toList(growable: false);
+
+    for (var i = 0; i < missing.length; i += _batch) {
+      final chunk = missing.skip(i).take(_batch);
+      final results = await Future.wait(chunk.map((o) => _orders.getOrder(o.id)));
+      if (isClosed) return;
+
+      final latest = state;
+      if (latest is! OrderListLoaded) return;
+      final details = Map<int, Order>.of(latest.details);
+      for (final result in results) {
+        if (result is DataSuccess<Order>) details[result.value.id] = result.value;
+      }
+      emit(latest.copyWith(details: details));
+    }
+  }
 }

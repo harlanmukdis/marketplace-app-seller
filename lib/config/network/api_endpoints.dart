@@ -31,6 +31,17 @@ abstract class ApiEndpoints {
   static const String addresses = '/me/addresses';
   static String address(int id) => '/me/addresses/$id';
 
+  /// Saved payout accounts and the withdrawal PIN (API v1.24.0). Both are per
+  /// user, shared by every store the account owns.
+  static const String bankAccounts = '/me/bank-accounts';
+  static String bankAccount(int id) => '/me/bank-accounts/$id';
+  static const String withdrawalPin = '/me/withdrawal-pin';
+
+  /// Xpedia 911 — tickets to the platform (API v1.23.0). Per user.
+  static const String supportTickets = '/support-tickets';
+  static String supportTicket(int id) => '/support-tickets/$id';
+  static String supportTicketMessages(int id) => '/support-tickets/$id/messages';
+
   /// The upload endpoint the previous backend never had. Everything that used
   /// to demand a URL the app could not produce — store logos and banners,
   /// product and variant images, avatars — goes through here first, then the
@@ -173,11 +184,19 @@ abstract class ApiEndpoints {
   // --------------------------------------------------------------- Orders
   static String storeOrders(int storeId) => '/stores/$storeId/orders';
   static String order(int orderId) => '/orders/$orderId';
-  static String orderAccept(int orderId) => '/orders/$orderId/accept';
+  // `/orders/{id}/accept` was removed in API v1.6.0 — a paid order goes
+  // straight to pack.
   static String orderPack(int orderId) => '/orders/$orderId/pack';
   static String orderShip(int orderId) => '/orders/$orderId/ship';
   static String orderCancel(int orderId) => '/orders/$orderId/cancel';
   static String orderTracking(int orderId) => '/orders/$orderId/tracking';
+  static String orderCustomConfirm(int orderId) =>
+      '/orders/$orderId/custom-confirm';
+  static String orderPartialPropose(int orderId) =>
+      '/orders/$orderId/partial-fulfillment/propose';
+  static String orderShipmentEvidence(int orderId) =>
+      '/orders/$orderId/shipment-evidence';
+  static String orderInvoice(int orderId) => '/orders/$orderId/invoice';
   static String refundApprove(int orderId, int refundId) =>
       '/orders/$orderId/refund-request/$refundId/approve';
   static String refundReject(int orderId, int refundId) =>

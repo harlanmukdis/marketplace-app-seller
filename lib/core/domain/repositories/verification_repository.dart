@@ -22,6 +22,9 @@ abstract class VerificationRepository {
     String? bankAccountName,
     String? bankAccountNumber,
     String? bankName,
+    String? picName,
+    String? picIdCardNumber,
+    String? picEmail,
   });
 
   /// Attaches one document, then returns the request as it stands.

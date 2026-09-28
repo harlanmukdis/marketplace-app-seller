@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
 
 // Colors
-const Color kLightPrimaryColor = Color(0xff1D55F3);
-const Color kDarkPrimaryColor = Color(0xff246BFD);
-const Color kLightSecondColor = Color(0xff212121);
-const Color kDarkSecondColor = Color(0xffF7F7F7);
-const Color kLightThirdColor = Color(0xff616161);
-const Color kDarkThirdColor = Color(0xffE8E8E8);
-const Color kBorderColor = Color(0xffF2F2F2);
-const Color kSuccessColor = Colors.green;
-const Color kWarningColor = Colors.deepOrangeAccent;
-const Color kErrorColor = Colors.redAccent;
-const Color kDeleteColor = Color(0xffFF3D00);
-const Color kWhiteColor = Colors.white;
-const Color kBlackColor = Colors.black;
-const Color kDarkColor = Color(0xff2B2B2B);
+//
+// The legacy slots, now filled from the Xpedia Partners design system
+// (assets/stitch_xpedia_seller_project/design.md_1.md §1) so that every screen
+// still written against them picks up the new palette. New screens should read
+// the full token set in `xpedia_tokens.dart` instead.
+const Color kLightPrimaryColor = Color(0xff0056FE); // brand-primary
+const Color kDarkPrimaryColor = Color(0xff4682FF); // brand-primary, dark
+const Color kLightSecondColor = Color(0xff111827); // text-primary
+const Color kDarkSecondColor = Color(0xffF7F8FA); // text-primary, dark
+const Color kLightThirdColor = Color(0xff4B5563); // text-secondary
+const Color kDarkThirdColor = Color(0xff9CA3AF); // text-secondary, dark
+const Color kBorderColor = Color(0xffE5E7EB); // border-subtle
+const Color kSuccessColor = Color(0xff109553); // success
+// The legacy slot is mostly read as a text and icon colour on a 12% tint, where
+// the raw warning amber (#F59E0B) is unreadable on white — so it takes the
+// "Processing" status foreground, which is the same hue at a legible depth.
+const Color kWarningColor = Color(0xff8C5002);
+const Color kErrorColor = Color(0xffFB132D); // danger
+const Color kDeleteColor = Color(0xffFB132D); // danger
+const Color kWhiteColor = Colors.white; // bg-surface
+const Color kBlackColor = Color(0xff0B1220); // bg-canvas, dark
+const Color kDarkColor = Color(0xff111827); // bg-surface, dark
 
-// Font
-const String kFontFamily = 'Hanimation';
+// Font — the only typeface the design system allows.
+const String kFontFamily = 'Inter';
 
 // General
 const String kAccessToken = 'accessToken';

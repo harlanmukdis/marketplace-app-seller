@@ -15,7 +15,12 @@ final class OrderDetailFailure extends OrderDetailState {
 }
 
 final class OrderDetailLoaded extends OrderDetailState {
-  const OrderDetailLoaded(this.order, {this.shipment, this.isBusy = false});
+  const OrderDetailLoaded(
+    this.order, {
+    this.shipment,
+    this.isBusy = false,
+    this.sealCode,
+  });
 
   final Order order;
 
@@ -23,6 +28,10 @@ final class OrderDetailLoaded extends OrderDetailState {
   final OrderShipment? shipment;
 
   final bool isBusy;
+
+  /// Returned once, by the ship call of a Secure+ order. The server keeps it
+  /// but never hands it back to the seller, so it is shown when it arrives.
+  final String? sealCode;
 
   OrderDetailLoaded copyWith({
     Order? order,
@@ -33,5 +42,6 @@ final class OrderDetailLoaded extends OrderDetailState {
         order ?? this.order,
         shipment: shipment ?? this.shipment,
         isBusy: isBusy ?? this.isBusy,
+        sealCode: sealCode,
       );
 }

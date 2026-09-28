@@ -16,15 +16,28 @@ abstract class OrderRepository {
 
   Future<DataState<Order>> getOrder(int orderId);
 
-  Future<DataState<Order>> accept(int orderId);
-
   Future<DataState<Order>> pack(int orderId);
 
-  Future<DataState<Order>> ship(
+  /// Carries the Secure+ seal code when there is one; re-read the order after.
+  Future<DataState<ShipOutcome>> ship(
     int orderId, {
     required String courierCode,
     required String awbNumber,
+    String handoverMethod,
+    List<ShipmentEvidence> evidence,
   });
+
+  Future<DataState<Order>> customConfirm(
+    int orderId, {
+    required int leadTimeDays,
+  });
+
+  Future<DataState<Order>> proposePartialFulfillment(
+    int orderId, {
+    required List<int> unavailableItemIds,
+  });
+
+  Future<DataState<OrderInvoice>> getInvoice(int orderId);
 
   Future<DataState<Order>> cancel(int orderId, {required String reason});
 
@@ -34,4 +47,12 @@ abstract class OrderRepository {
   Future<DataState<Order>> approveRefund(int orderId, int refundId);
 
   Future<DataState<Order>> rejectRefund(int orderId, int refundId);
+}
+
+class ShipOutcome {
+  const ShipOutcome({this.sealCode});
+
+  /// Generated for a Secure+ order and sent to the buyer, who must enter it to
+  /// confirm delivery. Null for an ordinary order.
+  final String? sealCode;
 }

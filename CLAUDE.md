@@ -9,72 +9,71 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## Where things stand — read this first (2026-09-27)
+## Where things stand — read this first (2026-09-28)
 
-**The product is being repositioned, and neither half of that has landed in the
-code yet.** Two things moved while the app stood still. Pick up here.
+**The API catch-up and the Xpedia Partners redesign are underway: the
+foundation and the order/wallet core are done, the long tail is not.** The app
+now targets API **v1.28.0** and the design pack in
+`assets/stitch_xpedia_seller_project/` (`design.md_1.md` is the design system;
+`design.md_2.md` and the two `prompt_pack_seller` files are duplicates). Treat
+the design pack as a product spec that outranks older screens, and treat every
+🔴 trap further down as stale until re-verified — much of Part 2 predates
+v1.6.0.
 
-### 1. The backend is 23 minor versions ahead of this app
+### Landed (2026-09-28)
 
-The app is aligned to API **v1.5.0**. The API is now at **v1.28.0** (2026-09-25)
-with **259 dispatchable routes**, up from 235. The gap has **not** been analysed
-yet — the commit titles alone name wallet withdrawal PINs and saved bank
-accounts, a "Secure+" evidence and seal-code handover gate, a support-ticket
-module ("Xpedia 911"), a 7-day Growth performance report, analytics
-segmentation, calendar-month seller tiers, cancellation fault attribution, and a
-third security audit. Assume every trap recorded further down this file is
-**stale until re-verified**; the ones marked 🔴 especially.
+- **Design foundation.** `lib/core/utils/xpedia_tokens.dart` (`XColors`,
+  `XTone` status pairs, `XText` type scale, `XSpace`, `XRadius`, `XSize`);
+  Inter bundled under `assets/fonts/inter/` and set as `kFontFamily`; the
+  legacy `k*` colour constants remapped to the Xpedia palette so un-migrated
+  screens pick it up; `app_theme.dart` and `customAppBar` restyled.
+  Components in `lib/core/widgets/xpedia/x_widgets.dart` (`XButton` in the
+  four allowed styles, `XCard`, `XChip`, `XBanner`, `XAppBar`, `XListGroup`,
+  `XEmptyState`, …). New screens use these, not `AppStyles`.
+- **Shell.** Five tabs — Beranda, Pesanan, Produk, Chat, Akun. The shell owns
+  one `OrderListCubit` that Beranda, the Pesanan tab and its badge share. The
+  long tail of modules is reached from the Akun tab.
+- **Orders (S-13, S05, S-15/16/17, S-20, S-21).** No accept step (removed in
+  v1.6.0): "Cetak Resi" runs pack then ship. Masked buyer (`shipping_address`
+  is city + province only), fixed six-line earnings panel (estimated at 5%
+  until `settlement` arrives on completion), SLA countdown, Tolak Pesanan,
+  custom-order confirm, partial fulfilment, Final Invoice, handover method,
+  Secure+ evidence upload.
+- **Wallet (S-38, S-39, S-44).** Withdrawal takes `bank_account_id` + 6-digit
+  `pin`; saved accounts (max 3, holder name must equal the account name);
+  PIN set/change screen.
+- **New modules.** Xpedia 911 support tickets (S-41, S-42); store settings
+  (S-43); store `primary_status` / Signature badge / `sku_quota`; business
+  verification PIC fields and the `DUPLICATE_IDENTITY` message.
 
-Start the way this file always says to: read `CHANGELOG.md` from v1.6.0 forward,
-then diff `routes.php`. Do not trust the endpoint inventory below it.
+### Where the design and the API disagree (decided in favour of the API)
 
-### 2. There is a complete new design, and it contradicts what is built
+- **AWB is typed, not generated.** `POST /orders/{id}/ship` still requires
+  `awb_number`; there is no courier integration behind "auto-generated resi".
+- **One SLA of 48 plain hours**, not two in working days — that is what
+  `order_resi_sla_worker` enforces (`OrderSla`).
+- **No buyer name at all**, not `D******` — the seller payload carries none.
+- **No "Saldo Ditahan"** — `held_balance` is never written.
+- **Xpedia 911 categories** are the server's four (`order_transaction`,
+  `payment_wallet`, `account_security`, `report_violation`), not the design's
+  (Pesanan, Pengiriman, Wallet, Produk). Needs a product/backend decision.
+- **No Secure+ flag on the order**; evidence becomes mandatory only when ship
+  answers `SECURE_PLUS_EVIDENCE_REQUIRED`.
 
-`assets/stitch_xpedia_seller_project/` holds a finished design pack generated in
-Google Stitch: **45 screens as HTML + PNG**, a PRD, a screen-architecture map, a
-use-case catalogue, and — the important one — **`design.md_1.md`, the design
-system** (tokens, type scale, spacing, component rules). `design.md_2.md` and the
-two `prompt_pack_seller` files are byte-identical duplicates of their siblings.
+### Not yet done, in suggested order
 
-It renames the product to **Xpedia Partners** and specifies a palette, an Inter
-type scale, a five-tab bottom navigation, and a set of **non-negotiable product
-rules that the current app violates**. At least these conflict directly:
-
-- **There is no "Terima Pesanan".** Orders auto-enter Processing after payment;
-  the commitment action is **"Cetak Resi"**. This app has an accept button and
-  an `accept` call, built around `paid → processed`.
-- **The seller never sees buyer identity** — name masked `D******`, phone
-  `0812****456`, destination city only. The order screens show what the API
-  returns today.
-- **Two SLAs in working days** (payment→waybill, waybill→handover), each auto-
-  cancelling on breach, with a countdown chip under 24 hours. Nothing in the app
-  models this.
-- **A fixed six-line earnings breakdown** on order detail, showing `Rp 0` rather
-  than hiding empty lines.
-- **Xpedia Growth is commission (1–15%), never advertising** — the words "ads",
-  "iklan", "CPC" and "budget" are banned from the UI.
-
-So this is not a re-skin. Treat the design pack as a **product spec that outranks
-the current screens**, and expect the backend's v1.28.0 work to be what makes the
-new rules implementable — the two were almost certainly written together.
-
-### 3. Sequencing that avoids wasted work
-
-1. **Diff the API first.** The design assumes backend behaviour this app has
-   never called. Knowing what v1.28.0 actually provides decides what is even
-   buildable.
-2. **Then the design tokens** — palette, type scale, spacing — into
-   `lib/core/utils/constant.dart`. Mechanical, unblocks everything, and it is
-   what `PALETTE_BRIEF.md` was asking for. **That brief is now answered**: §1 of
-   `design.md_1.md` supplies the values. Keep the brief only as the record of
-   which slots exist and how they are consumed (the alpha tints, the 12% status
-   pills, the nine hardcoded colours to absorb).
-3. **Then screens, module by module**, against the new rules — not by porting
-   the current ones.
-
-Nothing about the palette or the redesign has been written to `lib/` yet.
-
----
+1. **Products (S-26/27/28):** `fulfillment_mode` + lead time, `availability`
+   chips, `SKU_QUOTA_EXCEEDED`, `RESTRICTION_REVIEW_PENDING`, shipping
+   coverage (`/products/{id}/shipping-coverage`), `context=product_photo`
+   watermark upload. Screens still the pre-redesign layout.
+2. **Chat (S-29/30):** 4-state ticks from `status` / `delivered_at`,
+   `CHAT_CONTENT_BLOCKED`, no video. The store inbox endpoint is still missing.
+3. **Growth & performance (S-32, S-33, S-35):** `PATCH /products/{id}/growth`,
+   `/growth/performance`, `/stores/{id}/partners-performance`,
+   `/customer-segmentation`, `/stock-mismatch-events`.
+4. Restyle the remaining pre-redesign screens (catalogue, inventory,
+   promotions, merchandising, notifications, verification, auth) on the X
+   components.
 
 ## Project identity
 

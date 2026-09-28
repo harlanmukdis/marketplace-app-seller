@@ -1,16 +1,17 @@
 import '../../../../../config/network/api_endpoints.dart';
 import '../../../../domain/model/order/order.dart';
+import '../../../../utils/json_parse.dart';
 import 'base_service.dart';
 
 /// The store's orders, and the actions that move them along.
 ///
 /// Two things shape everything here.
 ///
-/// **Transitions are strict and their failure is unreadable.** `accept`, `pack`
-/// and `ship` each demand an exact starting status, and the backend throws an
+/// **Transitions are strict and their failure is unreadable.** `pack` and
+/// `ship` each demand an exact starting status, and the backend throws an
 /// uncaught exception when that is not met — which reaches the app as **HTTP
 /// 200 carrying an HTML error page**, not a 422. So the caller must check
-/// [Order.canAccept] and friends *before* calling; these methods cannot
+/// [Order.canPack] and friends *before* calling; these methods cannot
 /// recover from being invoked at the wrong moment, only report the mess.
 ///
 /// **Nothing here returns the updated order**, so every action re-reads it.
@@ -42,43 +43,86 @@ class OrderService extends BaseService {
     return Order.fromJson(envelope.map);
   }
 
-  /// `paid` -> `processed`.
-  Future<Order> accept(int orderId) async {
-    await postRequest(ApiEndpoints.orderAccept(orderId));
-    return getOrder(orderId);
-  }
-
-  /// `processed` -> `packed`.
+  /// `paid` -> `packed`. There is no accept step since API v1.6.0.
+  ///
+  /// Refused with `422 CUSTOM_CONFIRMATION_REQUIRED` while a custom order is
+  /// unconfirmed, and `422 PARTIAL_FULFILLMENT_PENDING` while the buyer has
+  /// not answered a partial-fulfilment proposal — [Order.canPack] gates both.
   Future<Order> pack(int orderId) async {
     await postRequest(ApiEndpoints.orderPack(orderId));
     return getOrder(orderId);
   }
 
-  /// `packed` -> `shipped`, recording the courier and the airway bill.
+  /// `packed` -> `shipped`, recording the courier, the airway bill and how the
+  /// parcel is handed over. Returns the Secure+ seal code, or null for an
+  /// ordinary order.
   ///
   /// Sent **form-encoded**: this endpoint reads its fields with the REST
   /// library's `post()`, which only ever looks at `$_POST` — a JSON body is
   /// parsed by nobody and the AWB would be stored as null while the order
   /// still moved to `shipped`, which is worse than an outright failure.
   ///
-  /// The service type is not ours to choose; the server records `reguler`.
-  Future<Order> ship(
+  /// [evidence] matters only on a Secure+ order, where the server demands at
+  /// least one photo and one video (`422 SECURE_PLUS_EVIDENCE_REQUIRED`). The
+  /// seller cannot tell in advance whether an order is Secure+ — nothing in
+  /// the order payload says so — so the error is the signal.
+  Future<String?> ship(
     int orderId, {
     required String courierCode,
     required String awbNumber,
+    String handoverMethod = HandoverMethod.dropOff,
+    List<ShipmentEvidence> evidence = const <ShipmentEvidence>[],
   }) async {
-    await postFormRequest(
+    final envelope = await postFormRequest(
       ApiEndpoints.orderShip(orderId),
       fields: <String, String>{
         'courier_code': courierCode,
         'awb_number': awbNumber,
+        'handover_method': handoverMethod,
+        for (var i = 0; i < evidence.length; i++) ...<String, String>{
+          'evidence[$i][media_type]': evidence[i].mediaType,
+          'evidence[$i][url]': evidence[i].url,
+        },
+      },
+    );
+    if (envelope.isNull) return null;
+    return asStringOrNull(envelope.map['seal_code']);
+  }
+
+  /// Confirms a custom order can be made, and how long it will take.
+  Future<Order> customConfirm(int orderId, {required int leadTimeDays}) async {
+    await postFormRequest(
+      ApiEndpoints.orderCustomConfirm(orderId),
+      fields: <String, String>{'lead_time_days': '$leadTimeDays'},
+    );
+    return getOrder(orderId);
+  }
+
+  /// Proposes that some items cannot be fulfilled. Only from `paid`; packing
+  /// is then blocked until the buyer continues or cancels.
+  Future<Order> proposePartialFulfillment(
+    int orderId, {
+    required List<int> unavailableItemIds,
+  }) async {
+    await postFormRequest(
+      ApiEndpoints.orderPartialPropose(orderId),
+      fields: <String, String>{
+        for (var i = 0; i < unavailableItemIds.length; i++)
+          'unavailable_item_ids[$i]': '${unavailableItemIds[i]}',
       },
     );
     return getOrder(orderId);
   }
 
-  /// Only from `pending` or `paid` — once accepted, an order cannot be
-  /// cancelled this way. A paid order refunds the buyer's wallet automatically.
+  /// `422 INVOICE_NOT_AVAILABLE` unless the order is completed.
+  Future<OrderInvoice> getInvoice(int orderId) async {
+    final envelope = await getRequest(ApiEndpoints.orderInvoice(orderId));
+    return OrderInvoice.fromJson(envelope.map);
+  }
+
+  /// Only from `pending` or `paid` — once packed, an order cannot be cancelled
+  /// this way. A paid order refunds the buyer's wallet automatically, and the
+  /// cancellation is recorded as the seller's fault ("Tolak Pesanan").
   ///
   /// Form-encoded for the same reason as [ship]: `reason` is read with `post()`
   /// and would otherwise be lost, leaving a cancellation with no explanation in

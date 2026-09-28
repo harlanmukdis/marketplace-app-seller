@@ -34,6 +34,9 @@ class VerificationService extends BaseService {
   /// resubmission starts with none. Only call this when there is no request yet
   /// or the last one was rejected.
   ///
+  /// A KTP number already on another seller's verification is refused with
+  /// `409 DUPLICATE_IDENTITY` (API v1.7.0) — one identity, one seller.
+  ///
   /// `type` is read by the backend without a fallback — omitting it is a 500,
   /// not a validation error — so it is required here.
   Future<int> submit(
@@ -44,6 +47,9 @@ class VerificationService extends BaseService {
     String? bankAccountName,
     String? bankAccountNumber,
     String? bankName,
+    String? picName,
+    String? picIdCardNumber,
+    String? picEmail,
   }) async {
     final envelope = await postRequest(
       ApiEndpoints.verification(storeId),
@@ -54,6 +60,12 @@ class VerificationService extends BaseService {
         'bank_account_name': bankAccountName,
         'bank_account_number': bankAccountNumber,
         'bank_name': bankName,
+        // Required for `business` since API v1.7.0 (422 without them); the
+        // duplicate-identity check then runs on the PIC's KTP, not the
+        // owner's.
+        'pic_name': picName,
+        'pic_id_card_number': picIdCardNumber,
+        'pic_email': picEmail,
       },
       headers: <String, dynamic>{'X-Store-Id': '$storeId'},
     );

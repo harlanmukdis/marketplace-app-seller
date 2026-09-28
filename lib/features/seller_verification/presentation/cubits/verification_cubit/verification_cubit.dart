@@ -64,6 +64,9 @@ class VerificationCubit extends Cubit<VerificationState> {
     String? bankAccountName,
     String? bankAccountNumber,
     String? bankName,
+    String? picName,
+    String? picIdCardNumber,
+    String? picEmail,
   }) async {
     final id = storeId;
     if (id == null) {
@@ -82,11 +85,25 @@ class VerificationCubit extends Cubit<VerificationState> {
       bankAccountName: bankAccountName,
       bankAccountNumber: bankAccountNumber,
       bankName: bankName,
+      picName: picName,
+      picIdCardNumber: picIdCardNumber,
+      picEmail: picEmail,
     );
     if (isClosed) return null;
 
     if (result is DataFailed<int>) {
       _setBusy(false);
+      // S-06: one identity, one seller. Say so plainly rather than as a
+      // generic conflict.
+      if (result.failure.code == 'DUPLICATE_IDENTITY') {
+        return DataError(
+          code: result.failure.code,
+          message: 'Nomor KTP ini sudah terdaftar pada akun seller lain. '
+              'Satu identitas hanya boleh dipakai untuk satu akun. Hubungi '
+              'Xpedia 911 bila ini keliru.',
+          details: result.failure.details,
+        );
+      }
       return result.failure;
     }
 

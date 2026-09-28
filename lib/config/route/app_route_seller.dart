@@ -14,7 +14,12 @@ import '../../features/seller_merchandising/presentation/views/merchandising_vie
 import '../../features/seller_merchandising/presentation/views/showcase_detail_view.dart';
 import '../../features/seller_notifications/presentation/views/notification_inbox_view.dart';
 import '../../features/seller_inventory/presentation/views/stock_view.dart';
+import '../../features/seller_account/presentation/views/security_view.dart';
 import '../../features/seller_orders/presentation/views/order_detail_view.dart';
+import '../../features/seller_orders/presentation/views/order_invoice_view.dart';
+import '../../features/seller_store/presentation/views/store_settings_view.dart';
+import '../../features/seller_support/presentation/views/support_view.dart';
+import '../../features/seller_support/presentation/views/ticket_detail_view.dart';
 import '../../features/seller_orders/presentation/views/order_list_view.dart';
 import '../../features/seller_promotions/presentation/views/flash_sale_detail_view.dart';
 import '../../features/seller_promotions/presentation/views/promotion_view.dart';
@@ -74,6 +79,24 @@ abstract class SellerRoutes {
   static const String orderDetail = '/seller/orders/:id';
 
   static String orderDetailPath(int orderId) => '/seller/orders/$orderId';
+
+  /// The Final Invoice — only for a completed order.
+  static const String orderInvoice = '/seller/orders/:id/invoice';
+
+  static String orderInvoicePath(int orderId) =>
+      '/seller/orders/$orderId/invoice';
+
+  /// Profile, vacation mode, private contacts (S-43).
+  static const String storeSettings = '/seller/store/settings';
+
+  /// Withdrawal PIN (S-44).
+  static const String security = '/seller/account/security';
+
+  /// Xpedia 911 — tickets to the platform (S-41, S-42).
+  static const String support = '/seller/support';
+  static const String supportTicket = '/seller/support/:id';
+
+  static String supportTicketPath(int ticketId) => '/seller/support/$ticketId';
 
   /// Where the store's earnings land, and the only route out of them.
   static const String wallet = '/seller/wallet';
@@ -166,6 +189,21 @@ final List<RouteBase> appRouterSeller = <RouteBase>[
     SellerRoutes.flashSaleDetail,
     (state) => FlashSaleDetailView(
       flashSaleId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+    ),
+  ),
+  _sellerRoute(SellerRoutes.storeSettings, const StoreSettingsView()),
+  _sellerRoute(SellerRoutes.security, const SecurityView()),
+  _sellerRoute(SellerRoutes.support, const SupportView()),
+  _sellerRouteBuilder(
+    SellerRoutes.supportTicket,
+    (state) => TicketDetailView(
+      ticketId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+    ),
+  ),
+  _sellerRouteBuilder(
+    SellerRoutes.orderInvoice,
+    (state) => OrderInvoiceView(
+      orderId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
     ),
   ),
   _sellerRouteBuilder(

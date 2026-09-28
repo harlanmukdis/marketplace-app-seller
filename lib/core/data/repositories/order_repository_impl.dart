@@ -22,24 +22,47 @@ class OrderRepositoryImpl with RepositoryGuard implements OrderRepository {
       guard(() => _service.getOrder(orderId));
 
   @override
-  Future<DataState<Order>> accept(int orderId) =>
-      guard(() => _service.accept(orderId));
-
-  @override
   Future<DataState<Order>> pack(int orderId) =>
       guard(() => _service.pack(orderId));
 
   @override
-  Future<DataState<Order>> ship(
+  Future<DataState<ShipOutcome>> ship(
     int orderId, {
     required String courierCode,
     required String awbNumber,
+    String handoverMethod = HandoverMethod.dropOff,
+    List<ShipmentEvidence> evidence = const <ShipmentEvidence>[],
   }) =>
-      guard(() => _service.ship(
-            orderId,
-            courierCode: courierCode,
-            awbNumber: awbNumber,
+      guard(() async => ShipOutcome(
+            sealCode: await _service.ship(
+              orderId,
+              courierCode: courierCode,
+              awbNumber: awbNumber,
+              handoverMethod: handoverMethod,
+              evidence: evidence,
+            ),
           ));
+
+  @override
+  Future<DataState<Order>> customConfirm(
+    int orderId, {
+    required int leadTimeDays,
+  }) =>
+      guard(() => _service.customConfirm(orderId, leadTimeDays: leadTimeDays));
+
+  @override
+  Future<DataState<Order>> proposePartialFulfillment(
+    int orderId, {
+    required List<int> unavailableItemIds,
+  }) =>
+      guard(() => _service.proposePartialFulfillment(
+            orderId,
+            unavailableItemIds: unavailableItemIds,
+          ));
+
+  @override
+  Future<DataState<OrderInvoice>> getInvoice(int orderId) =>
+      guard(() => _service.getInvoice(orderId));
 
   @override
   Future<DataState<Order>> cancel(int orderId, {required String reason}) =>
