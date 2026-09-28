@@ -213,8 +213,7 @@ class AnalyticsCubit extends Cubit<AnalyticsSnapshot> {
       loading: false,
       period: period,
       completed: completed,
-      segmentation:
-          seg is DataSuccess<CustomerSegmentation> ? seg.value : null,
+      segmentation: seg is DataSuccess<CustomerSegmentation> ? seg.value : null,
       mismatches: mis is DataSuccess<List<StockMismatchEvent>>
           ? mis.value
           : const <StockMismatchEvent>[],

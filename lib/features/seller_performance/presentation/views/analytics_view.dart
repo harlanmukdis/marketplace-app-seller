@@ -180,8 +180,7 @@ class _SalesCard extends StatelessWidget {
               label: 'Rata-rata Nilai Pesanan',
               value: formatRupiah(now.averageOrder),
               caption: _delta(now.averageOrder, before.averageOrder),
-              captionColor:
-                  tone(_delta(now.averageOrder, before.averageOrder)),
+              captionColor: tone(_delta(now.averageOrder, before.averageOrder)),
             ),
           ]),
         ],

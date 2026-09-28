@@ -62,6 +62,7 @@ class StoreRepositoryImpl with RepositoryGuard implements StoreRepository {
     bool? vacationMode,
     String? contactPhone,
     String? contactWhatsapp,
+    Map<String, dynamic>? operationalHours,
   }) =>
       guard(() => _service.updateSettings(
             storeId,
@@ -69,6 +70,7 @@ class StoreRepositoryImpl with RepositoryGuard implements StoreRepository {
             vacationMode: vacationMode,
             contactPhone: contactPhone,
             contactWhatsapp: contactWhatsapp,
+            operationalHours: operationalHours,
           ));
 
   @override

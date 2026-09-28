@@ -36,6 +36,8 @@ class _StoreSettingsViewState extends State<StoreSettingsView> {
   bool _loading = true;
   bool _saving = false;
   bool _vacation = false;
+  OperationalHours _hours = const OperationalHours();
+  bool _hoursSet = false;
   DataError? _error;
   Store? _store;
 
@@ -69,6 +71,9 @@ class _StoreSettingsViewState extends State<StoreSettingsView> {
       switch (result) {
         case DataSuccess<StoreSettings>(:final value):
           _vacation = value.vacationMode;
+          final parsed = OperationalHours.tryParse(value.operationalHours);
+          _hoursSet = parsed != null;
+          _hours = parsed ?? const OperationalHours();
           _phone.text = value.contactPhone ?? '';
           _whatsapp.text = value.contactWhatsapp ?? '';
         case DataFailed<StoreSettings>(:final failure):
@@ -94,6 +99,7 @@ class _StoreSettingsViewState extends State<StoreSettingsView> {
       vacationMode: _vacation,
       contactPhone: _phone.text.trim(),
       contactWhatsapp: _whatsapp.text.trim(),
+      operationalHours: _hoursSet ? _hours.toJson() : null,
     );
     if (!mounted) return;
     setState(() => _saving = false);
@@ -175,6 +181,13 @@ class _StoreSettingsViewState extends State<StoreSettingsView> {
                       ),
                     ),
                     const SizedBox(height: XSpace.cardGap),
+                    _HoursCard(
+                      hours: _hours,
+                      enabled: _hoursSet,
+                      onEnabled: (v) => setState(() => _hoursSet = v),
+                      onChanged: (h) => setState(() => _hours = h),
+                    ),
+                    const SizedBox(height: XSpace.cardGap),
                     XCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -243,6 +256,109 @@ class _StoreSettingsViewState extends State<StoreSettingsView> {
                 ),
               ),
             ),
+    );
+  }
+}
+
+/// "Jam Buka-Tutup Operasional" (S-43). Shown to buyers through Partners
+/// Performance.
+class _HoursCard extends StatelessWidget {
+  const _HoursCard({
+    required this.hours,
+    required this.enabled,
+    required this.onEnabled,
+    required this.onChanged,
+  });
+
+  final OperationalHours hours;
+  final bool enabled;
+  final ValueChanged<bool> onEnabled;
+  final ValueChanged<OperationalHours> onChanged;
+
+  Future<void> _pick(BuildContext context, {required bool open}) async {
+    final current = open ? hours.open : hours.close;
+    final parts = current.split(':');
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: int.tryParse(parts.first) ?? 8,
+        minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0,
+      ),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+        child: child!,
+      ),
+    );
+    if (picked == null) return;
+    String two(int n) => n.toString().padLeft(2, '0');
+    final value = '${two(picked.hour)}:${two(picked.minute)}';
+    onChanged(open ? hours.copyWith(open: value) : hours.copyWith(close: value));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return XCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            value: enabled,
+            onChanged: onEnabled,
+            title: Text('Jam Operasional', style: XText.titleL),
+            subtitle: Text(
+              'Tampil ke pembeli di Partners Performance.',
+              style: XText.bodyS,
+            ),
+          ),
+          if (enabled) ...<Widget>[
+            const SizedBox(height: XSpace.s8),
+            Wrap(
+              spacing: XSpace.s6,
+              runSpacing: XSpace.s6,
+              children: <Widget>[
+                for (final d in OperationalHours.week)
+                  FilterChip(
+                    label: Text(OperationalHours.dayLabel(d)),
+                    selected: hours.days.contains(d),
+                    showCheckmark: false,
+                    selectedColor: XColors.brandSubtle,
+                    labelStyle: XText.labelM.copyWith(
+                      color: hours.days.contains(d)
+                          ? XColors.primary
+                          : XColors.textSecondary,
+                    ),
+                    onSelected: (on) => onChanged(hours.copyWith(
+                      days: on
+                          ? <String>[...hours.days, d]
+                          : hours.days.where((x) => x != d).toList(),
+                    )),
+                  ),
+              ],
+            ),
+            const SizedBox(height: XSpace.s12),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: XButton.secondary(
+                    label: 'Buka ${hours.open}',
+                    icon: Icons.schedule_rounded,
+                    onPressed: () => _pick(context, open: true),
+                  ),
+                ),
+                const SizedBox(width: XSpace.s8),
+                Expanded(
+                  child: XButton.secondary(
+                    label: 'Tutup ${hours.close}',
+                    icon: Icons.schedule_rounded,
+                    onPressed: () => _pick(context, open: false),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

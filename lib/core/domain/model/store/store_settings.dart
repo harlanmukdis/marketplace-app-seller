@@ -74,3 +74,64 @@ class StoreSettings {
         contactWhatsapp: asStringOrNull(json['contact_whatsapp']),
       );
 }
+
+/// The shape this app writes into `store_settings.operational_hours`.
+///
+/// The server stores whatever JSON it is sent and defines no format, and the
+/// Partners Performance payload echoes it back as-is — so the app fixes one:
+/// `{"open": "08:00", "close": "22:00", "days": ["mon", ...]}`.
+class OperationalHours {
+  const OperationalHours({
+    this.open = '08:00',
+    this.close = '21:00',
+    this.days = const <String>['mon', 'tue', 'wed', 'thu', 'fri', 'sat'],
+  });
+
+  static const List<String> week = <String>[
+    'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',
+  ];
+
+  static String dayLabel(String d) => switch (d) {
+        'mon' => 'Sen',
+        'tue' => 'Sel',
+        'wed' => 'Rab',
+        'thu' => 'Kam',
+        'fri' => 'Jum',
+        'sat' => 'Sab',
+        'sun' => 'Min',
+        _ => d,
+      };
+
+  final String open;
+  final String close;
+  final List<String> days;
+
+  /// Null when nothing is set or the stored value is some other shape.
+  static OperationalHours? tryParse(Map<String, dynamic>? json) {
+    if (json == null) return null;
+    final open = json['open'];
+    final close = json['close'];
+    if (open is! String || close is! String) return null;
+    final days = json['days'];
+    return OperationalHours(
+      open: open,
+      close: close,
+      days: days is List
+          ? days.whereType<String>().where(week.contains).toList()
+          : week,
+    );
+  }
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'open': open,
+        'close': close,
+        'days': <String>[for (final d in week) if (days.contains(d)) d],
+      };
+
+  OperationalHours copyWith({String? open, String? close, List<String>? days}) =>
+      OperationalHours(
+        open: open ?? this.open,
+        close: close ?? this.close,
+        days: days ?? this.days,
+      );
+}

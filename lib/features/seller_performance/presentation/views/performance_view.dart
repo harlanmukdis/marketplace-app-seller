@@ -27,44 +27,53 @@ class PerformanceView extends StatelessWidget {
           appBar: const XAppBar(title: 'Partners Performance'),
           body: s.loading
               ? const LoadingIndicatorView()
-              : s.performance == null
-                  ? ErrorStateView(
-                      error: s.error!,
-                      onRetry: PerformanceCubit.get(context).load,
+              : s.performance == null && s.error?.code == 'STORE_NOT_FOUND'
+                  // The endpoint is the public profile: it answers 404 for a
+                  // store that is not active yet, even to its owner.
+                  ? const XEmptyState(
+                      icon: Icons.verified_outlined,
+                      title: 'Performa tersedia setelah toko aktif',
+                      message: 'Partners Performance dihitung untuk toko '
+                          'yang sudah lolos verifikasi.',
                     )
-                  : RefreshIndicator(
-                      onRefresh: PerformanceCubit.get(context).load,
-                      child: ListView(
-                        padding: const EdgeInsets.all(XSpace.screen),
-                        children: <Widget>[
-                          Row(
+                  : s.performance == null
+                      ? ErrorStateView(
+                          error: s.error!,
+                          onRetry: PerformanceCubit.get(context).load,
+                        )
+                      : RefreshIndicator(
+                          onRefresh: PerformanceCubit.get(context).load,
+                          child: ListView(
+                            padding: const EdgeInsets.all(XSpace.screen),
                             children: <Widget>[
-                              Icon(Icons.info_outline,
-                                  size: 14, color: XColors.textTertiary),
-                              const SizedBox(width: XSpace.s6),
-                              Expanded(
-                                child: Text(
-                                  'Angka dihitung sepanjang waktu toko. '
-                                  'Skor & tier diperbarui setiap malam.',
-                                  style: XText.caption,
-                                ),
+                              Row(
+                                children: <Widget>[
+                                  Icon(Icons.info_outline,
+                                      size: 14, color: XColors.textTertiary),
+                                  const SizedBox(width: XSpace.s6),
+                                  Expanded(
+                                    child: Text(
+                                      'Angka dihitung sepanjang waktu toko. '
+                                      'Skor & tier diperbarui setiap malam.',
+                                      style: XText.caption,
+                                    ),
+                                  ),
+                                ],
                               ),
+                              const SizedBox(height: XSpace.s12),
+                              _StatusCard(tier: s.tier, health: s.health),
+                              const SizedBox(height: XSpace.cardGap),
+                              _RatingCard(rating: s.performance!.rating),
+                              const SizedBox(height: XSpace.cardGap),
+                              _OrderCard(orders: s.performance!.orders),
+                              const SizedBox(height: XSpace.cardGap),
+                              _ServiceCard(service: s.performance!.service),
+                              const SizedBox(height: XSpace.cardGap),
+                              _LiveCard(live: s.performance!.live),
+                              const SizedBox(height: XSpace.s24),
                             ],
                           ),
-                          const SizedBox(height: XSpace.s12),
-                          _StatusCard(tier: s.tier, health: s.health),
-                          const SizedBox(height: XSpace.cardGap),
-                          _RatingCard(rating: s.performance!.rating),
-                          const SizedBox(height: XSpace.cardGap),
-                          _OrderCard(orders: s.performance!.orders),
-                          const SizedBox(height: XSpace.cardGap),
-                          _ServiceCard(service: s.performance!.service),
-                          const SizedBox(height: XSpace.cardGap),
-                          _LiveCard(live: s.performance!.live),
-                          const SizedBox(height: XSpace.s24),
-                        ],
-                      ),
-                    ),
+                        ),
         ),
       ),
     );
@@ -218,8 +227,8 @@ class _StatusCard extends StatelessWidget {
               color: XColors.primary,
               borderRadius: BorderRadius.circular(XRadius.md),
             ),
-            child: const Icon(Icons.verified_outlined,
-                color: XColors.textOnBrand),
+            child:
+                const Icon(Icons.verified_outlined, color: XColors.textOnBrand),
           ),
           const SizedBox(width: XSpace.s12),
           Expanded(
@@ -249,7 +258,8 @@ class _StatusCard extends StatelessWidget {
                         text: score == null ? '–' : score.toStringAsFixed(0),
                         style: XText.headingL,
                       ),
-                      TextSpan(text: ' / 100 skor kesehatan', style: XText.bodyS),
+                      TextSpan(
+                          text: ' / 100 skor kesehatan', style: XText.bodyS),
                     ],
                   ),
                 ),
@@ -302,7 +312,9 @@ class _RatingCard extends StatelessWidget {
                   Text(
                     rating.totalReviews == 0
                         ? '–'
-                        : rating.average.toStringAsFixed(1).replaceAll('.', ','),
+                        : rating.average
+                            .toStringAsFixed(1)
+                            .replaceAll('.', ','),
                     style: XText.headingXL,
                   ),
                   Row(
@@ -338,12 +350,10 @@ class _RatingCard extends StatelessWidget {
                           const SizedBox(width: XSpace.s6),
                           Expanded(
                             child: ClipRRect(
-                              borderRadius:
-                                  BorderRadius.circular(XRadius.full),
+                              borderRadius: BorderRadius.circular(XRadius.full),
                               child: LinearProgressIndicator(
-                                value: max == 0
-                                    ? 0
-                                    : rating.countOf(star) / max,
+                                value:
+                                    max == 0 ? 0 : rating.countOf(star) / max,
                                 minHeight: 6,
                                 backgroundColor: XColors.brandSubtle,
                                 color: XColors.primary,
@@ -500,7 +510,8 @@ class _LiveCard extends StatelessWidget {
         TileGrid(tiles: <Widget>[
           StatTile(
             label: 'Total Jam Live',
-            value: '${hours.toStringAsFixed(hours < 10 ? 1 : 0).replaceAll('.', ',')} jam',
+            value:
+                '${hours.toStringAsFixed(hours < 10 ? 1 : 0).replaceAll('.', ',')} jam',
           ),
           StatTile(label: 'Jumlah Sesi', value: '${live.sessions} sesi'),
           StatTile(

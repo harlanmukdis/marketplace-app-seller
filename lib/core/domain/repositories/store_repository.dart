@@ -35,6 +35,7 @@ abstract class StoreRepository {
     bool? vacationMode,
     String? contactPhone,
     String? contactWhatsapp,
+    Map<String, dynamic>? operationalHours,
   });
 
   /// Uploads a file and returns a URL usable by the rest of the API.
