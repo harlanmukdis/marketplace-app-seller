@@ -23,6 +23,7 @@ import '../../features/seller_performance/presentation/views/analytics_view.dart
 import '../../features/seller_performance/presentation/views/performance_view.dart';
 import '../../features/seller_reviews/presentation/views/review_view.dart';
 import '../../features/seller_orders/presentation/views/order_invoice_view.dart';
+import '../../features/seller_staff/presentation/views/staff_view.dart';
 import '../../features/seller_store/presentation/views/store_settings_view.dart';
 import '../../features/seller_support/presentation/views/support_view.dart';
 import '../../features/seller_support/presentation/views/ticket_detail_view.dart';
@@ -108,6 +109,9 @@ abstract class SellerRoutes {
   /// Partners Performance (S-35) and Analytics (S-33).
   static const String performance = '/seller/performance';
   static const String analytics = '/seller/analytics';
+
+  /// Store staff and roles.
+  static const String staff = '/seller/staff';
 
   /// Live selling (S-36).
   static const String live = '/seller/live';
@@ -224,6 +228,7 @@ final List<RouteBase> appRouterSeller = <RouteBase>[
   _sellerRoute(SellerRoutes.analytics, const AnalyticsView()),
   _sellerRoute(SellerRoutes.reviews, const ReviewView()),
   _sellerRoute(SellerRoutes.live, const LiveListView()),
+  _sellerRoute(SellerRoutes.staff, const StaffView()),
   _sellerRouteBuilder(
     SellerRoutes.liveSession,
     (state) => LiveSessionView(

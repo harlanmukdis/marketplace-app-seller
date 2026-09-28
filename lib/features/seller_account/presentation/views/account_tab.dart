@@ -115,6 +115,7 @@ class AccountTab extends StatelessWidget {
                   SellerRoutes.warehouses),
               row(Icons.local_shipping_outlined, 'Kurir Aktif',
                   SellerRoutes.couriers),
+              row(Icons.groups_outlined, 'Staf & Peran', SellerRoutes.staff),
             ]),
             group('Penjualan', <Widget>[
               row(Icons.local_offer_outlined, 'Campaign & Promo',

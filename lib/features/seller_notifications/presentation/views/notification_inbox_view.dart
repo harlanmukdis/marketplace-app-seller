@@ -3,7 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/route/app_route_seller.dart';
+import '../../../../core/data_state.dart';
 import '../../../../core/domain/model/notification/app_notification.dart';
+import '../../../../core/domain/repositories/staff_repository.dart';
+import '../../../../di/injector.dart';
 import '../../../../core/function/custom_app_bar.dart';
 import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
@@ -44,12 +47,51 @@ class _NotificationInboxBody extends StatelessWidget {
     if (!notification.isRead) await cubit.markRead(notification.id);
     if (!context.mounted) return;
 
-    // The only row that leads anywhere today. `order_new` carries the id in
-    // its `data`, which is what makes it more than an announcement.
+    // `order_new` carries the order id; `staff_invitation` carries the token
+    // that joins the inviting store.
     final orderId = notification.orderId;
     if (orderId != null) {
       await context.push(SellerRoutes.orderDetailPath(orderId));
+      return;
     }
+    final token = notification.invitationToken;
+    if (token != null) await _acceptInvitation(context, token);
+  }
+
+  Future<void> _acceptInvitation(BuildContext context, String token) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Terima undangan staf?'),
+        content: const Text(
+          'Anda akan bergabung sebagai staf toko ini dengan peran yang '
+          'ditetapkan pemiliknya.',
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Nanti'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Terima'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    final result = await injector<StaffRepository>().acceptInvitation(token);
+    if (!context.mounted) return;
+    if (result is DataFailed<void>) {
+      showErrorSnackBar(context, result.failure);
+      return;
+    }
+    // GET /stores lists only stores the account *owns*, so the store just
+    // joined cannot be opened from this app yet — say so rather than imply it.
+    showSuccessSnackBar(
+      context,
+      'Undangan diterima. Membuka toko sebagai staf belum didukung server.',
+    );
   }
 
   @override

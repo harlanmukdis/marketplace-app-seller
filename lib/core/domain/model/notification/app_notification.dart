@@ -52,6 +52,9 @@ class AppNotification {
   String? get orderNumber => asStringOrNull(data['order_number']);
 
   bool get isAboutOrder => orderId != null;
+
+  /// Present on `staff_invitation`: accepting it joins the inviting store.
+  String? get invitationToken => asStringOrNull(data['invitation_token']);
 }
 
 /// The `type` values a seller actually sees.

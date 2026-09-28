@@ -365,6 +365,10 @@ abstract class ApiEndpoints {
   static String chatPoll(int conversationId) =>
       '/chat/conversations/$conversationId/poll';
 
+  // ------------------------------------------------------------ Staff
+  static String staffInvitationAccept(String token) =>
+      '/staff/invitations/$token/accept';
+
   // -------------------------------------------------- Reviews & notifications
   static String productReviews(int productId) => '/products/$productId/reviews';
   static String reviewReply(int reviewId) => '/reviews/$reviewId/reply';
