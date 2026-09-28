@@ -359,6 +359,7 @@ abstract class ApiEndpoints {
   // -------------------------------------------------- Reviews & notifications
   static String productReviews(int productId) => '/products/$productId/reviews';
   static String reviewReply(int reviewId) => '/reviews/$reviewId/reply';
+  static String reviewReport(int reviewId) => '/reviews/$reviewId/report';
 
   static const String notifications = '/me/notifications';
   static String notificationRead(int notificationId) =>

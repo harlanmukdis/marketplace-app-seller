@@ -125,6 +125,8 @@ class AccountTab extends StatelessWidget {
                   SellerRoutes.analytics),
               row(Icons.verified_outlined, 'Partners Performance',
                   SellerRoutes.performance),
+              row(Icons.rate_review_outlined, 'Ulasan Produk',
+                  SellerRoutes.reviews),
               row(Icons.shelves, 'Etalase & Bundel',
                   SellerRoutes.merchandising),
             ]),

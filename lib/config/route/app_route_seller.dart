@@ -19,6 +19,7 @@ import '../../features/seller_growth/presentation/views/growth_view.dart';
 import '../../features/seller_orders/presentation/views/order_detail_view.dart';
 import '../../features/seller_performance/presentation/views/analytics_view.dart';
 import '../../features/seller_performance/presentation/views/performance_view.dart';
+import '../../features/seller_reviews/presentation/views/review_view.dart';
 import '../../features/seller_orders/presentation/views/order_invoice_view.dart';
 import '../../features/seller_store/presentation/views/store_settings_view.dart';
 import '../../features/seller_support/presentation/views/support_view.dart';
@@ -105,6 +106,9 @@ abstract class SellerRoutes {
   /// Partners Performance (S-35) and Analytics (S-33).
   static const String performance = '/seller/performance';
   static const String analytics = '/seller/analytics';
+
+  /// Product reviews across the store (S-37).
+  static const String reviews = '/seller/reviews';
 
   /// Xpedia 911 — tickets to the platform (S-41, S-42).
   static const String support = '/seller/support';
@@ -210,6 +214,7 @@ final List<RouteBase> appRouterSeller = <RouteBase>[
   _sellerRoute(SellerRoutes.support, const SupportView()),
   _sellerRoute(SellerRoutes.performance, const PerformanceView()),
   _sellerRoute(SellerRoutes.analytics, const AnalyticsView()),
+  _sellerRoute(SellerRoutes.reviews, const ReviewView()),
   _sellerRoute(SellerRoutes.growth, const GrowthView()),
   _sellerRouteBuilder(
     SellerRoutes.growthProduct,
