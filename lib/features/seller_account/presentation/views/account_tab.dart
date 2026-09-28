@@ -119,6 +119,8 @@ class AccountTab extends StatelessWidget {
             group('Penjualan', <Widget>[
               row(Icons.local_offer_outlined, 'Campaign & Promo',
                   SellerRoutes.promotions),
+              row(Icons.trending_up_rounded, 'Xpedia Growth',
+                  SellerRoutes.growth),
               row(Icons.shelves, 'Etalase & Bundel',
                   SellerRoutes.merchandising),
             ]),

@@ -4,15 +4,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/route/app_route_seller.dart';
 import '../../../../core/domain/model/catalog/product.dart';
-import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
-import '../../../../core/utils/constant.dart';
-import '../../../../core/utils/extensions.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 import '../../../../core/widgets/state_widgets.dart';
+import '../../../../core/widgets/xpedia/x_widgets.dart';
+import '../../../seller_store/presentation/cubits/store_cubit/store_cubit.dart';
 import '../cubits/product_list_cubit/product_list_cubit.dart';
 import 'widgets/product_card.dart';
 
-/// The active store's catalogue.
+/// "Daftar Produk" (S-26) — also the Produk tab of the shell.
 class ProductListView extends StatelessWidget {
   const ProductListView({super.key});
 
@@ -32,7 +31,8 @@ class _ProductListBody extends StatelessWidget {
     final next =
         product.isActive ? ProductStatus.inactive : ProductStatus.active;
 
-    final error = await ProductListCubit.get(context).setStatus(product.id, next);
+    final error =
+        await ProductListCubit.get(context).setStatus(product.id, next);
     if (!context.mounted) return;
 
     if (error != null) {
@@ -42,7 +42,7 @@ class _ProductListBody extends StatelessWidget {
     showSuccessSnackBar(
       context,
       next == ProductStatus.active
-          ? '"${product.name}" sudah terbit.'
+          ? '"${product.name}" sudah tayang.'
           : '"${product.name}" dinonaktifkan.',
     );
   }
@@ -63,45 +63,66 @@ class _ProductListBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final storeState = context.watch<StoreCubit>().state;
+    final store =
+        storeState is StoreLoadSuccess ? storeState.activeStore : null;
+
     return Scaffold(
-      appBar: customAppBar(context, 'Produk'),
+      backgroundColor: XColors.canvas,
+      appBar: XAppBar(
+        title: 'Produk',
+        subtitle: store?.name,
+        actions: <Widget>[
+          XIconAction(
+            icon: Icons.trending_up_rounded,
+            tooltip: 'Xpedia Growth',
+            onPressed: () => context.push(SellerRoutes.growth),
+          ),
+        ],
+      ),
       floatingActionButton: BlocBuilder<ProductListCubit, ProductListState>(
         builder: (context, state) => state is ProductListNoStore
             ? const SizedBox.shrink()
             : FloatingActionButton.extended(
+                backgroundColor: XColors.primary,
+                foregroundColor: XColors.textOnBrand,
                 onPressed: () => _openForm(context),
                 icon: const Icon(Icons.add),
-                label: const Text('Produk'),
+                label: const Text('Tambah Produk'),
               ),
       ),
-      body: SafeArea(
-        child: BlocBuilder<ProductListCubit, ProductListState>(
-          builder: (context, state) => switch (state) {
-            ProductListInProgress() => const LoadingIndicatorView(),
-            ProductListNoStore() => const EmptyStateView(
-                icon: Icons.storefront_outlined,
-                message: 'Pilih toko dulu untuk melihat produknya.',
-              ),
-            ProductListFailure(:final error) => ErrorStateView(
-                error: error,
-                onRetry: () => ProductListCubit.get(context).load(),
-              ),
-            ProductListSuccess() => _content(context, state),
-          },
-        ),
+      body: BlocBuilder<ProductListCubit, ProductListState>(
+        builder: (context, state) => switch (state) {
+          ProductListInProgress() => const LoadingIndicatorView(),
+          ProductListNoStore() => XEmptyState(
+              icon: Icons.storefront_outlined,
+              title: 'Belum ada toko yang dipilih',
+              actionLabel: 'Pilih toko',
+              onAction: () => context.push(SellerRoutes.storePicker),
+            ),
+          ProductListFailure(:final error) => ErrorStateView(
+              error: error,
+              onRetry: () => ProductListCubit.get(context).load(),
+            ),
+          ProductListSuccess() => _content(context, state, store?.skuQuota),
+        },
       ),
     );
   }
 
-  Widget _content(BuildContext context, ProductListSuccess state) {
+  Widget _content(
+    BuildContext context,
+    ProductListSuccess state,
+    int? skuQuota,
+  ) {
+    final cubit = ProductListCubit.get(context);
     if (state.isEmpty) {
-      return EmptyStateView(
+      return XEmptyState(
         icon: Icons.inventory_2_outlined,
-        message: 'Belum ada produk di toko ini.',
-        action: FilledButton(
-          onPressed: () => _openForm(context),
-          child: const Text('Tambah produk'),
-        ),
+        title: 'Belum ada produk',
+        message: 'Produk baru dibuat sebagai draf, lalu ditayangkan.',
+        actionLabel: 'Tambah produk',
+        onAction: () => _openForm(context),
       );
     }
 
@@ -109,37 +130,80 @@ class _ProductListBody extends StatelessWidget {
 
     return Column(
       children: <Widget>[
-        _FilterBar(state: state),
-        if (state.draftCount > 0) _DraftHint(count: state.draftCount),
+        _Tabs(state: state),
         Expanded(
           child: RefreshIndicator(
-            onRefresh: () => ProductListCubit.get(context).load(),
-            child: visible.isEmpty
-                ? ListView(
-                    children: <Widget>[
-                      SizedBox(height: context.screenHeight * 0.2),
-                      EmptyStateView(
-                        message:
-                            'Tidak ada produk berstatus "${state.filter.label}".',
+            onRefresh: cubit.load,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                XSpace.screen,
+                XSpace.s12,
+                XSpace.screen,
+                96,
+              ),
+              children: <Widget>[
+                if (skuQuota != null) ...<Widget>[
+                  _CapacityCard(used: state.products.length, quota: skuQuota),
+                  const SizedBox(height: XSpace.cardGap),
+                ],
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextField(
+                        onChanged: cubit.search,
+                        style: XText.bodyM,
+                        decoration: const InputDecoration(
+                          hintText: 'Cari nama produk',
+                          prefixIcon: Icon(Icons.search_rounded),
+                          isDense: true,
+                        ),
                       ),
-                    ],
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
-                    itemCount: visible.length,
-                    separatorBuilder: (_, __) => 12.sbh,
-                    itemBuilder: (context, index) {
-                      final product = visible[index];
-                      return ProductCard(
-                        product: product,
-                        onTap: () =>
-                            _openForm(context, productId: product.id),
-                        onToggleStatus: product.status == ProductStatus.archived
-                            ? null
-                            : () => _toggle(context, product),
-                      );
-                    },
+                    ),
+                    const SizedBox(width: XSpace.s8),
+                    _ModeFilter(
+                      value: state.mode,
+                      onChanged: cubit.setMode,
+                    ),
+                  ],
+                ),
+                if (state.draftCount > 0 &&
+                    state.filter != ProductStatusFilter.draft) ...<Widget>[
+                  const SizedBox(height: XSpace.cardGap),
+                  XBanner(
+                    tone: XTone.warning,
+                    message: '${state.draftCount} produk masih draf dan belum '
+                        'terlihat pembeli. Tayangkan supaya bisa dijual.',
                   ),
+                ],
+                const SizedBox(height: XSpace.cardGap),
+                if (visible.isEmpty)
+                  const XEmptyState(
+                    icon: Icons.filter_alt_off_outlined,
+                    title: 'Tidak ada produk yang cocok',
+                    message: 'Ubah tab, mode stok, atau kata kunci.',
+                  )
+                else
+                  for (final product in visible) ...<Widget>[
+                    ProductCard(
+                      product: product,
+                      onTap: () => _openForm(context, productId: product.id),
+                      onToggleStatus: product.status == ProductStatus.archived
+                          ? null
+                          : () => _toggle(context, product),
+                    ),
+                    const SizedBox(height: XSpace.cardGap),
+                  ],
+                Padding(
+                  padding: const EdgeInsets.only(top: XSpace.s4),
+                  child: Text(
+                    'Menampilkan ${visible.length} dari '
+                    '${state.products.length} produk',
+                    textAlign: TextAlign.center,
+                    style: XText.caption,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -147,59 +211,154 @@ class _ProductListBody extends StatelessWidget {
   }
 }
 
-class _FilterBar extends StatelessWidget {
-  const _FilterBar({required this.state});
+class _Tabs extends StatelessWidget {
+  const _Tabs({required this.state});
 
   final ProductListSuccess state;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      child: ListView.separated(
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: XColors.surface,
+        border: Border(bottom: BorderSide(color: XColors.borderSubtle)),
+      ),
+      child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        itemCount: ProductStatusFilter.values.length,
-        separatorBuilder: (_, __) => 8.sbw,
-        itemBuilder: (context, index) {
-          final filter = ProductStatusFilter.values[index];
-          return ChoiceChip(
-            label: Text(filter.label),
-            selected: state.filter == filter,
-            onSelected: (_) => ProductListCubit.get(context).setFilter(filter),
-          );
-        },
+        padding: const EdgeInsets.symmetric(horizontal: XSpace.s8),
+        children: <Widget>[
+          for (final f in ProductStatusFilter.values)
+            InkWell(
+              onTap: () => ProductListCubit.get(context).setFilter(f),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: XSpace.s12),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: f == state.filter
+                          ? XColors.primary
+                          : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Text(
+                      f.label,
+                      style: XText.labelL.copyWith(
+                        color: f == state.filter
+                            ? XColors.primary
+                            : XColors.textSecondary,
+                        fontWeight: f == state.filter
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: XSpace.s6),
+                    Text('${state.countOf(f)}', style: XText.caption),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
 }
 
-/// A draft is invisible to buyers, and nothing on the server ever says so.
-class _DraftHint extends StatelessWidget {
-  const _DraftHint({required this.count});
+class _ModeFilter extends StatelessWidget {
+  const _ModeFilter({required this.value, required this.onChanged});
 
-  final int count;
+  final String? value;
+  final ValueChanged<String?> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      padding: 12.pa,
-      decoration: BoxDecoration(
-        color: kWarningColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+    return PopupMenuButton<String>(
+      tooltip: 'Mode stok',
+      onSelected: (v) => onChanged(v.isEmpty ? null : v),
+      itemBuilder: (_) => <PopupMenuEntry<String>>[
+        const PopupMenuItem<String>(value: '', child: Text('Semua Mode Stok')),
+        for (final m in FulfillmentMode.settable)
+          PopupMenuItem<String>(value: m, child: Text(StockMode.label(m))),
+      ],
+      child: Container(
+        height: XSize.controlMedium,
+        padding: const EdgeInsets.symmetric(horizontal: XSpace.s12),
+        decoration: BoxDecoration(
+          color: value == null ? XColors.surface : XColors.brandSubtle,
+          borderRadius: BorderRadius.circular(XRadius.md),
+          border: Border.all(
+            color: value == null ? XColors.borderDefault : XColors.primary,
+          ),
+        ),
+        child: Row(
+          children: <Widget>[
+            Icon(Icons.tune_rounded,
+                size: 18,
+                color: value == null ? XColors.textPrimary : XColors.primary),
+            const SizedBox(width: XSpace.s4),
+            Text(
+              value == null ? 'Mode' : StockMode.label(value!),
+              style: XText.labelM,
+            ),
+          ],
+        ),
       ),
-      child: Row(
+    );
+  }
+}
+
+/// "Kapasitas Katalog Toko" — only when the store has a quota (500 once a
+/// business verification is approved; unlimited, and hidden, otherwise).
+/// The count includes drafts and inactive products, as the server's does.
+class _CapacityCard extends StatelessWidget {
+  const _CapacityCard({required this.used, required this.quota});
+
+  final int used;
+  final int quota;
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = quota == 0 ? 1.0 : (used / quota).clamp(0.0, 1.0);
+    final full = used >= quota;
+    return XCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          const Icon(Icons.info_outline_rounded, size: 18, color: kWarningColor),
-          8.sbw,
-          Expanded(
-            child: Text(
-              '$count produk masih draf dan belum terlihat pembeli. '
-              'Terbitkan supaya bisa dijual.',
-              style: AppStyles.styleRegular12(context),
+          Row(
+            children: <Widget>[
+              Icon(Icons.inventory_outlined,
+                  size: 20, color: XColors.textSecondary),
+              const SizedBox(width: XSpace.s8),
+              Expanded(
+                  child: Text('Kapasitas Katalog Toko', style: XText.titleM)),
+              Text('$used / $quota SKU',
+                  style: XText.labelM.copyWith(
+                    color: full ? XColors.danger : XColors.textPrimary,
+                  )),
+            ],
+          ),
+          const SizedBox(height: XSpace.s8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(XRadius.full),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 6,
+              backgroundColor: XColors.sunken,
+              color: full ? XColors.danger : XColors.primary,
             ),
           ),
+          if (full) ...<Widget>[
+            const SizedBox(height: XSpace.s8),
+            Text(
+              'Kuota penuh — produk baru ditolak. Ajukan tambahan kapasitas '
+              'lewat Xpedia 911.',
+              style: XText.bodyS.copyWith(color: XColors.danger),
+            ),
+          ],
         ],
       ),
     );

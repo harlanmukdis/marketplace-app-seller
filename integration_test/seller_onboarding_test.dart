@@ -332,5 +332,77 @@ void main() {
     // The trap worth guarding: a draft can be added and then never appears.
     expect(find.textContaining('Hanya produk aktif yang tampil'),
         findsOneWidget);
+
+    // ------------------------------------------- product with two variants
+    // S-27's create chain: one POST makes the product *and* a generated
+    // variant; the form turns that into the first row and adds the rest.
+    // Proving it means reading the product back from the server.
+    await back(tester);
+    await pumpUntil(tester, find.text('Etalase E2E'));
+    await back(tester);
+    // Back on the shell, where the bottom navigation is the only 'Akun'.
+    await pumpUntil(tester, find.text('Akun'));
+    await tester.tap(find.text('Produk').last);
+    await tester.pump(const Duration(milliseconds: 400));
+    // The product list's own FAB, not a stale one from a screen just popped.
+    final addProduct =
+        find.widgetWithText(FloatingActionButton, 'Tambah Produk');
+    await pumpUntil(tester, addProduct);
+    await tester.tap(addProduct);
+    await pumpUntil(tester, find.text('Informasi Produk'));
+
+    final productName = 'Kaos E2E $stamp';
+    final productFields = find.byType(TextFormField);
+    await tester.enterText(productFields.at(0), productName); // Nama Produk
+    await tester.pump();
+
+    await tapText(tester, 'Pilih kategori');
+    await pumpUntil(tester, find.text('Kategori Produk'));
+    await tester.tap(find.byType(ListTile).first);
+    await tester.pumpAndSettle();
+
+    // Price of the first row, before variants copy it.
+    await tester.enterText(productFields.at(1), '75000');
+    await tester.pump();
+
+    Future<void> addVariant(String value) async {
+      await tapText(tester, 'Tambah');
+      await pumpUntil(tester, find.byType(AlertDialog));
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextField),
+        ),
+        value,
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Simpan'));
+      await tester.pumpAndSettle();
+    }
+
+    await addVariant('Merah');
+    await addVariant('Biru');
+    expect(find.text('Merah'), findsWidgets);
+    expect(find.text('Biru'), findsWidgets);
+
+    // Further down the lazy form; scroll to it and find it by its suffix.
+    await tester.scrollUntilVisible(find.textContaining('Berat Paket'), 300,
+        scrollable: find.byType(Scrollable).first);
+    await tester.enterText(find.widgetWithText(TextFormField, 'Gram'), '250');
+    await tester.pump();
+
+    await tester.tap(find.text('Simpan Draf'));
+    await pumpUntil(tester, find.text(productName),
+        timeout: const Duration(seconds: 40));
+
+    // Read back: two variant cards, no phantom generated one.
+    await tester.tap(find.text(productName));
+    await pumpUntil(tester, find.text('Informasi Produk'));
+    final form = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(find.text('Varian Produk'), 300,
+        scrollable: form);
+    await tester.scrollUntilVisible(find.text('Biru'), 200, scrollable: form);
+    expect(find.text('Merah'), findsWidgets);
+    expect(find.text('Varian utama'), findsNothing,
+        reason: 'the generated default must have become "Merah"');
   }, timeout: const Timeout(Duration(minutes: 8)));
 }

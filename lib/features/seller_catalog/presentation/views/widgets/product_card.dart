@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/domain/model/catalog/product.dart';
-import '../../../../../core/utils/app_styles.dart';
-import '../../../../../core/utils/constant.dart';
-import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
+import '../../../../../core/widgets/xpedia/x_widgets.dart';
 
-/// One row of the catalogue.
+/// One row of the catalogue (S-26).
 ///
-/// There is no image: `GET /stores/{id}/products` carries none, and the only
-/// image a product can have lives on a variant that the list payload does not
-/// include. A per-row detail call to fetch one would be an N+1 for decoration.
+/// There is no image and no stock count: `GET /stores/{id}/products` carries
+/// neither, and a per-row detail call would be an N+1 for decoration. The
+/// stock chip therefore shows the configured mode; the live split into Low
+/// Stock / Stok Kosong appears on the product's own screen.
 class ProductCard extends StatelessWidget {
   const ProductCard({
     super.key,
@@ -28,111 +28,162 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    final compareAt = product.compareAtPrice;
+    return XCard(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: 16.pa,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: kLightThirdColor.withValues(alpha: 0.22)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: XColors.sunken,
+                  borderRadius: BorderRadius.circular(XRadius.md),
+                ),
+                child: Icon(Icons.inventory_2_outlined,
+                    color: XColors.textTertiary),
+              ),
+              const SizedBox(width: XSpace.s12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      product.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: XText.titleM,
+                    ),
+                    const SizedBox(height: XSpace.s4),
+                    Row(
+                      children: <Widget>[
+                        Text(formatRupiah(product.effectivePrice),
+                            style: XText.priceM),
+                        if (compareAt != null &&
+                            compareAt > product.effectivePrice) ...<Widget>[
+                          const SizedBox(width: XSpace.s6),
+                          Text(
+                            formatRupiah(compareAt),
+                            style: XText.caption.copyWith(
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              ProductStatusPill(status: product.status),
+            ],
+          ),
+          const SizedBox(height: XSpace.s12),
+          Wrap(
+            spacing: XSpace.s6,
+            runSpacing: XSpace.s6,
+            children: <Widget>[
+              StockModeChip(
+                mode: product.stockMode,
+                leadTimeDays: product.fulfillmentLeadTimeDays,
+              ),
+              if (product.isGrowthActive)
+                XChip(
+                  label: 'Growth '
+                      '${product.growthCommissionPercent.toStringAsFixed(0)}%',
+                  tone: XTone.info,
+                  icon: Icons.trending_up_rounded,
+                ),
+              if (product.flashSale != null)
+                const XChip(
+                  label: 'Flash Sale',
+                  tone: XTone.danger,
+                  icon: Icons.bolt_rounded,
+                ),
+              if (product.soldCount > 0)
+                XChip(label: '${product.soldCount} terjual'),
+            ],
+          ),
+          if (onToggleStatus != null) ...<Widget>[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: XSpace.s12),
+              child: Divider(height: 1, color: XColors.borderSubtle),
+            ),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Expanded(
                   child: Text(
-                    product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppStyles.styleMedium14(context),
-                  ),
-                ),
-                8.sbw,
-                ProductStatusPill(status: product.status),
-              ],
-            ),
-            8.sbh,
-            Row(
-              children: <Widget>[
-                Text(
-                  formatRupiah(product.basePrice),
-                  style: AppStyles.styleSemiBold16(context),
-                ),
-                if (product.compareAtPrice != null &&
-                    product.compareAtPrice! > product.basePrice) ...<Widget>[
-                  8.sbw,
-                  Text(
-                    formatRupiah(product.compareAtPrice),
-                    style: AppStyles.styleRegular12(context).copyWith(
-                      color: kLightThirdColor,
-                      decoration: TextDecoration.lineThrough,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            6.sbh,
-            Text(
-              <String>[
-                ProductType.label(product.productType),
-                if (product.weightGrams != null) '${product.weightGrams} g',
-                'Terjual ${product.soldCount}',
-              ].join(' · '),
-              style: AppStyles.styleRegular12(context)
-                  .copyWith(color: kLightThirdColor),
-            ),
-            if (onToggleStatus != null) ...<Widget>[
-              8.sbh,
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: TextButton.icon(
-                  onPressed: onToggleStatus,
-                  icon: Icon(
                     product.isActive
-                        ? Icons.visibility_off_outlined
-                        : Icons.publish_outlined,
-                    size: 18,
+                        ? 'Tayang di Xpedia'
+                        : 'Belum terlihat pembeli',
+                    style: XText.bodyS,
                   ),
-                  label: Text(product.isActive ? 'Nonaktifkan' : 'Terbitkan'),
                 ),
-              ),
-            ],
+                XButton.secondary(
+                  label: product.isActive ? 'Nonaktifkan' : 'Tayangkan',
+                  size: XButtonSize.small,
+                  onPressed: onToggleStatus,
+                ),
+              ],
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
 }
 
-/// Status is the field the catalogue screen is really about: a product is born
-/// `draft` and stays invisible to buyers until it is published.
+/// Product status, coloured from the design system.
 class ProductStatusPill extends StatelessWidget {
   const ProductStatusPill({super.key, required this.status});
 
   final String status;
 
   @override
-  Widget build(BuildContext context) {
-    final color = switch (status) {
-      ProductStatus.active => kSuccessColor,
-      ProductStatus.draft => kWarningColor,
-      _ => kLightThirdColor,
-    };
+  Widget build(BuildContext context) => XChip(
+        label: ProductStatus.label(status),
+        tone: switch (status) {
+          ProductStatus.active => XTone.success,
+          ProductStatus.draft => XTone.warning,
+          _ => XTone.neutral,
+        },
+      );
+}
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        ProductStatus.label(status),
-        style: AppStyles.styleRegular12(context).copyWith(color: color),
-      ),
-    );
-  }
+/// The seven stock chips of design rule 9, each distinct.
+class StockModeChip extends StatelessWidget {
+  const StockModeChip({super.key, required this.mode, this.leadTimeDays});
+
+  final String mode;
+  final int? leadTimeDays;
+
+  static XTone toneOf(String mode) => switch (mode) {
+        FulfillmentMode.readyStock => XTone.success,
+        FulfillmentMode.infinite => XTone.info,
+        FulfillmentMode.preOrder => XTone.preOrder,
+        FulfillmentMode.customOrder => XTone.customOrder,
+        StockMode.lowStock => XTone.warning,
+        StockMode.outOfStock => XTone.danger,
+        _ => XTone.neutral,
+      };
+
+  static IconData iconOf(String mode) => switch (mode) {
+        FulfillmentMode.readyStock => Icons.inventory_outlined,
+        FulfillmentMode.infinite => Icons.all_inclusive_rounded,
+        FulfillmentMode.preOrder => Icons.schedule_rounded,
+        FulfillmentMode.customOrder => Icons.handyman_outlined,
+        StockMode.lowStock => Icons.warning_amber_rounded,
+        StockMode.outOfStock => Icons.remove_shopping_cart_outlined,
+        _ => Icons.block_rounded,
+      };
+
+  @override
+  Widget build(BuildContext context) => XChip(
+        label: StockMode.label(mode, leadTimeDays: leadTimeDays),
+        tone: toneOf(mode),
+        icon: iconOf(mode),
+      );
 }

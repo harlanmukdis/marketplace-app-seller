@@ -46,6 +46,38 @@ v1.6.0.
   (S-43); store `primary_status` / Signature badge / `sku_quota`; business
   verification PIC fields and the `DUPLICATE_IDENTITY` message.
 
+- **Products (S-26, S-27, S-32), 2026-09-28.** Stock mode + lead time on
+  create/edit (`fulfillment_mode`, seven chips per design rule 9 — the list
+  shows the configured mode, the detail's `availability` adds Low Stock /
+  Stok Kosong), SKU-capacity bar when `sku_quota` is set, per-product shipping
+  coverage sheet, a photo per variant uploaded with `context=product_photo`
+  (the server watermarks it — verified), "Simpan & Tayangkan", and the Xpedia
+  Growth screen with the real 7-day report. `explainProductError` gives
+  readable text for `SKU_QUOTA_EXCEEDED`, `PRODUCT_PROHIBITED`,
+  `RESTRICTION_REVIEW_PENDING`, `CERTIFICATION_REQUIRED`,
+  `NATURAL_PERFORMANCE_TOO_LOW`, `GROWTH_LOCKED`.
+- **S-27 was rebuilt to the design on 2026-09-29** after a field-by-field
+  check of the schema and routes. Kept out because the API has no field:
+  Merek, Kondisi, Harga Grosir, Dangerous Goods/MSDS; Dimensi Kemasan has a
+  `products.dimensions` column but no endpoint writes it. Secure+ is chosen by
+  the buyer per transaction, never a product toggle. BPOM/Halal/SNI
+  (`/products/{id}/certifications`, which validates nothing server-side)
+  takes the MSDS box's place. Photos are one per variant — `product_images`
+  is read-only — and creating a product now turns the server's generated
+  variant into the first row and adds the rest (verified live in the
+  onboarding test).
+- **`XButton` in a `Row` with bounded height** used to fill it (a `Center`
+  without `heightFactor`), which blanked the product form behind its own
+  bottom bar. Fixed in `x_widgets.dart`; keep both factors.
+- 🔴 **Growth locks on a no-op.** `PATCH /products/{id}/growth` with the value
+  the product already has answers 200 *and* locks the setting for 7 days —
+  verified by sending 0 to a product at 0. `GrowthCubit.save` refuses an
+  unchanged value locally; keep it that way.
+- **No seller-readable moderation state and no Natural Performance score.**
+  S-28 and the ≥60 gauge in S-32 have no endpoint behind them; the app learns
+  of both only from the refusal (`RESTRICTION_REVIEW_PENDING`,
+  `NATURAL_PERFORMANCE_TOO_LOW`).
+
 ### Where the design and the API disagree (decided in favour of the API)
 
 - **AWB is typed, not generated.** `POST /orders/{id}/ship` still requires
@@ -62,18 +94,13 @@ v1.6.0.
 
 ### Not yet done, in suggested order
 
-1. **Products (S-26/27/28):** `fulfillment_mode` + lead time, `availability`
-   chips, `SKU_QUOTA_EXCEEDED`, `RESTRICTION_REVIEW_PENDING`, shipping
-   coverage (`/products/{id}/shipping-coverage`), `context=product_photo`
-   watermark upload. Screens still the pre-redesign layout.
-2. **Chat (S-29/30):** 4-state ticks from `status` / `delivered_at`,
+1. **Chat (S-29/30):** 4-state ticks from `status` / `delivered_at`,
    `CHAT_CONTENT_BLOCKED`, no video. The store inbox endpoint is still missing.
-3. **Growth & performance (S-32, S-33, S-35):** `PATCH /products/{id}/growth`,
-   `/growth/performance`, `/stores/{id}/partners-performance`,
-   `/customer-segmentation`, `/stock-mismatch-events`.
-4. Restyle the remaining pre-redesign screens (catalogue, inventory,
-   promotions, merchandising, notifications, verification, auth) on the X
-   components.
+2. **Performance & analytics (S-33, S-35):**
+   `/stores/{id}/partners-performance`, `/customer-segmentation`,
+   `/stock-mismatch-events`.
+3. Restyle the remaining pre-redesign screens (inventory, promotions,
+   merchandising, notifications, verification, auth) on the X components.
 
 ## Project identity
 

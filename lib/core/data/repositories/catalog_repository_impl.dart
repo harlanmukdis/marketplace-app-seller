@@ -1,6 +1,8 @@
 import '../../data_state.dart';
 import '../../domain/model/catalog/category.dart';
 import '../../domain/model/catalog/product.dart';
+import '../../domain/model/catalog/product_certification.dart';
+import '../../domain/model/catalog/product_growth.dart';
 import '../../domain/repositories/catalog_repository.dart';
 import '../datasources/remote/service/catalog_service.dart';
 import 'repository_guard.dart';
@@ -31,6 +33,9 @@ class CatalogRepositoryImpl with RepositoryGuard implements CatalogRepository {
     String productType = ProductType.physical,
     String? description,
     int? weightGrams,
+    int? compareAtPrice,
+    String fulfillmentMode = FulfillmentMode.readyStock,
+    int? fulfillmentLeadTimeDays,
   }) =>
       guard(() => _service.createProduct(
             storeId,
@@ -40,6 +45,9 @@ class CatalogRepositoryImpl with RepositoryGuard implements CatalogRepository {
             productType: productType,
             description: description,
             weightGrams: weightGrams,
+            compareAtPrice: compareAtPrice,
+            fulfillmentMode: fulfillmentMode,
+            fulfillmentLeadTimeDays: fulfillmentLeadTimeDays,
           ));
 
   @override
@@ -51,6 +59,8 @@ class CatalogRepositoryImpl with RepositoryGuard implements CatalogRepository {
     int? compareAtPrice,
     int? weightGrams,
     String? status,
+    String? fulfillmentMode,
+    int? fulfillmentLeadTimeDays,
   }) =>
       guard(() => _service.updateProduct(
             productId,
@@ -60,6 +70,41 @@ class CatalogRepositoryImpl with RepositoryGuard implements CatalogRepository {
             compareAtPrice: compareAtPrice,
             weightGrams: weightGrams,
             status: status,
+            fulfillmentMode: fulfillmentMode,
+            fulfillmentLeadTimeDays: fulfillmentLeadTimeDays,
+          ));
+
+  @override
+  Future<DataState<Product>> setGrowth(
+    int productId, {
+    required int commissionPercent,
+  }) =>
+      guard(() async {
+        await _service.setGrowth(
+          productId,
+          commissionPercent: commissionPercent,
+        );
+        return _service.getProduct(productId);
+      });
+
+  @override
+  Future<DataState<GrowthPerformance>> getGrowthPerformance(int productId) =>
+      guard(() => _service.getGrowthPerformance(productId));
+
+  @override
+  Future<DataState<ShippingCoverage>> getShippingCoverage(int productId) =>
+      guard(() => _service.getShippingCoverage(productId));
+
+  @override
+  Future<DataState<ShippingCoverage>> setShippingCoverage(
+    int productId, {
+    required String mode,
+    List<CoverageLocation> locations = const <CoverageLocation>[],
+  }) =>
+      guard(() => _service.setShippingCoverage(
+            productId,
+            mode: mode,
+            locations: locations,
           ));
 
   @override
@@ -100,5 +145,29 @@ class CatalogRepositoryImpl with RepositoryGuard implements CatalogRepository {
             imageUrl: imageUrl,
             isActive: isActive,
             options: options,
+          ));
+
+  @override
+  Future<DataState<List<ProductCertification>>> getCertifications(
+    int productId,
+  ) =>
+      guard(() => _service.getCertifications(productId));
+
+  @override
+  Future<DataState<List<ProductCertification>>> submitCertification(
+    int productId, {
+    required String type,
+    required String number,
+    required String documentUrl,
+    String? issuedBy,
+    String? validUntil,
+  }) =>
+      guard(() => _service.submitCertification(
+            productId,
+            type: type,
+            number: number,
+            documentUrl: documentUrl,
+            issuedBy: issuedBy,
+            validUntil: validUntil,
           ));
 }

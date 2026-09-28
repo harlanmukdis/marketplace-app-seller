@@ -132,7 +132,10 @@ class XButton extends StatelessWidget {
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: XSpace.s16),
-              child: Center(widthFactor: 1, child: child),
+              // Both factors: without heightFactor, a Center in a Row with a
+              // bounded height (a bottom bar) grows to fill it, and the
+              // button swallows the whole screen above.
+              child: Center(widthFactor: 1, heightFactor: 1, child: child),
             ),
           ),
         ),

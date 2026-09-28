@@ -43,5 +43,6 @@ abstract class StoreRepository {
     required String fileName,
     String? docType,
     int? storeId,
+    String? context,
   });
 }

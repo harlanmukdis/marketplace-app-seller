@@ -137,30 +137,54 @@ void main() {
 
     // ----------------------------------------------------- open one product
     await tester.tap(find.byType(ProductCard).first);
-    await pumpUntil(tester, find.text('Ubah produk'));
+    await pumpUntil(tester, find.text('Ubah Produk'));
+    // The title renders while the body is still loading; wait for the form.
+    await pumpUntil(tester, find.text('Informasi Produk'));
 
     // The edit form is fed by GET /products/{id}, so its presence proves the
     // detail payload parsed — variants, images, stock and all.
-    expect(find.text('Status'), findsOneWidget);
-    expect(find.text('Varian'), findsOneWidget);
+    expect(find.textContaining('Status: '), findsOneWidget);
     expect(find.textContaining('Stok tersedia'), findsOneWidget);
+    expect(find.textContaining('Foto Produk'), findsOneWidget);
 
     // Category and type are read-only when editing: the API's PATCH accepts
     // neither, so the form must not offer them.
     expect(find.text('Kategori & jenis'), findsOneWidget);
-    expect(find.text('Kategori'), findsNothing);
+    expect(find.text('Kategori *'), findsNothing);
+
+    // The form is a lazy list; walk down it in the design's section order.
+    final form = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(find.text('Mode Stok & Pemenuhan'), 300,
+        scrollable: form);
+    // The v1.7.0 stock modes, as the design's 2×2 grid.
+    expect(find.text('Pre-Order'), findsOneWidget);
+    expect(find.text('Custom Order'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Varian Produk'), 300,
+        scrollable: form);
+    await tester.scrollUntilVisible(find.text('HARGA SATUAN').first, 200,
+        scrollable: form);
+    await tester.scrollUntilVisible(find.text('Cakupan Pengiriman *'), 300,
+        scrollable: form);
+    await tester.scrollUntilVisible(
+        find.text('Sertifikasi Produk (BPOM / Halal / SNI)'), 300,
+        scrollable: form);
+    await tester.scrollUntilVisible(find.text('Xpedia Growth'), 300,
+        scrollable: form);
 
     // --------------------------------------------------- back, then create
     await back(tester);
-    await pumpUntil(tester, find.text('Produk'));
+    await pumpUntil(tester, find.byType(ProductCard));
 
     await tester.tap(find.byType(FloatingActionButton));
-    await pumpUntil(tester, find.text('Produk baru'));
+    // "Tambah Produk" is also the FAB's label, so wait for the form itself.
+    await pumpUntil(tester, find.text('Informasi Produk'));
 
-    // Creating needs the live category tree, which is what the dropdown holds.
-    expect(find.text('Kategori'), findsOneWidget);
-    expect(find.text('Jenis produk'), findsOneWidget);
-    expect(find.text('Harga coret (opsional)'), findsOneWidget);
+    // Creating needs the live category tree, behind the picker row.
+    expect(find.text('Kategori *'), findsOneWidget);
+    expect(find.text('Pilih kategori'), findsOneWidget);
+    expect(find.text('Jenis produk *'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Harga coret (opsional)'), 300,
+        scrollable: find.byType(Scrollable).first);
 
     // ------------------------------------------------------------- orders
     // Produk is a tab now: back from the form lands on it, not on Beranda.

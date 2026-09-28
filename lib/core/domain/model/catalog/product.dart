@@ -36,6 +36,11 @@ class Product {
     this.flashSale,
     this.badges = const <String>[],
     this.createdAt,
+    this.fulfillmentMode = FulfillmentMode.readyStock,
+    this.fulfillmentLeadTimeDays,
+    this.availability,
+    this.growthCommissionPercent = 0,
+    this.growthLockedUntil,
   });
 
   final int id;
@@ -86,6 +91,21 @@ class Product {
 
   final DateTime? createdAt;
 
+  /// How the product is fulfilled (API v1.7.0). `pre_order` and `custom_order`
+  /// require [fulfillmentLeadTimeDays] — create and patch both refuse without.
+  final String fulfillmentMode;
+  final int? fulfillmentLeadTimeDays;
+
+  /// Detail payload only: [fulfillmentMode], except that `ready_stock` is
+  /// split into `ready_stock` / `low_stock` (≤ 10) / `out_of_stock` from live
+  /// stock. The store list does not carry it.
+  final String? availability;
+
+  /// Xpedia Growth — extra commission, 0 (off) to 15, charged only on
+  /// completed sales. Any change locks the setting until [growthLockedUntil].
+  final double growthCommissionPercent;
+  final DateTime? growthLockedUntil;
+
   factory Product.fromJson(Map<String, dynamic> json) => Product(
         id: asInt(json['id']),
         name: asString(json['name']),
@@ -107,10 +127,27 @@ class Product {
         images: asModelList(json['images'], ProductImage.fromJson),
         flashSale: FlashSaleInfo.maybeFrom(json['flash_sale']),
         badges: asStringList(json['badges']),
+        fulfillmentMode: asString(
+          json['fulfillment_mode'],
+          fallback: FulfillmentMode.readyStock,
+        ),
+        fulfillmentLeadTimeDays: asIntOrNull(json['fulfillment_lead_time_days']),
+        availability: asStringOrNull(json['availability']),
+        growthCommissionPercent: asDouble(json['growth_commission_percent']),
+        growthLockedUntil: asDateTime(json['growth_locked_until']),
         createdAt: asCreatedDate(json),
       );
 
   bool get isActive => status == ProductStatus.active;
+
+  /// The stock chip to show: live [availability] when the detail supplied it,
+  /// otherwise the configured mode.
+  String get stockMode => availability ?? fulfillmentMode;
+
+  bool get isGrowthActive => growthCommissionPercent > 0;
+
+  bool isGrowthLockedAt(DateTime now) =>
+      growthLockedUntil != null && growthLockedUntil!.isAfter(now);
   bool get isDraft => status == ProductStatus.draft;
 
   /// What a buyer would pay for the product as a whole. Honest only for a
@@ -209,5 +246,60 @@ abstract class ProductType {
         digital => 'Produk digital',
         service => 'Jasa',
         _ => type ?? '-',
+      };
+}
+
+/// `products.fulfillment_mode` (API v1.7.0).
+abstract class FulfillmentMode {
+  static const String readyStock = 'ready_stock';
+  static const String infinite = 'infinite';
+  static const String preOrder = 'pre_order';
+  static const String customOrder = 'custom_order';
+  static const String discontinued = 'discontinued';
+
+  /// What a seller can set. `low_stock` and `out_of_stock` are derived by the
+  /// server from `ready_stock`, never chosen.
+  static const List<String> settable = <String>[
+    readyStock,
+    preOrder,
+    customOrder,
+    infinite,
+    discontinued,
+  ];
+
+  static bool needsLeadTime(String mode) =>
+      mode == preOrder || mode == customOrder;
+}
+
+/// The seven stock chips of design rule 9 — the settable modes plus the two
+/// the server derives from live stock.
+abstract class StockMode {
+  static const String lowStock = 'low_stock';
+  static const String outOfStock = 'out_of_stock';
+
+  static String label(String mode, {int? leadTimeDays}) => switch (mode) {
+        FulfillmentMode.readyStock => 'Ready Stock',
+        FulfillmentMode.infinite => 'Infinite',
+        FulfillmentMode.preOrder =>
+          leadTimeDays == null ? 'Pre-Order' : 'Pre-Order ($leadTimeDays hari)',
+        FulfillmentMode.customOrder => leadTimeDays == null
+            ? 'Custom Order'
+            : 'Custom Order ($leadTimeDays hari)',
+        FulfillmentMode.discontinued => 'Discontinued',
+        lowStock => 'Low Stock',
+        outOfStock => 'Stok Kosong',
+        _ => mode,
+      };
+
+  static String describe(String mode) => switch (mode) {
+        FulfillmentMode.readyStock => 'Dikirim dari stok gudang.',
+        FulfillmentMode.infinite => 'Selalu tersedia, stok tidak dihitung.',
+        FulfillmentMode.preOrder =>
+          'Dibuat atau dipesan setelah dibayar; dikirim setelah lead time.',
+        FulfillmentMode.customOrder =>
+          'Dibuat khusus; tiap pesanan wajib dikonfirmasi dalam 2×24 jam.',
+        FulfillmentMode.discontinued =>
+          'Tidak dijual lagi; hilang dari pencarian, halaman tetap ada.',
+        _ => '',
       };
 }

@@ -77,6 +77,7 @@ class StoreRepositoryImpl with RepositoryGuard implements StoreRepository {
     required String fileName,
     String? docType,
     int? storeId,
+    String? context,
   }) =>
       guard(() async {
         final uploaded = await _media.upload(
@@ -84,6 +85,7 @@ class StoreRepositoryImpl with RepositoryGuard implements StoreRepository {
           fileName: fileName,
           docType: docType,
           storeId: storeId,
+          context: context,
         );
         // The server hands back a host that does not serve in this
         // environment; point it at the API host instead.

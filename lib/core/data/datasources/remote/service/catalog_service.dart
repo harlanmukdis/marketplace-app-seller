@@ -1,6 +1,8 @@
 import '../../../../../config/network/api_endpoints.dart';
 import '../../../../domain/model/catalog/category.dart';
 import '../../../../domain/model/catalog/product.dart';
+import '../../../../domain/model/catalog/product_certification.dart';
+import '../../../../domain/model/catalog/product_growth.dart';
 import '../../../../utils/json_parse.dart';
 import 'base_service.dart';
 
@@ -65,6 +67,12 @@ class CatalogService extends BaseService {
 
   /// Answers `{ "id": N }`. The product is created `draft`, and the server also
   /// generates a default variant for it — see [ProductVariant].
+  ///
+  /// Refusals added since v1.7.0: `SKU_QUOTA_EXCEEDED` (store at its product
+  /// cap), `PRODUCT_PROHIBITED` (403, category or keyword banned outright), and
+  /// a `VALIDATION_ERROR` when a pre-order/custom mode has no lead time. A
+  /// *restricted* (not prohibited) match is created but flagged for review, and
+  /// then cannot be published until an admin clears it.
   Future<int> createProduct(
     int storeId, {
     required String name,
@@ -73,6 +81,9 @@ class CatalogService extends BaseService {
     String productType = ProductType.physical,
     String? description,
     int? weightGrams,
+    int? compareAtPrice,
+    String fulfillmentMode = FulfillmentMode.readyStock,
+    int? fulfillmentLeadTimeDays,
   }) async {
     final envelope = await postRequest(
       ApiEndpoints.storeProducts(storeId),
@@ -83,6 +94,9 @@ class CatalogService extends BaseService {
         'description': description,
         'base_price': basePrice,
         'weight_grams': weightGrams,
+        'compare_at_price': compareAtPrice,
+        'fulfillment_mode': fulfillmentMode,
+        'fulfillment_lead_time_days': fulfillmentLeadTimeDays,
       },
     );
     return asInt(envelope.map['id']);
@@ -93,11 +107,13 @@ class CatalogService extends BaseService {
   /// Only the fields passed are sent — the caller can flip `status` alone
   /// without restating the whole product. The server's whitelist is `name`,
   /// `description`, `base_price`, `compare_at_price`, `weight_grams`,
-  /// `status`: **`category_id` and `product_type` are not updatable**, so both
-  /// are settled at creation.
+  /// `status`, `fulfillment_mode`, `fulfillment_lead_time_days`:
+  /// **`category_id` and `product_type` are not updatable**, so both are
+  /// settled at creation.
   ///
-  /// Publishing can be refused with `CERTIFICATION_REQUIRED` — some categories
-  /// need a verified certificate before a product in them may go active.
+  /// Publishing can be refused with `CERTIFICATION_REQUIRED` (the category
+  /// needs a verified certificate) or `RESTRICTION_REVIEW_PENDING` (the
+  /// product was flagged as restricted and awaits an admin).
   Future<Product> updateProduct(
     int productId, {
     String? name,
@@ -106,6 +122,8 @@ class CatalogService extends BaseService {
     int? compareAtPrice,
     int? weightGrams,
     String? status,
+    String? fulfillmentMode,
+    int? fulfillmentLeadTimeDays,
   }) async {
     await patchRequest(
       ApiEndpoints.product(productId),
@@ -116,6 +134,8 @@ class CatalogService extends BaseService {
         'compare_at_price': compareAtPrice,
         'weight_grams': weightGrams,
         'status': status,
+        'fulfillment_mode': fulfillmentMode,
+        'fulfillment_lead_time_days': fulfillmentLeadTimeDays,
       },
     );
     return getProduct(productId);
@@ -169,5 +189,81 @@ class CatalogService extends BaseService {
       },
     );
     return getProduct(productId);
+  }
+
+  /// Sets Xpedia Growth, 0 (off) to 15%.
+  ///
+  /// **Every accepted call locks the setting for seven days — including a call
+  /// that changes nothing.** Verified: patching 0 onto a product already at 0
+  /// answered 200 and locked it. Callers must not send a no-op.
+  ///
+  /// Refusals: `GROWTH_LOCKED` (message names the unlock time) and, only when
+  /// switching on from 0, `NATURAL_PERFORMANCE_TOO_LOW` (live score under 60).
+  Future<void> setGrowth(int productId, {required int commissionPercent}) async {
+    await patchRequest(
+      ApiEndpoints.productGrowth(productId),
+      body: <String, dynamic>{'commission_percent': commissionPercent},
+    );
+  }
+
+  Future<GrowthPerformance> getGrowthPerformance(int productId) async {
+    final envelope =
+        await getRequest(ApiEndpoints.productGrowthPerformance(productId));
+    return GrowthPerformance.fromJson(envelope.map);
+  }
+
+  Future<ShippingCoverage> getShippingCoverage(int productId) async {
+    final envelope =
+        await getRequest(ApiEndpoints.productShippingCoverage(productId));
+    return ShippingCoverage.fromRows(envelope.list);
+  }
+
+  /// Replace-all. `none` clears every restriction; the other modes need at
+  /// least one location, each naming a city **or** a province.
+  Future<ShippingCoverage> setShippingCoverage(
+    int productId, {
+    required String mode,
+    List<CoverageLocation> locations = const <CoverageLocation>[],
+  }) async {
+    await patchRequest(
+      ApiEndpoints.productShippingCoverage(productId),
+      body: <String, dynamic>{
+        'mode': mode,
+        'locations': <Map<String, dynamic>>[
+          for (final l in locations) l.toJson(),
+        ],
+      },
+    );
+    return getShippingCoverage(productId);
+  }
+
+  Future<List<ProductCertification>> getCertifications(int productId) async {
+    final envelope =
+        await getRequest(ApiEndpoints.productCertifications(productId));
+    return envelope.list
+        .map(ProductCertification.fromJson)
+        .toList(growable: false);
+  }
+
+  /// JSON body. Validate before calling — see [ProductCertification].
+  Future<List<ProductCertification>> submitCertification(
+    int productId, {
+    required String type,
+    required String number,
+    required String documentUrl,
+    String? issuedBy,
+    String? validUntil,
+  }) async {
+    await postRequest(
+      ApiEndpoints.productCertifications(productId),
+      body: <String, dynamic>{
+        'certification_type': type,
+        'certificate_number': number,
+        'document_url': documentUrl,
+        'issued_by': issuedBy,
+        'valid_until': validUntil,
+      },
+    );
+    return getCertifications(productId);
   }
 }

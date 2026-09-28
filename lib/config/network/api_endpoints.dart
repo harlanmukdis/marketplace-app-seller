@@ -152,6 +152,19 @@ abstract class ApiEndpoints {
   /// aggregate discounts variants that are not actually in the sale.
   static String product(int productId) => '/products/$productId';
 
+  /// Xpedia Growth (v1.10.0) and its 7-day report (v1.20.0).
+  static String productGrowth(int productId) => '/products/$productId/growth';
+  static String productGrowthPerformance(int productId) =>
+      '/products/$productId/growth/performance';
+
+  /// BPOM / Halal / SNI evidence. GET is public, POST needs `product.update`.
+  static String productCertifications(int productId) =>
+      '/products/$productId/certifications';
+
+  /// Per-product city/province allow- or deny-list (v1.17.0).
+  static String productShippingCoverage(int productId) =>
+      '/products/$productId/shipping-coverage';
+
   /// A product is born with one auto-generated variant (`SKU-<id>-<hash>`,
   /// `variant_options: null`, price copied from `base_price`), so posting here
   /// adds a *second* one rather than the first. Stock is tracked per variant,

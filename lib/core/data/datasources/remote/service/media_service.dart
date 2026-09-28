@@ -20,10 +20,15 @@ class MediaService extends BaseService {
     required String fileName,
     String? docType,
     int? storeId,
+    String? context,
   }) async {
     final form = FormData.fromMap(<String, dynamic>{
       'file': MultipartFile.fromBytes(bytes, filename: fileName),
       if (docType != null) 'doc_type': docType,
+      // `product_photo` makes the server stamp a subtle "XPEDIA" watermark
+      // (API v1.11.0); `support_ticket_evidence` tags ticket attachments.
+      // Any other value, or none, uploads the file untouched.
+      if (context != null) 'context': context,
     });
 
     final envelope = await postRequest(

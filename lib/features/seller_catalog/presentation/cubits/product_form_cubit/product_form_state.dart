@@ -21,6 +21,9 @@ final class ProductFormReady extends ProductFormState {
     required this.categories,
     this.product,
     this.isSaving = false,
+    this.coverage = const ShippingCoverage(),
+    this.moderationPending = false,
+    this.certifications = const <ProductCertification>[],
   });
 
   final List<Category> categories;
@@ -32,6 +35,17 @@ final class ProductFormReady extends ProductFormState {
   /// state, so the fields stay on screen with what the user typed.
   final bool isSaving;
 
+  /// Per-product shipping coverage; unrestricted while creating.
+  final ShippingCoverage coverage;
+
+  /// Set when publishing was refused with `RESTRICTION_REVIEW_PENDING`. There
+  /// is no seller endpoint that reports a product's moderation state, so this
+  /// refusal is the only way the app learns of it (S-28).
+  final bool moderationPending;
+
+  /// BPOM / Halal / SNI submissions for this product; empty while creating.
+  final List<ProductCertification> certifications;
+
   /// Flattened for the picker: every category, parents and children alike, each
   /// labelled with its parent so duplicate leaf names stay distinguishable.
   List<CategoryOption> get categoryOptions => flattenCategories(categories);
@@ -42,10 +56,16 @@ final class ProductFormReady extends ProductFormState {
     List<Category>? categories,
     Product? product,
     bool? isSaving,
+    ShippingCoverage? coverage,
+    bool? moderationPending,
+    List<ProductCertification>? certifications,
   }) =>
       ProductFormReady(
         categories: categories ?? this.categories,
         product: product ?? this.product,
         isSaving: isSaving ?? this.isSaving,
+        coverage: coverage ?? this.coverage,
+        moderationPending: moderationPending ?? this.moderationPending,
+        certifications: certifications ?? this.certifications,
       );
 }

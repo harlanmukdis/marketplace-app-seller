@@ -15,6 +15,7 @@ import '../../features/seller_merchandising/presentation/views/showcase_detail_v
 import '../../features/seller_notifications/presentation/views/notification_inbox_view.dart';
 import '../../features/seller_inventory/presentation/views/stock_view.dart';
 import '../../features/seller_account/presentation/views/security_view.dart';
+import '../../features/seller_growth/presentation/views/growth_view.dart';
 import '../../features/seller_orders/presentation/views/order_detail_view.dart';
 import '../../features/seller_orders/presentation/views/order_invoice_view.dart';
 import '../../features/seller_store/presentation/views/store_settings_view.dart';
@@ -91,6 +92,13 @@ abstract class SellerRoutes {
 
   /// Withdrawal PIN (S-44).
   static const String security = '/seller/account/security';
+
+  /// Xpedia Growth (S-32), optionally opened on one product.
+  static const String growth = '/seller/growth';
+  static const String growthProduct = '/seller/growth/:productId';
+
+  static String growthProductPath(int productId) =>
+      '/seller/growth/$productId';
 
   /// Xpedia 911 — tickets to the platform (S-41, S-42).
   static const String support = '/seller/support';
@@ -194,6 +202,13 @@ final List<RouteBase> appRouterSeller = <RouteBase>[
   _sellerRoute(SellerRoutes.storeSettings, const StoreSettingsView()),
   _sellerRoute(SellerRoutes.security, const SecurityView()),
   _sellerRoute(SellerRoutes.support, const SupportView()),
+  _sellerRoute(SellerRoutes.growth, const GrowthView()),
+  _sellerRouteBuilder(
+    SellerRoutes.growthProduct,
+    (state) => GrowthView(
+      productId: int.tryParse(state.pathParameters['productId'] ?? ''),
+    ),
+  ),
   _sellerRouteBuilder(
     SellerRoutes.supportTicket,
     (state) => TicketDetailView(

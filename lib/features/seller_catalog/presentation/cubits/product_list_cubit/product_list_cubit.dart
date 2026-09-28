@@ -6,6 +6,7 @@ import '../../../../../core/domain/model/catalog/product.dart';
 import '../../../../../core/domain/repositories/auth_repository.dart';
 import '../../../../../core/domain/repositories/catalog_repository.dart';
 import '../../../../../di/injector.dart';
+import '../../product_errors.dart';
 
 part 'product_list_state.dart';
 
@@ -52,14 +53,24 @@ class ProductListCubit extends Cubit<ProductListState> {
     }
   }
 
-  /// Filtering is local: the endpoint takes no status parameter, and the whole
-  /// catalogue arrives in one unpaged array anyway.
+  /// Filtering is local: every page is walked on load anyway, so switching
+  /// tabs needs no request.
   void setFilter(ProductStatusFilter filter) {
     _filter = filter;
     final current = state;
     if (current is ProductListSuccess) {
       emit(current.copyWith(filter: filter));
     }
+  }
+
+  void setMode(String? mode) {
+    final current = state;
+    if (current is ProductListSuccess) emit(current.copyWith(mode: () => mode));
+  }
+
+  void search(String query) {
+    final current = state;
+    if (current is ProductListSuccess) emit(current.copyWith(query: query));
   }
 
   /// Publishes or unpublishes a product. `PATCH` answers nothing, so the
@@ -77,7 +88,7 @@ class ProductListCubit extends Cubit<ProductListState> {
         }
         return null;
       case DataFailed<Product>(:final failure):
-        return failure;
+        return explainProductError(failure);
       default:
         return const DataError(
           code: DataErrorCode.unexpected,
