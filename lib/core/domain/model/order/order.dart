@@ -497,7 +497,20 @@ class OrderInvoice {
 
 /// Pre-handover proof on a Secure+ order: at least one photo and one video.
 class ShipmentEvidence {
-  const ShipmentEvidence({required this.mediaType, required this.url});
+  const ShipmentEvidence({
+    required this.mediaType,
+    required this.url,
+    this.createdAt,
+  });
+
+  factory ShipmentEvidence.fromJson(Map<String, dynamic> json) =>
+      ShipmentEvidence(
+        mediaType: asString(json['media_type']),
+        url: asString(json['url']),
+        createdAt: asCreatedDate(json),
+      );
+
+  final DateTime? createdAt;
 
   /// `photo` | `video`.
   final String mediaType;

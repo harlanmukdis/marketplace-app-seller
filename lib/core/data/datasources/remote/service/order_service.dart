@@ -114,6 +114,14 @@ class OrderService extends BaseService {
     return getOrder(orderId);
   }
 
+  /// Pre-handover photos and videos of a Secure+ order. An empty list for an
+  /// ordinary order or one not shipped yet.
+  Future<List<ShipmentEvidence>> getShipmentEvidence(int orderId) async {
+    final envelope =
+        await getRequest(ApiEndpoints.orderShipmentEvidence(orderId));
+    return envelope.list.map(ShipmentEvidence.fromJson).toList(growable: false);
+  }
+
   /// `422 INVOICE_NOT_AVAILABLE` unless the order is completed.
   Future<OrderInvoice> getInvoice(int orderId) async {
     final envelope = await getRequest(ApiEndpoints.orderInvoice(orderId));

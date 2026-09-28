@@ -52,18 +52,33 @@ class OrderDetailCubit extends Cubit<OrderDetailState> {
   Future<void> _loadTracking() async {
     final current = state;
     if (current is! OrderDetailLoaded) return;
-    if (current.order.status != OrderStatus.shipped &&
-        current.order.status != OrderStatus.delivered) {
-      return;
-    }
+    // Shipment and Secure+ evidence exist from `shipped` on, and stay relevant
+    // through completion and any complaint afterwards.
+    const shippedOrLater = <String>{
+      OrderStatus.shipped,
+      OrderStatus.delivered,
+      OrderStatus.completed,
+      OrderStatus.refundRequested,
+      OrderStatus.refundApproved,
+      OrderStatus.refundRejected,
+    };
+    if (!shippedOrLater.contains(current.order.status)) return;
 
-    final result = await _orders.getTracking(orderId);
+    final results = await Future.wait<Object>(<Future<Object>>[
+      _orders.getTracking(orderId),
+      _orders.getShipmentEvidence(orderId),
+    ]);
     if (isClosed) return;
-    if (result is DataSuccess<OrderShipment>) {
-      final latest = state;
-      if (latest is OrderDetailLoaded) {
-        emit(latest.copyWith(shipment: result.value));
-      }
+    final tracking = results[0];
+    final evidence = results[1];
+    final latest = state;
+    if (latest is OrderDetailLoaded) {
+      emit(latest.copyWith(
+        shipment: tracking is DataSuccess<OrderShipment> ? tracking.value : null,
+        evidence: evidence is DataSuccess<List<ShipmentEvidence>>
+            ? evidence.value
+            : null,
+      ));
     }
   }
 

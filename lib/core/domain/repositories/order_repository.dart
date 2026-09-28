@@ -39,6 +39,9 @@ abstract class OrderRepository {
 
   Future<DataState<OrderInvoice>> getInvoice(int orderId);
 
+  /// [DataEmpty] for an ordinary order.
+  Future<DataState<List<ShipmentEvidence>>> getShipmentEvidence(int orderId);
+
   Future<DataState<Order>> cancel(int orderId, {required String reason});
 
   /// [DataEmpty] until the order ships.

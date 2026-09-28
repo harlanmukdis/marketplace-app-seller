@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/route/app_route_seller.dart';
+import '../../../../core/data/datasources/remote/service/media_service.dart';
 import '../../../../core/data_state.dart';
 import '../../../../core/domain/model/order/order.dart';
 import '../../../../core/utils/format_helper.dart';
@@ -174,6 +175,10 @@ class _OrderDetailBody extends StatelessWidget {
                 ? () => _proposePartial(context, order)
                 : null,
           ),
+          if (state.evidence.isNotEmpty) ...<Widget>[
+            gap,
+            _EvidenceCard(evidence: state.evidence),
+          ],
           if (order.refund != null) ...<Widget>[
             gap,
             _RefundCard(
@@ -871,6 +876,75 @@ class _PartialSheetState extends State<_PartialSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Secure+ pre-handover proof, as uploaded at Cetak Resi. Kept 100 days and
+/// used to settle liability if the buyer claims.
+class _EvidenceCard extends StatelessWidget {
+  const _EvidenceCard({required this.evidence});
+
+  final List<ShipmentEvidence> evidence;
+
+  @override
+  Widget build(BuildContext context) {
+    return XCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text('Bukti Pengemasan Secure+', style: XText.titleL),
+              ),
+              const XChip(
+                label: 'Secure+',
+                tone: XTone.securePlus,
+                icon: Icons.shield_outlined,
+              ),
+            ],
+          ),
+          const SizedBox(height: XSpace.s4),
+          Text(
+            'Disimpan 100 hari sebagai rantai bukti bila ada klaim.',
+            style: XText.bodyS,
+          ),
+          const SizedBox(height: XSpace.s12),
+          Wrap(
+            spacing: XSpace.s8,
+            runSpacing: XSpace.s8,
+            children: <Widget>[
+              for (final e in evidence)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(XRadius.md),
+                  child: Container(
+                    width: 88,
+                    height: 88,
+                    color: XColors.sunken,
+                    child: e.isVideo
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Icon(Icons.play_circle_outline,
+                                  size: 32, color: XColors.primary),
+                              Text('Video', style: XText.labelS),
+                            ],
+                          )
+                        : Image.network(
+                            normaliseUploadUrl(e.url),
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.broken_image_outlined,
+                              color: XColors.textTertiary,
+                            ),
+                          ),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }

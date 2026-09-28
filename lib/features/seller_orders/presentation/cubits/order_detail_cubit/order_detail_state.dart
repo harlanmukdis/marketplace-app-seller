@@ -20,6 +20,7 @@ final class OrderDetailLoaded extends OrderDetailState {
     this.shipment,
     this.isBusy = false,
     this.sealCode,
+    this.evidence = const <ShipmentEvidence>[],
   });
 
   final Order order;
@@ -33,15 +34,20 @@ final class OrderDetailLoaded extends OrderDetailState {
   /// but never hands it back to the seller, so it is shown when it arrives.
   final String? sealCode;
 
+  /// Secure+ pre-handover proof, read once the order has shipped.
+  final List<ShipmentEvidence> evidence;
+
   OrderDetailLoaded copyWith({
     Order? order,
     OrderShipment? shipment,
     bool? isBusy,
+    List<ShipmentEvidence>? evidence,
   }) =>
       OrderDetailLoaded(
         order ?? this.order,
         shipment: shipment ?? this.shipment,
         isBusy: isBusy ?? this.isBusy,
         sealCode: sealCode,
+        evidence: evidence ?? this.evidence,
       );
 }

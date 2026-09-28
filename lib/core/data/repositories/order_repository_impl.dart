@@ -65,6 +65,12 @@ class OrderRepositoryImpl with RepositoryGuard implements OrderRepository {
       guard(() => _service.getInvoice(orderId));
 
   @override
+  Future<DataState<List<ShipmentEvidence>>> getShipmentEvidence(
+    int orderId,
+  ) =>
+      guard(() => _service.getShipmentEvidence(orderId));
+
+  @override
   Future<DataState<Order>> cancel(int orderId, {required String reason}) =>
       guard(() => _service.cancel(orderId, reason: reason));
 
