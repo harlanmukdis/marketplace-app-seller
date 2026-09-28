@@ -1,6 +1,8 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/data/datasources/remote/service/media_service.dart';
 import '../../../../core/domain/model/support/support_ticket.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/utils/xpedia_tokens.dart';
@@ -32,6 +34,7 @@ class _TicketBody extends StatefulWidget {
 
 class _TicketBodyState extends State<_TicketBody> {
   final TextEditingController _message = TextEditingController();
+  PickedFile? _attachment;
 
   @override
   void dispose() {
@@ -41,13 +44,27 @@ class _TicketBodyState extends State<_TicketBody> {
 
   Future<void> _send() async {
     final text = _message.text;
-    final error = await TicketCubit.get(context).reply(text);
+    final error = await TicketCubit.get(context)
+        .reply(text, attachment: _attachment);
     if (!mounted) return;
     if (error != null) {
       showErrorSnackBar(context, error);
       return;
     }
     _message.clear();
+    setState(() => _attachment = null);
+  }
+
+  Future<void> _pickAttachment() async {
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const <String>['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+      withData: true,
+    );
+    final file = picked?.files.singleOrNull;
+    final bytes = file?.bytes;
+    if (bytes == null || !mounted) return;
+    setState(() => _attachment = PickedFile(bytes: bytes, name: file!.name));
   }
 
   @override
@@ -131,13 +148,27 @@ class _TicketBodyState extends State<_TicketBody> {
           ),
           child: Row(
             children: <Widget>[
+              IconButton(
+                tooltip: 'Lampirkan bukti',
+                onPressed: state.isSending ? null : _pickAttachment,
+                icon: Icon(
+                  _attachment == null
+                      ? Icons.attach_file_rounded
+                      : Icons.check_circle_rounded,
+                  color: _attachment == null
+                      ? XColors.textSecondary
+                      : XColors.success,
+                ),
+              ),
               Expanded(
                 child: TextField(
                   controller: _message,
                   minLines: 1,
                   maxLines: 4,
-                  decoration: const InputDecoration(
-                    hintText: 'Tulis balasan',
+                  decoration: InputDecoration(
+                    hintText: _attachment == null
+                        ? 'Tulis balasan'
+                        : 'Lampiran: ${_attachment!.name}',
                     isDense: true,
                   ),
                 ),
@@ -181,6 +212,10 @@ class _Bubble extends StatelessWidget {
             if (!mine)
               Text('Tim Xpedia 911',
                   style: XText.labelM.copyWith(color: XColors.primary)),
+            if (message.attachmentUrl != null) ...<Widget>[
+              _Attachment(url: message.attachmentUrl!, mine: mine),
+              const SizedBox(height: XSpace.s6),
+            ],
             Text(
               message.message,
               style: XText.bodyM.copyWith(
@@ -197,6 +232,46 @@ class _Bubble extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Attachment extends StatelessWidget {
+  const _Attachment({required this.url, required this.mine});
+
+  final String url;
+  final bool mine;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPdf = url.toLowerCase().endsWith('.pdf');
+    if (isPdf) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(Icons.picture_as_pdf_outlined,
+              color: mine ? XColors.textOnBrand : XColors.danger),
+          const SizedBox(width: XSpace.s6),
+          Text('Dokumen PDF',
+              style: XText.labelM.copyWith(
+                color: mine ? XColors.textOnBrand : XColors.textPrimary,
+              )),
+        ],
+      );
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(XRadius.md),
+      child: Image.network(
+        normaliseUploadUrl(url),
+        width: 200,
+        height: 140,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const SizedBox(
+          width: 200,
+          height: 60,
+          child: Center(child: Icon(Icons.broken_image_outlined)),
         ),
       ),
     );

@@ -1,9 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/data_state.dart';
 import '../../../../core/domain/model/support/support_ticket.dart';
 import '../../../../core/domain/repositories/auth_repository.dart';
+import '../../../../core/domain/model/media/uploaded_file.dart';
+import '../../../../core/domain/repositories/store_repository.dart';
 import '../../../../core/domain/repositories/support_repository.dart';
 import '../../../../di/injector.dart';
 
@@ -140,11 +144,36 @@ class TicketCubit extends Cubit<TicketState> {
     }
   }
 
-  Future<DataError?> reply(String message) async {
+  /// [attachment] is uploaded first; the server requires a message with it.
+  Future<DataError?> reply(String message, {PickedFile? attachment}) async {
     final current = state;
-    if (current is! TicketLoaded || message.trim().isEmpty) return null;
+    if (current is! TicketLoaded) return null;
+    final text = message.trim().isEmpty && attachment != null
+        ? 'Lampiran bukti'
+        : message.trim();
+    if (text.isEmpty) return null;
     emit(TicketLoaded(current.ticket, current.messages, isSending: true));
-    final result = await _support.reply(ticketId, message: message.trim());
+
+    String? url;
+    if (attachment != null) {
+      final uploaded = await injector<StoreRepository>().upload(
+        bytes: attachment.bytes,
+        fileName: attachment.name,
+        storeId: injector<AuthRepository>().activeStoreId,
+        context: 'support_ticket_evidence',
+      );
+      if (isClosed) return null;
+      if (uploaded is! DataSuccess<UploadedFile>) {
+        emit(TicketLoaded(current.ticket, current.messages));
+        return uploaded is DataFailed<UploadedFile>
+            ? uploaded.failure
+            : null;
+      }
+      url = uploaded.value.url;
+    }
+
+    final result =
+        await _support.reply(ticketId, message: text, attachmentUrl: url);
     if (isClosed) return null;
     if (result is DataFailed<List<SupportTicketMessage>>) {
       emit(TicketLoaded(current.ticket, current.messages));
@@ -154,4 +183,12 @@ class TicketCubit extends Cubit<TicketState> {
     await load();
     return null;
   }
+}
+
+/// A file chosen on the device, not uploaded yet.
+class PickedFile {
+  const PickedFile({required this.bytes, required this.name});
+
+  final Uint8List bytes;
+  final String name;
 }

@@ -53,10 +53,19 @@ class SupportService extends BaseService {
     return asInt(envelope.map['id']);
   }
 
-  Future<void> reply(int id, {required String message}) async {
+  /// [attachmentUrl] comes from `/media/upload` with
+  /// `context=support_ticket_evidence`. A message is still required with it.
+  Future<void> reply(
+    int id, {
+    required String message,
+    String? attachmentUrl,
+  }) async {
     await postFormRequest(
       ApiEndpoints.supportTicketMessages(id),
-      fields: <String, String>{'message': message},
+      fields: <String, String>{
+        'message': message,
+        if (attachmentUrl != null) 'attachment_url': attachmentUrl,
+      },
     );
   }
 }

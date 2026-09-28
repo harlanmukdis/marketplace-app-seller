@@ -21,5 +21,6 @@ abstract class SupportRepository {
   Future<DataState<List<SupportTicketMessage>>> reply(
     int id, {
     required String message,
+    String? attachmentUrl,
   });
 }

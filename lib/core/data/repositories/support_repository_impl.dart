@@ -41,9 +41,14 @@ class SupportRepositoryImpl with RepositoryGuard implements SupportRepository {
   Future<DataState<List<SupportTicketMessage>>> reply(
     int id, {
     required String message,
+    String? attachmentUrl,
   }) =>
       guard(() async {
-        await _service.reply(id, message: message);
+        await _service.reply(
+          id,
+          message: message,
+          attachmentUrl: attachmentUrl,
+        );
         return _service.getMessages(id);
       });
 }
