@@ -7,6 +7,7 @@ import '../core/data/datasources/remote/service/media_service.dart';
 import '../core/data/datasources/remote/service/merchandising_service.dart';
 import '../core/data/datasources/remote/service/notification_service.dart';
 import '../core/data/datasources/remote/service/order_service.dart';
+import '../core/data/datasources/remote/service/performance_service.dart';
 import '../core/data/datasources/remote/service/promotion_service.dart';
 import '../core/data/datasources/remote/service/shipping_service.dart';
 import '../core/data/datasources/remote/service/store_service.dart';
@@ -22,6 +23,7 @@ import '../core/data/repositories/location_repository_impl.dart';
 import '../core/data/repositories/merchandising_repository_impl.dart';
 import '../core/data/repositories/notification_repository_impl.dart';
 import '../core/data/repositories/order_repository_impl.dart';
+import '../core/data/repositories/performance_repository_impl.dart';
 import '../core/data/repositories/promotion_repository_impl.dart';
 import '../core/data/repositories/shipping_repository_impl.dart';
 import '../core/data/repositories/store_repository_impl.dart';
@@ -30,6 +32,7 @@ import '../core/data/repositories/verification_repository_impl.dart';
 import '../core/data/repositories/wallet_repository_impl.dart';
 import '../core/domain/repositories/auth_repository.dart';
 import '../core/domain/repositories/catalog_repository.dart';
+import '../core/domain/repositories/performance_repository.dart';
 import '../core/domain/repositories/support_repository.dart';
 import '../core/domain/repositories/chat_repository.dart';
 import '../core/domain/repositories/inventory_repository.dart';
@@ -106,5 +109,9 @@ void initializeRepository() {
 
   injector.registerLazySingleton<SupportRepository>(
     () => SupportRepositoryImpl(injector<SupportService>()),
+  );
+
+  injector.registerLazySingleton<PerformanceRepository>(
+    () => PerformanceRepositoryImpl(injector<PerformanceService>()),
   );
 }

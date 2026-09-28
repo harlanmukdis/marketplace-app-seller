@@ -572,7 +572,7 @@ class _QuickAccess extends StatelessWidget {
     final items = <(IconData, String, String)>[
       (Icons.add_rounded, 'Tambah Produk', SellerRoutes.productCreate),
       (Icons.local_offer_outlined, 'Atur Promo', SellerRoutes.promotions),
-      (Icons.warehouse_outlined, 'Gudang & Stok', SellerRoutes.warehouses),
+      (Icons.insights_outlined, 'Analitik & Performa', SellerRoutes.analytics),
       (Icons.support_agent_outlined, 'Xpedia 911', SellerRoutes.support),
     ];
     return Column(

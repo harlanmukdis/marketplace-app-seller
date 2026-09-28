@@ -17,6 +17,8 @@ import '../../features/seller_inventory/presentation/views/stock_view.dart';
 import '../../features/seller_account/presentation/views/security_view.dart';
 import '../../features/seller_growth/presentation/views/growth_view.dart';
 import '../../features/seller_orders/presentation/views/order_detail_view.dart';
+import '../../features/seller_performance/presentation/views/analytics_view.dart';
+import '../../features/seller_performance/presentation/views/performance_view.dart';
 import '../../features/seller_orders/presentation/views/order_invoice_view.dart';
 import '../../features/seller_store/presentation/views/store_settings_view.dart';
 import '../../features/seller_support/presentation/views/support_view.dart';
@@ -99,6 +101,10 @@ abstract class SellerRoutes {
 
   static String growthProductPath(int productId) =>
       '/seller/growth/$productId';
+
+  /// Partners Performance (S-35) and Analytics (S-33).
+  static const String performance = '/seller/performance';
+  static const String analytics = '/seller/analytics';
 
   /// Xpedia 911 — tickets to the platform (S-41, S-42).
   static const String support = '/seller/support';
@@ -202,6 +208,8 @@ final List<RouteBase> appRouterSeller = <RouteBase>[
   _sellerRoute(SellerRoutes.storeSettings, const StoreSettingsView()),
   _sellerRoute(SellerRoutes.security, const SecurityView()),
   _sellerRoute(SellerRoutes.support, const SupportView()),
+  _sellerRoute(SellerRoutes.performance, const PerformanceView()),
+  _sellerRoute(SellerRoutes.analytics, const AnalyticsView()),
   _sellerRoute(SellerRoutes.growth, const GrowthView()),
   _sellerRouteBuilder(
     SellerRoutes.growthProduct,

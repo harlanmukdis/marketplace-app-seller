@@ -307,6 +307,18 @@ abstract class ApiEndpoints {
   /// Answers `data: null` until the nightly job assigns a tier.
   static String storeTier(int storeId) => '/stores/$storeId/tier';
   static String storeHealthScore(int storeId) => '/stores/$storeId/health-score';
+
+  /// Public four-block performance summary (v1.13.0).
+  static String storePartnersPerformance(int storeId) =>
+      '/stores/$storeId/partners-performance';
+
+  /// New vs loyal buyers from completed orders (v1.25.0).
+  static String storeCustomerSegmentation(int storeId) =>
+      '/stores/$storeId/customer-segmentation';
+
+  /// Checkouts that failed on stale stock (v1.22.0). 30 a page, no `meta`.
+  static String storeStockMismatchEvents(int storeId) =>
+      '/stores/$storeId/stock-mismatch-events';
   static String storeTaxProfile(int storeId) => '/stores/$storeId/tax-profile';
 
   // ----------------------------------------------------------- Live & chat

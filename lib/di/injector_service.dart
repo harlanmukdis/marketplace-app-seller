@@ -9,6 +9,7 @@ import '../core/data/datasources/remote/service/media_service.dart';
 import '../core/data/datasources/remote/service/merchandising_service.dart';
 import '../core/data/datasources/remote/service/notification_service.dart';
 import '../core/data/datasources/remote/service/order_service.dart';
+import '../core/data/datasources/remote/service/performance_service.dart';
 import '../core/data/datasources/remote/service/promotion_service.dart';
 import '../core/data/datasources/remote/service/shipping_service.dart';
 import '../core/data/datasources/remote/service/store_service.dart';
@@ -41,4 +42,6 @@ void initializeService() {
   injector.registerLazySingleton<NotificationService>(
       () => NotificationService(dio));
   injector.registerLazySingleton<SupportService>(() => SupportService(dio));
+  injector.registerLazySingleton<PerformanceService>(
+      () => PerformanceService(dio));
 }
