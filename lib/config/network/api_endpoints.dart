@@ -37,6 +37,11 @@ abstract class ApiEndpoints {
   static String bankAccount(int id) => '/me/bank-accounts/$id';
   static const String withdrawalPin = '/me/withdrawal-pin';
 
+  /// Active sign-ins (unrevoked, unexpired refresh tokens). No field says
+  /// which one is the caller's.
+  static const String sessions = '/me/sessions';
+  static String session(int id) => '/me/sessions/$id';
+
   /// Xpedia 911 — tickets to the platform (API v1.23.0). Per user.
   static const String supportTickets = '/support-tickets';
   static String supportTicket(int id) => '/support-tickets/$id';

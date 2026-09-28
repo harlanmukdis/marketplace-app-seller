@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../core/data/datasources/remote/service/account_service.dart';
 import '../core/data/datasources/remote/service/auth_service.dart';
 import '../core/data/datasources/remote/service/catalog_service.dart';
 import '../core/data/datasources/remote/service/chat_service.dart';
@@ -46,4 +47,5 @@ void initializeService() {
   injector.registerLazySingleton<PerformanceService>(
       () => PerformanceService(dio));
   injector.registerLazySingleton<ReviewService>(() => ReviewService(dio));
+  injector.registerLazySingleton<AccountService>(() => AccountService(dio));
 }

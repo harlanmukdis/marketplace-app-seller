@@ -1,3 +1,4 @@
+import '../core/data/datasources/remote/service/account_service.dart';
 import '../core/data/datasources/remote/service/auth_service.dart';
 import '../core/data/datasources/remote/service/catalog_service.dart';
 import '../core/data/datasources/remote/service/chat_service.dart';
@@ -16,6 +17,7 @@ import '../core/data/datasources/remote/service/support_service.dart';
 import '../core/data/datasources/remote/service/verification_service.dart';
 import '../core/data/datasources/remote/service/wallet_service.dart';
 import '../core/data/local/session_store.dart';
+import '../core/data/repositories/account_repository_impl.dart';
 import '../core/data/repositories/auth_repository_impl.dart';
 import '../core/data/repositories/catalog_repository_impl.dart';
 import '../core/data/repositories/chat_repository_impl.dart';
@@ -32,6 +34,7 @@ import '../core/data/repositories/store_repository_impl.dart';
 import '../core/data/repositories/support_repository_impl.dart';
 import '../core/data/repositories/verification_repository_impl.dart';
 import '../core/data/repositories/wallet_repository_impl.dart';
+import '../core/domain/repositories/account_repository.dart';
 import '../core/domain/repositories/auth_repository.dart';
 import '../core/domain/repositories/catalog_repository.dart';
 import '../core/domain/repositories/review_repository.dart';
@@ -120,5 +123,9 @@ void initializeRepository() {
 
   injector.registerLazySingleton<ReviewRepository>(
     () => ReviewRepositoryImpl(injector<ReviewService>()),
+  );
+
+  injector.registerLazySingleton<AccountRepository>(
+    () => AccountRepositoryImpl(injector<AccountService>()),
   );
 }
