@@ -6,7 +6,7 @@ not unit tests and are not part of `flutter test` — that command only picks up
 
 ```bash
 # Backend must be up and seeded first (see the API repo's
-# docs/19-frontend-integration-guide.md §1).
+# docs/23-frontend-integration-guide.md §1).
 curl -s http://localhost:8000/api/v1/health
 
 # One file at a time — see below.

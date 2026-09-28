@@ -15,7 +15,7 @@ import 'package:navy_wear/main.dart';
 /// This is not a unit test: it boots the same widget tree `main()` does, talks
 /// to `http://localhost:8000/api/v1` for real, and signs in as a seed seller.
 /// It therefore needs the backend up and seeded — see
-/// `docs/19-frontend-integration-guide.md` §3 for the accounts it uses.
+/// `docs/23-frontend-integration-guide.md` §3 for the accounts it uses.
 ///
 ///     flutter test integration_test -d macos
 ///
