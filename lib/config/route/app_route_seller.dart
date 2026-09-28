@@ -16,6 +16,8 @@ import '../../features/seller_notifications/presentation/views/notification_inbo
 import '../../features/seller_inventory/presentation/views/stock_view.dart';
 import '../../features/seller_account/presentation/views/security_view.dart';
 import '../../features/seller_growth/presentation/views/growth_view.dart';
+import '../../features/seller_live/presentation/views/live_list_view.dart';
+import '../../features/seller_live/presentation/views/live_session_view.dart';
 import '../../features/seller_orders/presentation/views/order_detail_view.dart';
 import '../../features/seller_performance/presentation/views/analytics_view.dart';
 import '../../features/seller_performance/presentation/views/performance_view.dart';
@@ -106,6 +108,12 @@ abstract class SellerRoutes {
   /// Partners Performance (S-35) and Analytics (S-33).
   static const String performance = '/seller/performance';
   static const String analytics = '/seller/analytics';
+
+  /// Live selling (S-36).
+  static const String live = '/seller/live';
+  static const String liveSession = '/seller/live/:id';
+
+  static String liveSessionPath(int id) => '/seller/live/$id';
 
   /// Product reviews across the store (S-37).
   static const String reviews = '/seller/reviews';
@@ -215,6 +223,13 @@ final List<RouteBase> appRouterSeller = <RouteBase>[
   _sellerRoute(SellerRoutes.performance, const PerformanceView()),
   _sellerRoute(SellerRoutes.analytics, const AnalyticsView()),
   _sellerRoute(SellerRoutes.reviews, const ReviewView()),
+  _sellerRoute(SellerRoutes.live, const LiveListView()),
+  _sellerRouteBuilder(
+    SellerRoutes.liveSession,
+    (state) => LiveSessionView(
+      sessionId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+    ),
+  ),
   _sellerRoute(SellerRoutes.growth, const GrowthView()),
   _sellerRouteBuilder(
     SellerRoutes.growthProduct,

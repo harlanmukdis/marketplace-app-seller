@@ -3,6 +3,7 @@ import '../core/data/datasources/remote/service/auth_service.dart';
 import '../core/data/datasources/remote/service/catalog_service.dart';
 import '../core/data/datasources/remote/service/chat_service.dart';
 import '../core/data/datasources/remote/service/inventory_service.dart';
+import '../core/data/datasources/remote/service/live_service.dart';
 import '../core/data/datasources/remote/service/location_service.dart';
 import '../core/data/datasources/remote/service/media_service.dart';
 import '../core/data/datasources/remote/service/merchandising_service.dart';
@@ -22,6 +23,7 @@ import '../core/data/repositories/auth_repository_impl.dart';
 import '../core/data/repositories/catalog_repository_impl.dart';
 import '../core/data/repositories/chat_repository_impl.dart';
 import '../core/data/repositories/inventory_repository_impl.dart';
+import '../core/data/repositories/live_repository_impl.dart';
 import '../core/data/repositories/location_repository_impl.dart';
 import '../core/data/repositories/merchandising_repository_impl.dart';
 import '../core/data/repositories/notification_repository_impl.dart';
@@ -37,6 +39,7 @@ import '../core/data/repositories/wallet_repository_impl.dart';
 import '../core/domain/repositories/account_repository.dart';
 import '../core/domain/repositories/auth_repository.dart';
 import '../core/domain/repositories/catalog_repository.dart';
+import '../core/domain/repositories/live_repository.dart';
 import '../core/domain/repositories/review_repository.dart';
 import '../core/domain/repositories/performance_repository.dart';
 import '../core/domain/repositories/support_repository.dart';
@@ -127,5 +130,9 @@ void initializeRepository() {
 
   injector.registerLazySingleton<AccountRepository>(
     () => AccountRepositoryImpl(injector<AccountService>()),
+  );
+
+  injector.registerLazySingleton<LiveRepository>(
+    () => LiveRepositoryImpl(injector<LiveService>()),
   );
 }

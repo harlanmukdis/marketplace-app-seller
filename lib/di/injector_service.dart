@@ -5,6 +5,7 @@ import '../core/data/datasources/remote/service/auth_service.dart';
 import '../core/data/datasources/remote/service/catalog_service.dart';
 import '../core/data/datasources/remote/service/chat_service.dart';
 import '../core/data/datasources/remote/service/inventory_service.dart';
+import '../core/data/datasources/remote/service/live_service.dart';
 import '../core/data/datasources/remote/service/location_service.dart';
 import '../core/data/datasources/remote/service/media_service.dart';
 import '../core/data/datasources/remote/service/merchandising_service.dart';
@@ -48,4 +49,5 @@ void initializeService() {
       () => PerformanceService(dio));
   injector.registerLazySingleton<ReviewService>(() => ReviewService(dio));
   injector.registerLazySingleton<AccountService>(() => AccountService(dio));
+  injector.registerLazySingleton<LiveService>(() => LiveService(dio));
 }

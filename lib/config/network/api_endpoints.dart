@@ -334,6 +334,10 @@ abstract class ApiEndpoints {
   static String liveSessionEnd(int sessionId) => '/live-sessions/$sessionId/end';
   static String liveSessionProducts(int sessionId) =>
       '/live-sessions/$sessionId/products';
+  static String liveSessionPin(int sessionId, int productId) =>
+      '/live-sessions/$sessionId/products/$productId/pin';
+  static String liveSessionVouchers(int sessionId) =>
+      '/live-sessions/$sessionId/vouchers';
 
   /// ⚠️ **`GET` here is buyer-scoped, not store-scoped.** The model filters on
   /// `buyer_id = <signed in user>`, so a seller gets the conversations in which
