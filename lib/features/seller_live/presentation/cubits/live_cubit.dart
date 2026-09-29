@@ -97,6 +97,7 @@ class LiveSessionState {
     this.products = const <Product>[],
     this.vouchers = const <LiveVoucher>[],
     this.storeVouchers = const <StoreVoucher>[],
+    this.nextSession,
     this.busy = false,
     this.error,
   });
@@ -110,6 +111,10 @@ class LiveSessionState {
   final List<Product> products;
   final List<LiveVoucher> vouchers;
   final List<StoreVoucher> storeVouchers;
+
+  /// The store's next scheduled session other than this one, from the ids
+  /// remembered on this device (the API cannot list sessions).
+  final LiveSession? nextSession;
   final bool busy;
   final DataError? error;
 
@@ -132,6 +137,7 @@ class LiveSessionState {
         products: products,
         vouchers: vouchers ?? this.vouchers,
         storeVouchers: storeVouchers,
+        nextSession: nextSession,
         busy: busy ?? this.busy,
         error: error,
       );
@@ -160,6 +166,7 @@ class LiveSessionCubit extends Cubit<LiveSessionState> {
       if (storeId != null)
         injector<PromotionRepository>().getStoreVouchers(storeId),
     ]);
+    final next = storeId == null ? null : await _nextSession(storeId);
     if (isClosed) return;
     final session = results[0];
     final vouchers = results[1];
@@ -178,7 +185,26 @@ class LiveSessionCubit extends Cubit<LiveSessionState> {
       storeVouchers: storeVouchers is DataSuccess<List<StoreVoucher>>
           ? storeVouchers.value
           : const <StoreVoucher>[],
+      nextSession: next,
     ));
+  }
+
+  Future<LiveSession?> _nextSession(int storeId) async {
+    final ids = _live
+        .rememberedSessionIds(storeId)
+        .where((id) => id != sessionId)
+        .take(10);
+    final results = await Future.wait(ids.map(_live.get));
+    final now = DateTime.now();
+    LiveSession? next;
+    for (final r in results) {
+      if (r is! DataSuccess<LiveSession>) continue;
+      final s = r.value;
+      final at = s.scheduledAt;
+      if (!s.canStart || at == null || at.isBefore(now)) continue;
+      if (next == null || at.isBefore(next.scheduledAt!)) next = s;
+    }
+    return next;
   }
 
   Future<DataError?> start() async {
