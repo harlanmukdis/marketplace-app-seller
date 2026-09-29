@@ -57,7 +57,9 @@ void main() {
 
     test('media and share types are told apart from text', () {
       expect(ChatMessage.fromJson(message(type: 'image')).isMedia, isTrue);
-      expect(ChatMessage.fromJson(message(type: 'video')).isMedia, isTrue);
+      // Video was removed in API v1.6.0 (the server refuses it), so a stray
+      // legacy row is no longer treated as displayable media.
+      expect(ChatMessage.fromJson(message(type: 'video')).isMedia, isFalse);
       expect(ChatMessage.fromJson(message(type: 'text')).isMedia, isFalse);
 
       final share = ChatMessage.fromJson(
