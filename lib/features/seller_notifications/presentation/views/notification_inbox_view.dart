@@ -7,17 +7,15 @@ import '../../../../core/data_state.dart';
 import '../../../../core/domain/model/notification/app_notification.dart';
 import '../../../../core/domain/repositories/staff_repository.dart';
 import '../../../../di/injector.dart';
-import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/constant.dart';
-import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 import '../../../../core/widgets/state_widgets.dart';
-import '../../../seller_home/presentation/views/widgets/section_card.dart';
+import '../../../../core/widgets/xpedia/x_widgets.dart';
 import '../cubits/notification_cubit/notification_cubit.dart';
 import 'widgets/notification_preferences_sheet.dart';
-import '../../../../core/utils/xpedia_tokens.dart';
 
-/// The account's notifications.
+/// "Notifikasi Toko" (S-40): the account's notifications, grouped Kritis /
+/// Operasional / Promosi & Info (see [NotificationCategory]).
 ///
 /// **Per account, not per store.** An owner of several shops sees one stream,
 /// and the payload carries nothing that says which shop a row belongs to — so
@@ -39,8 +37,15 @@ class NotificationInboxView extends StatelessWidget {
   }
 }
 
-class _NotificationInboxBody extends StatelessWidget {
+class _NotificationInboxBody extends StatefulWidget {
   const _NotificationInboxBody();
+
+  @override
+  State<_NotificationInboxBody> createState() => _NotificationInboxBodyState();
+}
+
+class _NotificationInboxBodyState extends State<_NotificationInboxBody> {
+  NotificationCategory? _filter;
 
   Future<void> _open(BuildContext context, AppNotification notification) async {
     final cubit = NotificationCubit.get(context);
@@ -62,19 +67,20 @@ class _NotificationInboxBody extends StatelessWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Terima undangan staf?'),
-        content: const Text(
+        title: Text('Terima undangan staf?', style: XText.headingM),
+        content: Text(
           'Anda akan bergabung sebagai staf toko ini dengan peran yang '
           'ditetapkan pemiliknya.',
+          style: XText.bodyM,
         ),
         actions: <Widget>[
-          TextButton(
+          XButton.ghost(
+            label: 'Nanti',
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Nanti'),
           ),
-          FilledButton(
+          XButton(
+            label: 'Terima',
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Terima'),
           ),
         ],
       ),
@@ -97,109 +103,259 @@ class _NotificationInboxBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar(
-        context,
-        'Notifikasi',
-        action: Builder(
-          builder: (context) => IconButton(
-            tooltip: 'Pengaturan notifikasi',
-            icon: const Icon(Icons.tune_rounded, size: 20),
-            onPressed: () {
-              final cubit = NotificationCubit.get(context);
-              showNotificationPreferencesSheet(
-                context,
-                load: cubit.preferences,
-                setPreference: cubit.setPreference,
-              );
-            },
+      backgroundColor: XColors.canvas,
+      appBar: XAppBar(
+        title: 'Notifikasi Toko',
+        actions: <Widget>[
+          Builder(
+            builder: (context) => XIconAction(
+              icon: Icons.tune_rounded,
+              tooltip: 'Pengaturan notifikasi',
+              onPressed: () {
+                final cubit = NotificationCubit.get(context);
+                showNotificationPreferencesSheet(
+                  context,
+                  load: cubit.preferences,
+                  setPreference: cubit.setPreference,
+                );
+              },
+            ),
           ),
-        ),
+        ],
       ),
-      body: SafeArea(
-        child: BlocBuilder<NotificationCubit, NotificationState>(
-          builder: (context, state) => switch (state) {
-            NotificationInProgress() => const LoadingIndicatorView(),
-            NotificationFailure(:final error) => ErrorStateView(
-                error: error,
-                onRetry: () => NotificationCubit.get(context).load(),
-              ),
-            NotificationLoaded() => _content(context, state),
-          },
-        ),
+      body: BlocBuilder<NotificationCubit, NotificationState>(
+        builder: (context, state) => switch (state) {
+          NotificationInProgress() => const LoadingIndicatorView(),
+          NotificationFailure(:final error) => ErrorStateView(
+              error: error,
+              onRetry: () => NotificationCubit.get(context).load(),
+            ),
+          NotificationLoaded() => _content(context, state),
+        },
       ),
     );
   }
 
   Widget _content(BuildContext context, NotificationLoaded state) {
-    if (state.notifications.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: () => NotificationCubit.get(context).load(),
-        child: ListView(
-          children: <Widget>[
-            SizedBox(height: context.screenHeight * 0.15),
-            const EmptyStateView(
-              icon: Icons.notifications_none_rounded,
-              message: 'Belum ada notifikasi. Pesanan baru yang masuk akan '
-                  'muncul di sini.',
-            ),
-          ],
-        ),
-      );
-    }
+    final all = state.notifications;
+    final counts = <NotificationCategory, int>{
+      for (final c in NotificationCategory.values)
+        c: all.where((n) => n.category == c).length,
+    };
+    final groups = <NotificationCategory>[
+      for (final c in NotificationCategory.values)
+        if ((_filter == null || _filter == c) && counts[c]! > 0) c,
+    ];
 
     return Column(
       children: <Widget>[
-        if (state.hasUnread)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    '${state.unreadCount} belum dibaca',
-                    style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
-                  ),
+        Container(
+          color: XColors.surface,
+          padding: const EdgeInsets.fromLTRB(
+              XSpace.screen, XSpace.s12, XSpace.screen, XSpace.s4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: <Widget>[
+                    _FilterPill(
+                      label: 'Semua',
+                      count: all.length,
+                      selected: _filter == null,
+                      onTap: () => setState(() => _filter = null),
+                    ),
+                    for (final c in NotificationCategory.values)
+                      _FilterPill(
+                        label: c.label,
+                        count: counts[c]!,
+                        danger: c == NotificationCategory.critical,
+                        selected: _filter == c,
+                        onTap: () => setState(() => _filter = c),
+                      ),
+                  ],
                 ),
-                TextButton(
-                  onPressed: state.isBusy
+              ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: !state.hasUnread || state.isBusy
                       ? null
                       : () => NotificationCubit.get(context).markAllRead(),
-                  child: const Text('Tandai semua dibaca'),
+                  icon: const Icon(Icons.done_all, size: 18),
+                  label: Text(
+                    state.hasUnread
+                        ? 'Tandai Semua Sudah Dibaca (${state.unreadCount})'
+                        : 'Semua sudah dibaca',
+                    style: XText.labelM,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Divider(height: 1, color: XColors.borderSubtle),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => NotificationCubit.get(context).load(),
+            child: all.isEmpty || groups.isEmpty
+                ? ListView(
+                    children: <Widget>[
+                      const SizedBox(height: XSpace.s32),
+                      XEmptyState(
+                        icon: Icons.notifications_none_rounded,
+                        title: all.isEmpty
+                            ? 'Belum ada notifikasi'
+                            : 'Tidak ada notifikasi ${_filter!.label}',
+                        message: all.isEmpty
+                            ? 'Pesanan baru yang masuk akan muncul di sini.'
+                            : null,
+                      ),
+                    ],
+                  )
+                : ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                        XSpace.screen, XSpace.s12, XSpace.screen, XSpace.s32),
+                    children: <Widget>[
+                      for (final c in groups) ...<Widget>[
+                        _GroupHeader(category: c, count: counts[c]!),
+                        for (final n
+                            in all.where((n) => n.category == c)) ...<Widget>[
+                          _NotificationCard(
+                            notification: n,
+                            onTap: () => _open(context, n),
+                          ),
+                          const SizedBox(height: XSpace.s12),
+                        ],
+                        const SizedBox(height: XSpace.s8),
+                      ],
+                      if (state.hasMore)
+                        Center(
+                          child: XButton.secondary(
+                            label:
+                                state.isBusy ? 'Memuat…' : 'Muat lebih banyak',
+                            onPressed: state.isBusy
+                                ? null
+                                : () =>
+                                    NotificationCubit.get(context).loadMore(),
+                          ),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.all(XSpace.s16),
+                          child: Column(
+                            children: <Widget>[
+                              Icon(Icons.assignment_turned_in_outlined,
+                                  color: XColors.textTertiary),
+                              const SizedBox(height: XSpace.s4),
+                              Text(
+                                'Semua notifikasi sudah ditampilkan.',
+                                textAlign: TextAlign.center,
+                                style: XText.bodyS,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FilterPill extends StatelessWidget {
+  const _FilterPill({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.onTap,
+    this.danger = false,
+  });
+
+  final String label;
+  final int count;
+  final bool selected;
+  final bool danger;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = selected ? XColors.textOnBrand : XColors.textSecondary;
+    final badgeBg = selected
+        ? Colors.white.withValues(alpha: 0.25)
+        : danger && count > 0
+            ? XColors.danger
+            : XColors.borderSubtle;
+    final badgeFg = selected || (danger && count > 0)
+        ? XColors.textOnBrand
+        : XColors.textSecondary;
+    return Padding(
+      padding: const EdgeInsets.only(right: XSpace.s8),
+      child: Material(
+        color: selected ? XColors.primary : XColors.sunken,
+        shape: const StadiumBorder(),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: XSpace.s12,
+              vertical: XSpace.s8,
+            ),
+            child: Row(
+              children: <Widget>[
+                Text(label, style: XText.labelL.copyWith(color: fg)),
+                const SizedBox(width: XSpace.s8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  decoration: BoxDecoration(
+                    color: badgeBg,
+                    borderRadius: BorderRadius.circular(XRadius.full),
+                  ),
+                  child: Text(
+                    '$count',
+                    style: XText.labelS.copyWith(color: badgeFg),
+                  ),
                 ),
               ],
             ),
           ),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => NotificationCubit.get(context).load(),
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-              itemCount: state.notifications.length + (state.hasMore ? 1 : 0),
-              separatorBuilder: (_, __) => 12.sbh,
-              itemBuilder: (context, index) {
-                if (index == state.notifications.length) {
-                  return Center(
-                    child: TextButton(
-                      onPressed: state.isBusy
-                          ? null
-                          : () => NotificationCubit.get(context).loadMore(),
-                      child: Text(
-                        state.isBusy ? 'Memuat…' : 'Muat lebih banyak',
-                      ),
-                    ),
-                  );
-                }
+        ),
+      ),
+    );
+  }
+}
 
-                final notification = state.notifications[index];
-                return _NotificationCard(
-                  notification: notification,
-                  onTap: () => _open(context, notification),
-                );
-              },
+class _GroupHeader extends StatelessWidget {
+  const _GroupHeader({required this.category, required this.count});
+
+  final NotificationCategory category;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final critical = category == NotificationCategory.critical;
+    final color = critical ? XColors.dangerStrong : XColors.textTertiary;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: XSpace.s8),
+      child: Row(
+        children: <Widget>[
+          if (critical) ...<Widget>[
+            Icon(Icons.circle, size: 8, color: XColors.danger),
+            const SizedBox(width: XSpace.s4),
+          ],
+          Expanded(
+            child: Text(
+              category.heading.toUpperCase(),
+              style: XText.overline.copyWith(color: color),
             ),
           ),
-        ),
-      ],
+          Text('$count', style: XText.labelS.copyWith(color: color)),
+        ],
+      ),
     );
   }
 }
@@ -210,58 +366,125 @@ class _NotificationCard extends StatelessWidget {
   final AppNotification notification;
   final VoidCallback onTap;
 
+  static String _ago(DateTime? t) {
+    if (t == null) return '';
+    final d = DateTime.now().difference(t);
+    if (d.inMinutes < 1) return 'Baru saja';
+    if (d.inMinutes < 60) return '${d.inMinutes} menit lalu';
+    if (d.inHours < 24) return '${d.inHours} jam lalu';
+    if (d.inDays == 1) return 'Kemarin';
+    return formatDate(t);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isUnread = !notification.isRead;
+    final n = notification;
+    final isUnread = !n.isRead;
+    final (IconData icon, XTone tone) = switch (n.type) {
+      NotificationType.orderNew || NotificationType.orderPaid => (
+          Icons.inventory_2_outlined,
+          XTone.success
+        ),
+      NotificationType.staffInvitation => (
+          Icons.group_add_outlined,
+          XTone.info
+        ),
+      _ => switch (n.category) {
+          NotificationCategory.critical => (Icons.timer_outlined, XTone.danger),
+          NotificationCategory.operational => (
+              Icons.storefront_outlined,
+              XTone.warning
+            ),
+          NotificationCategory.info => (Icons.campaign_outlined, XTone.info),
+        },
+    };
+    final action = n.isAboutOrder
+        ? 'Lihat Pesanan'
+        : n.invitationToken != null
+            ? 'Terima Undangan'
+            : null;
 
-    return SectionCard(
-      onTap: onTap,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            width: 8,
-            height: 8,
-            margin: const EdgeInsets.only(top: 6),
-            decoration: BoxDecoration(
-              // The only affordance that says "new" — the payload has no
-              // priority or severity to render.
-              color: isUnread ? kLightPrimaryColor : Colors.transparent,
-              shape: BoxShape.circle,
-            ),
-          ),
-          12.sbw,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  notification.title,
-                  style: isUnread ? XText.labelL : XText.bodyM,
+    return Material(
+      color:
+          isUnread ? XColors.surface : XColors.surface.withValues(alpha: 0.7),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(XRadius.md),
+        side: BorderSide(
+          color: isUnread
+              ? XColors.primary.withValues(alpha: 0.35)
+              : XColors.borderSubtle,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(XSpace.card),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: tone.background,
+                  borderRadius: BorderRadius.circular(XRadius.md),
                 ),
-                if (notification.body != null) ...<Widget>[
-                  4.sbh,
-                  Text(
-                    notification.body!,
-                    style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
-                  ),
-                ],
-                6.sbh,
-                Text(
-                  <String>[
-                    NotificationType.label(notification.type),
-                    formatDateTime(notification.createdAt),
-                  ].join(' · '),
-                  style: XText.caption.copyWith(color: kLightThirdColor),
+                child: Icon(icon, size: 20, color: tone.foreground),
+              ),
+              const SizedBox(width: XSpace.s12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            NotificationType.label(n.type).toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style:
+                                XText.overline.copyWith(color: tone.foreground),
+                          ),
+                        ),
+                        Text(_ago(n.createdAt), style: XText.caption),
+                        if (isUnread) ...<Widget>[
+                          const SizedBox(width: XSpace.s4),
+                          Icon(Icons.circle, size: 8, color: XColors.primary),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      n.title,
+                      style: isUnread
+                          ? XText.titleM
+                          : XText.titleM.copyWith(
+                              color: XColors.textSecondary,
+                            ),
+                    ),
+                    if (n.body != null) ...<Widget>[
+                      const SizedBox(height: XSpace.s4),
+                      Text(n.body!, style: XText.bodyS),
+                    ],
+                    if (action != null) ...<Widget>[
+                      const SizedBox(height: XSpace.s8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: XButton(
+                          label: action,
+                          size: XButtonSize.small,
+                          onPressed: onTap,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          if (notification.isAboutOrder) ...<Widget>[
-            8.sbw,
-            const Icon(Icons.chevron_right, size: 18),
-          ],
-        ],
+        ),
       ),
     );
   }

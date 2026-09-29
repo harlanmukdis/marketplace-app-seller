@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/widgets/xpedia/x_widgets.dart';
 
-import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/utils/validators.dart';
@@ -126,7 +126,7 @@ class _FlashSaleFormSheetState extends State<_FlashSaleFormSheet> {
               Text(
                 'Flash sale tidak bisa diubah, dijadwal ulang, atau dibatalkan '
                 'setelah dibuat.',
-                style: XText.caption.copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: XColors.textTertiary),
               ),
               16.sbh,
               CustomTextFormField(
@@ -152,7 +152,7 @@ class _FlashSaleFormSheetState extends State<_FlashSaleFormSheet> {
                 8.sbh,
                 Text(
                   'Waktu berakhir harus setelah waktu mulai.',
-                  style: XText.bodySPrimary.copyWith(color: kErrorColor),
+                  style: XText.bodySPrimary.copyWith(color: XColors.danger),
                 ),
               ],
               if (_startsLater) ...<Widget>[
@@ -160,12 +160,11 @@ class _FlashSaleFormSheetState extends State<_FlashSaleFormSheet> {
                 const _ScheduledWarning(),
               ],
               24.sbh,
-              FilledButton(
+              XButton(
+                label: 'Buat flash sale',
+                size: XButtonSize.large,
+                expand: true,
                 onPressed: _windowIsValid ? _submit : null,
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                child: const Text('Buat flash sale'),
               ),
               12.sbh,
             ],
@@ -186,13 +185,14 @@ class _ScheduledWarning extends StatelessWidget {
     return Container(
       padding: 12.pa,
       decoration: BoxDecoration(
-        color: kWarningColor.withValues(alpha: 0.08),
+        color: XColors.warningStrong.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const Icon(Icons.schedule_outlined, size: 16, color: kWarningColor),
+          const Icon(Icons.schedule_outlined,
+              size: 16, color: XColors.warningStrong),
           8.sbw,
           Expanded(
             child: Text(

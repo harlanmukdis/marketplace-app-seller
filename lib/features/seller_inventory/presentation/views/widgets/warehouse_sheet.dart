@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/widgets/xpedia/x_widgets.dart';
 
 import '../../../../../core/domain/model/inventory/warehouse.dart';
 import '../../../../../core/domain/model/location/master_location.dart';
-import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/validators.dart';
 import '../../../../../core/widgets/app_dropdown_field.dart';
@@ -191,7 +191,7 @@ class _WarehouseSheetState extends State<_WarehouseSheet> {
                 Text(
                   'Gudang pertama otomatis jadi gudang utama — itu keputusan '
                   'server, bukan pilihan di sini.',
-                  style: XText.caption.copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: XColors.textTertiary),
                 ),
               ],
               16.sbh,
@@ -234,12 +234,11 @@ class _WarehouseSheetState extends State<_WarehouseSheet> {
                 ),
               ],
               24.sbh,
-              FilledButton(
+              XButton(
+                label: _isEditing ? 'Simpan' : 'Tambah gudang',
+                size: XButtonSize.large,
+                expand: true,
                 onPressed: _submit,
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                child: Text(_isEditing ? 'Simpan' : 'Tambah gudang'),
               ),
               12.sbh,
             ],
@@ -290,7 +289,8 @@ class _WarehouseSheetState extends State<_WarehouseSheet> {
               Text(
                 'Daftar wilayah tidak bisa dimuat. Ketik kota dan provinsi '
                 'secara manual.',
-                style: XText.bodySPrimary.copyWith(color: kWarningColor),
+                style:
+                    XText.bodySPrimary.copyWith(color: XColors.warningStrong),
               ),
               12.sbh,
               _freeTextPlace(context),
@@ -373,7 +373,7 @@ class _FreeTextToggle extends StatelessWidget {
             Expanded(
               child: Text(
                 'Kota saya tidak ada di daftar — ketik manual',
-                style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
+                style: XText.bodySPrimary.copyWith(color: XColors.textTertiary),
               ),
             ),
           ],

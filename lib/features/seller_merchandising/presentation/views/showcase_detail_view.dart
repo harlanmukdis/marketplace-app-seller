@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/xpedia/x_widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/domain/model/catalog/product.dart';
 import '../../../../core/domain/model/merchandising/store_showcase.dart';
-import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/widgets/state_widgets.dart';
@@ -70,7 +69,8 @@ class _ShowcaseDetailBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar(context, 'Isi etalase'),
+      backgroundColor: XColors.canvas,
+      appBar: const XAppBar(title: 'Isi etalase'),
       floatingActionButton:
           BlocBuilder<ShowcaseDetailCubit, ShowcaseDetailState>(
         builder: (context, state) => switch (state) {
@@ -119,7 +119,7 @@ class _ShowcaseDetailBody extends StatelessWidget {
                     'Hanya produk aktif yang tampil di sini. Produk draf tetap '
                     'bisa dimasukkan, tapi tidak akan pernah muncul sampai '
                     'produknya diaktifkan.',
-                    style: XText.caption.copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: XColors.textTertiary),
                   ),
                   16.sbh,
                   if (state.products.isEmpty)
@@ -178,7 +178,7 @@ class _ShowcaseProductCard extends StatelessWidget {
                       '${product.ratingAvg.toStringAsFixed(1)} '
                           '(${product.ratingCount})',
                   ].join(' · '),
-                  style: XText.caption.copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: XColors.textTertiary),
                 ),
               ],
             ),
@@ -262,8 +262,8 @@ class _ProductPickerSheet extends StatelessWidget {
                                 : formatRupiah(product.basePrice),
                             style: XText.caption.copyWith(
                               color: product.isDraft
-                                  ? kWarningColor
-                                  : kLightThirdColor,
+                                  ? XColors.warningStrong
+                                  : XColors.textTertiary,
                             ),
                           ),
                           onTap: () => Navigator.of(context).pop(product.id),

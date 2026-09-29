@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/constant.dart';
-import '../../../../core/utils/extensions.dart';
-import '../../../../core/widgets/state_widgets.dart';
-import '../cubits/courier_cubit/courier_cubit.dart';
+import '../../../../core/domain/model/shipping/courier.dart';
 import '../../../../core/utils/xpedia_tokens.dart';
+import '../../../../core/widgets/state_widgets.dart';
+import '../../../../core/widgets/xpedia/x_widgets.dart';
+import '../cubits/courier_cubit/courier_cubit.dart';
 
-/// Which couriers the store ships with.
+/// "Pilih Kurir Aktif" (S-24).
 ///
-/// The list is an **optional whitelist**, not a requirement: a store that has
-/// chosen none is offered to buyers through every active courier, and choosing
-/// some *narrows* that to the chosen ones. Getting this backwards is easy —
-/// the screen says which way round it works rather than leaving the seller to
-/// guess whether an empty list means "all" or "none".
+/// The API's list is an **optional whitelist**: a store that has chosen none
+/// ships through every active courier, and choosing some narrows buyers to
+/// those. The screen shows it the way the design does — one switch per
+/// courier, all on by default — and the cubit maps that onto the whitelist,
+/// refusing to switch the last one off (an empty list would mean "all").
+///
+/// Not drawn: the design's per-service toggles (REG/YES/BEST…) and the pickup
+/// schedule and drop-off point. The API knows couriers by code and name only.
 class CourierView extends StatelessWidget {
   const CourierView({super.key});
 
@@ -37,151 +39,228 @@ class _CourierBody extends StatelessWidget {
       showErrorSnackBar(context, error);
       return;
     }
-    showSuccessSnackBar(context, 'Pilihan kurir tersimpan.');
+    showSuccessSnackBar(context, 'Pengaturan kurir tersimpan.');
+  }
+
+  void _toggle(BuildContext context, String code, bool on) {
+    final ok = CourierCubit.get(context).setActive(code, on);
+    if (!ok) {
+      showSuccessSnackBar(context, 'Minimal satu kurir harus aktif.');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: customAppBar(context, 'Kurir pengiriman'),
-      body: SafeArea(
-        child: BlocBuilder<CourierCubit, CourierState>(
-          builder: (context, state) => switch (state) {
-            CourierInProgress() => const LoadingIndicatorView(),
-            CourierNoStore() => const EmptyStateView(
-                icon: Icons.storefront_outlined,
-                message: 'Pilih toko dulu untuk mengatur kurirnya.',
-              ),
-            CourierFailure(:final error) => ErrorStateView(
-                error: error,
-                onRetry: () => CourierCubit.get(context).load(),
-              ),
-            CourierLoaded() => _content(context, state),
-          },
-        ),
+    return BlocBuilder<CourierCubit, CourierState>(
+      builder: (context, state) => Scaffold(
+        backgroundColor: XColors.canvas,
+        appBar: const XAppBar(title: 'Pilih Kurir Aktif'),
+        body: switch (state) {
+          CourierInProgress() => const LoadingIndicatorView(),
+          CourierNoStore() => const XEmptyState(
+              icon: Icons.storefront_outlined,
+              title: 'Belum ada toko aktif',
+              message: 'Pilih toko dulu untuk mengatur kurirnya.',
+            ),
+          CourierFailure(:final error) => ErrorStateView(
+              error: error,
+              onRetry: () => CourierCubit.get(context).load(),
+            ),
+          CourierLoaded() => _content(context, state),
+        },
+        bottomNavigationBar: state is CourierLoaded &&
+                state.available.isNotEmpty
+            ? Material(
+                color: XColors.surface,
+                elevation: 8,
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.all(XSpace.screen),
+                    child: XButton(
+                      label: 'Simpan Pengaturan Kurir',
+                      icon: Icons.check_circle_outline,
+                      size: XButtonSize.large,
+                      expand: true,
+                      loading: state.isBusy,
+                      onPressed: state.isDirty ? () => _save(context) : null,
+                    ),
+                  ),
+                ),
+              )
+            : null,
       ),
     );
   }
 
   Widget _content(BuildContext context, CourierLoaded state) {
     if (state.available.isEmpty) {
-      return const EmptyStateView(
+      return const XEmptyState(
         icon: Icons.local_shipping_outlined,
+        title: 'Belum ada kurir',
         message: 'Platform belum punya kurir aktif.',
       );
     }
-
-    return Column(
+    return ListView(
+      padding: const EdgeInsets.all(XSpace.screen),
       children: <Widget>[
-        Expanded(
-          child: ListView(
-            padding: 20.pa,
-            children: <Widget>[
-              Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      if (state.hasNone) const _AllCouriersNotice(),
-                      if (state.hasNone) 16.sbh,
-                      Text(
-                        state.hasNone
-                            ? 'Centang kurir tertentu kalau ingin membatasi. '
-                                'Menyimpan tanpa centang berarti kembali '
-                                'terbuka untuk semua kurir.'
-                            : 'Pembeli hanya bisa memilih kurir yang dicentang '
-                                'di sini. Menyimpan akan mengganti seluruh '
-                                'daftar, bukan menambah.',
-                        style: XText.bodySPrimary
-                            .copyWith(color: kLightThirdColor),
-                      ),
-                      16.sbh,
-                      for (final courier in state.available)
-                        CheckboxListTile(
-                          contentPadding: EdgeInsets.zero,
-                          value: state.isSelected(courier.code),
-                          onChanged: state.isBusy
-                              ? null
-                              : (_) => CourierCubit.get(context)
-                                  .toggle(courier.code),
-                          title: Text(
-                            courier.name,
-                            style: XText.bodyM,
-                          ),
-                          subtitle: Text(
-                            courier.code,
-                            style:
-                                XText.caption.copyWith(color: kLightThirdColor),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+        XBanner(
+          title: 'Aturan Pengiriman Toko',
+          message: state.hasNone
+              ? 'Semua kurir aktif, jadi pembeli bisa memilih kurir mana pun. '
+                  'Matikan kurir yang tidak bisa Anda layani — drop-off atau '
+                  'pickup-nya tidak terjangkau.'
+              : 'Pembeli hanya dapat memilih kurir yang Anda aktifkan di bawah '
+                  'ini. Pastikan Anda punya akses gerai drop-off atau jadwal '
+                  'pickup yang memadai.',
         ),
-        Padding(
-          padding: 20.pa,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560),
-              child: FilledButton(
-                onPressed: state.isBusy || !state.isDirty
-                    ? null
-                    : () => _save(context),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                child: state.isBusy
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: kWhiteColor,
-                        ),
-                      )
-                    : const Text('Simpan pilihan'),
-              ),
+        const SizedBox(height: XSpace.s24),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Text('Daftar Mitra Ekspedisi', style: XText.headingM),
             ),
-          ),
+            XChip(
+              label:
+                  '${state.activeCount} dari ${state.available.length} Aktif',
+              tone: XTone.success,
+            ),
+          ],
         ),
+        const SizedBox(height: XSpace.s12),
+        for (final courier in state.available) ...<Widget>[
+          _CourierCard(
+            courier: courier,
+            on: state.isOn(courier.code),
+            onChanged: state.isBusy
+                ? null
+                : (on) => _toggle(context, courier.code, on),
+          ),
+          const SizedBox(height: XSpace.s12),
+        ],
+        Text(
+          'Menyimpan mengganti seluruh daftar. Kurir baru dari platform '
+          'otomatis aktif selama semua kurir Anda nyalakan.',
+          style: XText.bodyS,
+        ),
+        const SizedBox(height: XSpace.s24),
       ],
     );
   }
 }
 
-/// An empty selection is "open to all", not "nothing ships" — the backend
-/// applies the whitelist only when it is non-empty. Said plainly, because the
-/// opposite reading is the natural one and would send a seller hunting for a
-/// problem that is not there.
-class _AllCouriersNotice extends StatelessWidget {
-  const _AllCouriersNotice();
+class _CourierCard extends StatelessWidget {
+  const _CourierCard({
+    required this.courier,
+    required this.on,
+    required this.onChanged,
+  });
+
+  final Courier courier;
+  final bool on;
+  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: 16.pa,
-      decoration: BoxDecoration(
-        color: kLightPrimaryColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          const Icon(Icons.local_shipping_outlined,
-              size: 18, color: kLightPrimaryColor),
-          8.sbw,
-          Expanded(
-            child: Text(
-              'Belum ada batasan kurir, jadi pembeli bisa memilih semua kurir '
-              'yang aktif di platform. Pengiriman tetap jalan.',
-              style: XText.bodySPrimary,
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 160),
+      opacity: on ? 1 : 0.6,
+      child: XCard(
+        onTap: onChanged == null ? null : () => onChanged!(!on),
+        child: Row(
+          children: <Widget>[
+            _CourierLogo(code: courier.code, name: courier.name),
+            const SizedBox(width: XSpace.s12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Flexible(
+                        child: Text(
+                          courier.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: XText.titleL,
+                        ),
+                      ),
+                      const SizedBox(width: XSpace.s8),
+                      Icon(
+                        Icons.circle,
+                        size: 8,
+                        color: on ? XColors.success : XColors.textPlaceholder,
+                      ),
+                    ],
+                  ),
+                  Text(
+                    on ? 'Ditawarkan ke pembeli' : 'Nonaktif untuk toko ini',
+                    style: XText.bodyS,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            XSwitch(
+              value: on,
+              onChanged: onChanged,
+              semanticLabel: courier.name,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A wordmark tile in the courier's brand colour. Known couriers get their
+/// own; anything else falls back to neutral initials.
+class _CourierLogo extends StatelessWidget {
+  const _CourierLogo({required this.code, required this.name});
+
+  final String code;
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final (String mark, Color fg, Color bg) = switch (code.toLowerCase()) {
+      'jne' => ('JNE', const Color(0xff0056FE), const Color(0xffEBF2FF)),
+      'sicepat' => (
+          'SiCepat',
+          const Color(0xffD10C22),
+          const Color(0xffFFECEE)
+        ),
+      'jnt' => ('J&T', const Color(0xffD10C22), const Color(0xffFFECEE)),
+      'anteraja' => ('AA', const Color(0xff6344D6), const Color(0xffF1EEFE)),
+      'gosend' || 'grab' || 'instant' => (
+          '⚡',
+          const Color(0xff0C7A44),
+          const Color(0xffE8F8EF)
+        ),
+      _ => (
+          name.isEmpty
+              ? '?'
+              : name
+                  .substring(0, name.length < 3 ? name.length : 3)
+                  .toUpperCase(),
+          XColors.textSecondary,
+          XColors.sunken,
+        ),
+    };
+    return Container(
+      width: 48,
+      height: 48,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(XRadius.md),
+      ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          mark,
+          style: XText.titleM.copyWith(color: fg, fontWeight: FontWeight.w800),
+        ),
       ),
     );
   }

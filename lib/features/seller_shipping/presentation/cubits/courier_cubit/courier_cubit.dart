@@ -73,6 +73,28 @@ class CourierCubit extends Cubit<CourierState> {
     emit(current.copyWith(selectedCodes: next, isDirty: true));
   }
 
+  /// The switch model of S-24: every courier reads as on while nothing is
+  /// restricted. Turning one off from that state selects all the others;
+  /// turning everything back on returns to the open default. Returns false —
+  /// and changes nothing — when the change would switch the last courier off,
+  /// because an empty list means "all", not "none".
+  bool setActive(String code, bool on) {
+    final current = state;
+    if (current is! CourierLoaded) return true;
+
+    final all = current.available.map((c) => c.code).toSet();
+    final effective = current.hasNone ? all : current.selectedCodes;
+    final next = Set<String>.from(effective);
+    on ? next.add(code) : next.remove(code);
+    if (next.isEmpty) return false;
+
+    emit(current.copyWith(
+      selectedCodes: next.containsAll(all) ? const <String>{} : next,
+      isDirty: true,
+    ));
+    return true;
+  }
+
   Future<DataError?> save() async {
     final storeId = _auth.activeStoreId;
     final current = state;

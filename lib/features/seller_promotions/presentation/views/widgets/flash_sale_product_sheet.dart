@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/widgets/xpedia/x_widgets.dart';
 
 import '../../../../../core/domain/model/catalog/product.dart';
 import '../../../../../core/domain/model/catalog/product_variant.dart';
-import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/utils/validators.dart';
@@ -152,7 +152,7 @@ class _FlashSaleProductSheetState extends State<_FlashSaleProductSheet> {
                 Text(
                   'Sekali masuk, produk tidak bisa dikeluarkan dari flash sale '
                   'ini dan harganya tidak bisa diubah.',
-                  style: XText.caption.copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: XColors.textTertiary),
                 ),
                 16.sbh,
                 const _StepLabel(index: 1, label: 'Pilih produk'),
@@ -182,7 +182,8 @@ class _FlashSaleProductSheetState extends State<_FlashSaleProductSheet> {
                   8.sbh,
                   Text(
                     'Harga normal ${formatRupiah(_variant!.price)}',
-                    style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
+                    style: XText.bodySPrimary
+                        .copyWith(color: XColors.textTertiary),
                   ),
                   12.sbh,
                   CustomTextFormField(
@@ -203,7 +204,7 @@ class _FlashSaleProductSheetState extends State<_FlashSaleProductSheet> {
                     'Kuota ini berdiri sendiri — server tidak mencocokkannya '
                     'dengan stok gudang, jadi angka di atas stok nyata akan '
                     'terjual melebihi persediaan.',
-                    style: XText.caption.copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: XColors.textTertiary),
                   ),
                   16.sbh,
                   CustomTextFormField(
@@ -213,12 +214,11 @@ class _FlashSaleProductSheetState extends State<_FlashSaleProductSheet> {
                     validator: Validators.positiveAmount('Batas per pembeli'),
                   ),
                   24.sbh,
-                  FilledButton(
+                  XButton(
+                    label: 'Tambahkan',
+                    size: XButtonSize.large,
+                    expand: true,
                     onPressed: _submit,
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
-                    ),
-                    child: const Text('Tambahkan'),
                   ),
                 ],
                 12.sbh,
@@ -245,13 +245,13 @@ class _StepLabel extends StatelessWidget {
           width: 20,
           height: 20,
           alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            color: kLightPrimaryColor,
+          decoration: BoxDecoration(
+            color: XColors.primary,
             shape: BoxShape.circle,
           ),
           child: Text(
             '$index',
-            style: XText.caption.copyWith(color: kWhiteColor),
+            style: XText.caption.copyWith(color: Colors.white),
           ),
         ),
         8.sbw,
@@ -292,10 +292,13 @@ class _ProductPicker extends StatelessWidget {
             children: <Widget>[
               Text(
                 'Toko ini belum punya produk untuk didiskon.',
-                style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
+                style: XText.bodySPrimary.copyWith(color: XColors.textTertiary),
               ),
               8.sbh,
-              TextButton(onPressed: onRetry, child: const Text('Muat ulang')),
+              XButton.ghost(
+                label: 'Muat ulang',
+                onPressed: onRetry,
+              ),
             ],
           );
         }
@@ -350,13 +353,13 @@ class _VariantPicker extends StatelessWidget {
         if (all.isEmpty) {
           return Text(
             'Produk ini tidak punya varian yang bisa dibaca.',
-            style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
+            style: XText.bodySPrimary.copyWith(color: XColors.textTertiary),
           );
         }
         if (available.isEmpty) {
           return Text(
             'Semua varian produk ini sudah ada di flash sale tersebut.',
-            style: XText.bodySPrimary.copyWith(color: kWarningColor),
+            style: XText.bodySPrimary.copyWith(color: XColors.warningStrong),
           );
         }
         return Wrap(

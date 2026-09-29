@@ -102,6 +102,35 @@ class ShowcaseCubit extends Cubit<ShowcaseState> {
     return _apply(result, current);
   }
 
+  /// Drag-to-reorder (S-34). The API has no bulk reorder, so each showcase
+  /// whose position changed gets its own PATCH with the new `sort_order`,
+  /// one after another; the list shown afterwards is the server's.
+  Future<DataError?> reorder(List<StoreShowcase> ordered) async {
+    final storeId = _auth.activeStoreId;
+    final current = state;
+    if (storeId == null || current is! ShowcaseLoaded) return null;
+
+    emit(ShowcaseLoaded(ordered, isBusy: true));
+    DataState<List<StoreShowcase>>? last;
+    for (var i = 0; i < ordered.length; i++) {
+      final s = ordered[i];
+      if (s.sortOrder == i) continue;
+      last = await _merchandising.updateShowcase(
+        storeId,
+        s.id,
+        name: s.name,
+        sortOrder: i,
+      );
+      if (isClosed) return null;
+      if (last is DataFailed<List<StoreShowcase>>) break;
+    }
+    if (last == null) {
+      emit(ShowcaseLoaded(ordered));
+      return null;
+    }
+    return _apply(last, current);
+  }
+
   /// Removes the grouping only — the products themselves are untouched.
   Future<DataError?> remove(int showcaseId) async {
     final storeId = _auth.activeStoreId;

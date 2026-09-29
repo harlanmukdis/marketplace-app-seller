@@ -51,7 +51,11 @@ void main() {
   /// These forms are taller than the window, so the submit button usually sits
   /// below the fold — where a tap silently lands on nothing.
   Future<void> tapButton(WidgetTester tester, String label) async {
-    final button = find.widgetWithText(FilledButton, label).first;
+    // Forms still built on Material buttons, and the redesigned ones on
+    // XButton — either is a button.
+    var button = find.widgetWithText(FilledButton, label);
+    if (button.evaluate().isEmpty) button = find.widgetWithText(XButton, label);
+    button = button.first;
     await tester.ensureVisible(button);
     await tester.pump(const Duration(milliseconds: 250));
     await tester.tap(button);
@@ -158,7 +162,8 @@ void main() {
     await openFromAccount(tester, 'Gudang & Stok');
     await pumpUntil(tester, find.textContaining('Belum ada gudang'));
 
-    await tapButton(tester, 'Buat gudang pertama');
+    // S-25's add tile, which names the first warehouse differently.
+    await tapText(tester, 'Buat Gudang Pertama');
     await pumpUntil(tester, find.text('Gudang baru'));
 
     final wFields = find.byType(TextFormField);
@@ -190,14 +195,14 @@ void main() {
     // Waiting on the default pill rather than the name: the name is still in
     // the sheet's own text field until the sheet closes, so `find.text` would
     // match it a beat too early.
-    await pumpUntil(tester, find.text('Utama'));
+    await pumpUntil(tester, find.text('Gudang Utama'));
 
     // The server marks the first warehouse as the store's default, whatever the
     // client asked for — and the list has to show that rather than guess.
     expect(find.text('Gudang E2E'), findsOneWidget);
 
     // ----------------------------------------------------------- empty stock
-    await tapText(tester, 'Stok');
+    await tapText(tester, 'Atur Stok');
     await pumpUntil(tester, find.textContaining('Belum ada stok'));
     expect(find.text('Stok masuk'), findsWidgets);
 
@@ -208,22 +213,20 @@ void main() {
 
     // --------------------------------------------------------------- couriers
     await openFromAccount(tester, 'Kurir Aktif');
-    await pumpUntil(tester, find.text('JNE'));
+    await pumpUntil(tester, find.byType(XSwitch));
 
     // A new store has no restriction, which the backend treats as "every
-    // courier" rather than "none". The screen has to say which way round that
-    // is, because the opposite reading is the natural one.
-    expect(find.textContaining('Belum ada batasan kurir'), findsOneWidget);
+    // courier" rather than "none" — so S-24 shows every switch on.
+    expect(find.textContaining('Semua kurir aktif'), findsOneWidget);
 
-    await tester.tap(find.text('JNE'));
+    // Switching one off turns the open default into a whitelist of the rest.
+    await tester.tap(find.byType(XSwitch).first);
     await tester.pump(const Duration(milliseconds: 300));
-    await tapButton(tester, 'Simpan pilihan');
-    await pumpUntil(tester, find.text('Pilihan kurir tersimpan.'));
+    await tapButton(tester, 'Simpan Pengaturan Kurir');
+    await pumpUntil(tester, find.text('Pengaturan kurir tersimpan.'));
 
-    // Once a restriction exists the notice goes, and the copy switches to
-    // explaining that buyers now only see what is ticked.
-    expect(find.textContaining('Belum ada batasan kurir'), findsNothing);
-    expect(find.textContaining('hanya bisa memilih kurir'), findsOneWidget);
+    expect(find.textContaining('Semua kurir aktif'), findsNothing);
+    expect(find.textContaining('hanya dapat memilih kurir'), findsOneWidget);
 
     // ------------------------------------------------------------ promotions
     // Exercised here rather than against the seed store because a voucher and
@@ -236,7 +239,7 @@ void main() {
     await pumpUntil(tester, find.text('Belum ada voucher toko.'));
 
     // ------------------------------------------------------------- voucher
-    await tester.tap(find.byType(FloatingActionButton));
+    await tapButton(tester, 'Buat Voucher');
     await pumpUntil(tester, find.text('Voucher baru'));
 
     final voucherFields = find.byType(TextFormField);
@@ -258,15 +261,15 @@ void main() {
     // The code was generated server-side, so the card shows something the form
     // never typed — proof the list was re-read rather than assembled locally.
     expect(find.textContaining('VC-'), findsOneWidget);
-    expect(find.text('0 / 50 terpakai'), findsOneWidget);
-    expect(find.text('Berjalan'), findsOneWidget,
+    expect(find.text('0 / 50'), findsOneWidget);
+    expect(find.text('Sedang Berjalan'), findsOneWidget,
         reason: 'the window opens today, so the phase is derived as running');
 
     // ---------------------------------------------------------- flash sale
-    await tester.tap(find.text('Flash sale'));
+    await tester.tap(find.text('Flash Sale'));
     await pumpUntil(tester, find.text('Belum ada flash sale.'));
 
-    await tester.tap(find.byType(FloatingActionButton));
+    await tapButton(tester, 'Buat Flash Sale');
     await pumpUntil(tester, find.text('Flash sale baru'));
 
     await tester.enterText(find.byType(TextFormField).first, 'Kilat E2E');
@@ -278,7 +281,7 @@ void main() {
     // makes this one `active` at creation. A sale scheduled for later would be
     // born `scheduled` and depend on a cron worker to ever start — which is
     // why the form warns about that case and defaults away from it.
-    expect(find.text('Berjalan'), findsOneWidget);
+    expect(find.text('Sedang Berjalan'), findsOneWidget);
     expect(find.text('Tidak jalan'), findsNothing);
 
     // ------------------------------------------------- one product into it
@@ -302,12 +305,25 @@ void main() {
     await back(tester); // leave promotions
     await pumpUntil(tester, find.text('Beranda'));
 
-    await openFromAccount(tester, 'Etalase & Bundel');
-    await pumpUntil(tester, find.text('Belum ada bundel produk.'));
+    await openFromAccount(tester, 'Kelola Storefront');
+    // S-34 is one page — store card, banner, showcases, then bundles — so the
+    // bundle section starts below the fold.
+    await pumpUntil(tester, find.text('Banner Promosi Toko'));
+    await tester.scrollUntilVisible(
+      find.text('Belum ada etalase.'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await pumpUntil(tester, find.text('Belum ada etalase.'));
+    await tester.scrollUntilVisible(
+      find.text('Belum ada bundel produk.'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
 
     // A bundle needs at least one product and this store has none, so the
     // form has to say so rather than offering an empty picker.
-    await tester.tap(find.byType(FloatingActionButton));
+    await tapButton(tester, 'Tambah Bundel');
     await pumpUntil(tester, find.text('Bundel baru'));
     expect(find.textContaining('belum punya produk untuk dibundel'),
         findsOneWidget);
@@ -318,10 +334,8 @@ void main() {
     await dismissSheet(tester);
 
     // ------------------------------------------------------------ showcase
-    await tester.tap(find.text('Etalase'));
-    await pumpUntil(tester, find.text('Belum ada etalase.'));
-
-    await tester.tap(find.byType(FloatingActionButton));
+    // Same page, back up to the showcases.
+    await tapButton(tester, 'Tambah Etalase');
     await pumpUntil(tester, find.text('Etalase baru'));
     await tester.enterText(find.byType(TextFormField).first, 'Etalase E2E');
     await tester.pump();

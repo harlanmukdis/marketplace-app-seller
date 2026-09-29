@@ -71,17 +71,26 @@ class XButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (Color bg, Color fg, BorderSide side) = switch (variant) {
-      XButtonVariant.primary =>
-        (XColors.primary, XColors.textOnBrand, BorderSide.none),
+      XButtonVariant.primary => (
+          XColors.primary,
+          XColors.textOnBrand,
+          BorderSide.none
+        ),
       XButtonVariant.secondary => (
           XColors.surface,
           XColors.textPrimary,
           BorderSide(color: XColors.borderDefault),
         ),
-      XButtonVariant.danger =>
-        (XColors.danger, XColors.textOnBrand, BorderSide.none),
-      XButtonVariant.ghost =>
-        (Colors.transparent, XColors.primary, BorderSide.none),
+      XButtonVariant.danger => (
+          XColors.danger,
+          XColors.textOnBrand,
+          BorderSide.none
+        ),
+      XButtonVariant.ghost => (
+          Colors.transparent,
+          XColors.primary,
+          BorderSide.none
+        ),
     };
     final disabled = onPressed == null || loading;
 
@@ -348,6 +357,9 @@ class XKeyValue extends StatelessWidget {
       padding: padding,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
+        // The value is a loose Flexible: whatever of its half it does not
+        // use has to go *before* it, or a short value floats mid-row.
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Expanded(
             child: Text(
@@ -652,9 +664,65 @@ class XListRow extends StatelessWidget {
               ],
               if (onTap != null) ...<Widget>[
                 const SizedBox(width: XSpace.s8),
-                Icon(Icons.chevron_right, size: 20, color: XColors.textTertiary),
+                Icon(Icons.chevron_right,
+                    size: 20, color: XColors.textTertiary),
               ],
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The design's toggle: a 44×24 pill, brand when on, border-default when off,
+/// white thumb. Used for courier, notification and store switches.
+class XSwitch extends StatelessWidget {
+  const XSwitch({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    this.semanticLabel,
+  });
+
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+  final String? semanticLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onChanged != null;
+    final track = value ? XColors.primary : XColors.borderDefault;
+    return Semantics(
+      toggled: value,
+      enabled: enabled,
+      label: semanticLabel,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: enabled ? () => onChanged!(!value) : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: XSpace.s8),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            width: 44,
+            height: 24,
+            padding: const EdgeInsets.all(4),
+            alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+            decoration: BoxDecoration(
+              color: enabled ? track : track.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(XRadius.full),
+            ),
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: <BoxShadow>[
+                  BoxShadow(color: Color(0x33000000), blurRadius: 2),
+                ],
+              ),
+            ),
           ),
         ),
       ),

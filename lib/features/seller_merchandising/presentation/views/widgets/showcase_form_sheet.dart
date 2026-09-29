@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/widgets/xpedia/x_widgets.dart';
 
 import '../../../../../core/domain/model/merchandising/store_showcase.dart';
-import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/utils/validators.dart';
@@ -100,7 +100,7 @@ class _ShowcaseFormSheetState extends State<_ShowcaseFormSheet> {
                 'Etalase adalah pengelompokan versi toko sendiri, lepas dari '
                 'kategori platform — satu produk boleh masuk ke beberapa '
                 'etalase sekaligus.',
-                style: XText.caption.copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: XColors.textTertiary),
               ),
               16.sbh,
               CustomTextFormField(
@@ -119,15 +119,14 @@ class _ShowcaseFormSheetState extends State<_ShowcaseFormSheet> {
               Text(
                 'Angka kecil tampil lebih dulu. Server mengizinkan angka yang '
                 'sama dan tidak menata ulang, jadi urutan kembar mungkin.',
-                style: XText.caption.copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: XColors.textTertiary),
               ),
               24.sbh,
-              FilledButton(
+              XButton(
+                label: _isEditing ? 'Simpan' : 'Buat etalase',
+                size: XButtonSize.large,
+                expand: true,
                 onPressed: _submit,
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                child: Text(_isEditing ? 'Simpan' : 'Buat etalase'),
               ),
               12.sbh,
             ],

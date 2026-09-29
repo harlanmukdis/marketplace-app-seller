@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/xpedia/x_widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/domain/model/merchandising/product_bundle.dart';
-import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/widgets/state_widgets.dart';
@@ -50,7 +49,8 @@ class _BundleDetailBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar(context, 'Detail bundel'),
+      backgroundColor: XColors.canvas,
+      appBar: const XAppBar(title: 'Detail bundel'),
       body: SafeArea(
         child: BlocBuilder<BundleDetailCubit, BundleDetailState>(
           builder: (context, state) => switch (state) {
@@ -112,8 +112,8 @@ class _BundleDetailBody extends StatelessWidget {
                                     '(${bundle.discountPercent}%)'
                                 : 'Tidak lebih murah',
                             valueColor: bundle.savings > 0
-                                ? kSuccessColor
-                                : kWarningColor,
+                                ? XColors.success
+                                : XColors.warningStrong,
                           ),
                         ],
                         12.sbh,
@@ -138,7 +138,7 @@ class _BundleDetailBody extends StatelessWidget {
                     'Isi tidak bisa diubah — tidak ada endpoint untuk '
                     'menambah atau mengeluarkan produk dari bundel yang sudah '
                     'jadi.',
-                    style: XText.caption.copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: XColors.textTertiary),
                   ),
                   12.sbh,
                   if (state.itemsAreHidden)
@@ -178,14 +178,14 @@ class _HiddenItemsNotice extends StatelessWidget {
     return Container(
       padding: 16.pa,
       decoration: BoxDecoration(
-        color: kWarningColor.withValues(alpha: 0.08),
+        color: XColors.warningStrong.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           const Icon(Icons.visibility_off_outlined,
-              size: 18, color: kWarningColor),
+              size: 18, color: XColors.warningStrong),
           8.sbw,
           Expanded(
             child: Text(
@@ -223,7 +223,7 @@ class _ItemRow extends StatelessWidget {
                     '${item.quantity} ×  ${formatRupiah(item.unitPrice)}',
                     if (item.variantId != null) 'varian #${item.variantId}',
                   ].join(' · '),
-                  style: XText.caption.copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: XColors.textTertiary),
                 ),
               ],
             ),

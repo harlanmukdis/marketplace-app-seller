@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/domain/model/promotion/flash_sale.dart';
-import '../../../../../core/utils/constant.dart';
-import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
-import '../../../../seller_home/presentation/views/widgets/section_card.dart';
-import 'promotion_pill.dart';
 import '../../../../../core/utils/xpedia_tokens.dart';
+import '../../../../../core/widgets/xpedia/x_widgets.dart';
+import 'promotion_pill.dart';
+import 'voucher_card.dart';
 
-/// One flash sale in the store's list. Tappable, because a sale does have
-/// contents to open — unlike a voucher.
+/// One flash sale in the store's list (S-31 campaign card). Tappable, because
+/// a sale does have contents to open — unlike a voucher.
 class FlashSaleCard extends StatelessWidget {
   const FlashSaleCard({
     super.key,
@@ -24,35 +23,45 @@ class FlashSaleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SectionCard(
+    return XCard(
       onTap: onTap,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Row(
             children: <Widget>[
-              Expanded(
-                child: Text(sale.name, style: XText.labelL),
-              ),
-              8.sbw,
               PromotionPill.flashSale(phase),
-              4.sbw,
-              const Icon(Icons.chevron_right, size: 18),
+              const Spacer(),
+              const Icon(Icons.bolt, size: 16, color: XColors.warning),
             ],
           ),
-          8.sbh,
-          Text(
-            '${formatDateTime(sale.startAt)} – ${formatDateTime(sale.endAt)}',
-            style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
+          const SizedBox(height: XSpace.s8),
+          Text(sale.name, style: XText.titleL),
+          const SizedBox(height: XSpace.s12),
+          PromoStatStrip(
+            stats: <(String, String, bool)>[
+              ('Mulai', formatDateTime(sale.startAt), false),
+              ('Berakhir', formatDateTime(sale.endAt), false),
+            ],
           ),
           if (phase == FlashSalePhase.stalled) ...<Widget>[
-            10.sbh,
+            const SizedBox(height: XSpace.s8),
             _StalledNotice(sale: sale),
           ],
           if (sale.hasImpossibleWindow) ...<Widget>[
-            10.sbh,
+            const SizedBox(height: XSpace.s8),
             const _ImpossibleWindowNotice(),
           ],
+          const SizedBox(height: XSpace.s8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: XButton.secondary(
+              label: 'Produk & Harga',
+              icon: Icons.chevron_right,
+              size: XButtonSize.small,
+              onPressed: onTap,
+            ),
+          ),
         ],
       ),
     );
@@ -74,29 +83,14 @@ class _StalledNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: 12.pa,
-      decoration: BoxDecoration(
-        color: kErrorColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          const Icon(Icons.warning_amber_rounded, size: 16, color: kErrorColor),
-          8.sbw,
-          Expanded(
-            child: Text(
-              'Waktunya sudah masuk, tapi statusnya masih '
-              '"${sale.status}" — jadi pembeli belum melihat harga flash sale '
-              'ini. Status dipindahkan oleh proses terjadwal di server dan '
-              'tidak ada tombol untuk memaksanya. Kalau tetap begini, buat '
-              'flash sale baru yang waktu mulainya sudah lewat.',
-              style: XText.bodySPrimary,
-            ),
-          ),
-        ],
-      ),
+    return XBanner(
+      tone: XTone.danger,
+      icon: Icons.warning_amber_rounded,
+      message: 'Waktunya sudah masuk, tapi statusnya masih '
+          '"${sale.status}" — jadi pembeli belum melihat harga flash sale '
+          'ini. Status dipindahkan oleh proses terjadwal di server dan '
+          'tidak ada tombol untuk memaksanya. Kalau tetap begini, buat '
+          'flash sale baru yang waktu mulainya sudah lewat.',
     );
   }
 }
@@ -108,26 +102,11 @@ class _ImpossibleWindowNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: 12.pa,
-      decoration: BoxDecoration(
-        color: kWarningColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          const Icon(Icons.error_outline, size: 16, color: kWarningColor),
-          8.sbw,
-          Expanded(
-            child: Text(
-              'Waktu berakhirnya lebih awal dari waktu mulai, jadi flash sale '
-              'ini tidak akan pernah berjalan.',
-              style: XText.bodySPrimary,
-            ),
-          ),
-        ],
-      ),
+    return const XBanner(
+      tone: XTone.warning,
+      icon: Icons.error_outline,
+      message: 'Waktu berakhirnya lebih awal dari waktu mulai, jadi flash sale '
+          'ini tidak akan pernah berjalan.',
     );
   }
 }

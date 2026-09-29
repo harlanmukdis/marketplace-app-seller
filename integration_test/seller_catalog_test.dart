@@ -233,7 +233,7 @@ void main() {
     expect(find.text('Belum ada voucher toko.'), findsOneWidget,
         reason: 'GET /stores/1/vouchers answers an empty array');
 
-    await tester.tap(find.text('Flash sale'));
+    await tester.tap(find.text('Flash Sale'));
     await pumpUntil(tester, find.text('Belum ada flash sale.'));
 
     // Both lists are create-and-list only, and the screen has to say so before

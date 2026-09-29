@@ -129,7 +129,7 @@ class AccountTab extends StatelessWidget {
               row(Icons.live_tv_outlined, 'Live Selling', SellerRoutes.live),
               row(Icons.rate_review_outlined, 'Ulasan Produk',
                   SellerRoutes.reviews),
-              row(Icons.shelves, 'Etalase & Bundel',
+              row(Icons.storefront_outlined, 'Kelola Storefront',
                   SellerRoutes.merchandising),
             ]),
             group('Keuangan', <Widget>[

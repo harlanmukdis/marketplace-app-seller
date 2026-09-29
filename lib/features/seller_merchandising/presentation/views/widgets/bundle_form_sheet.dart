@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/widgets/xpedia/x_widgets.dart';
 
 import '../../../../../core/data/datasources/remote/service/merchandising_service.dart'
     show BundleItemDraft;
 import '../../../../../core/domain/model/catalog/product.dart';
-import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/utils/validators.dart';
@@ -141,7 +141,7 @@ class _BundleFormSheetState extends State<_BundleFormSheet> {
                   'Isi bundel tidak bisa diubah setelah dibuat — nama, harga, '
                   'dan status masih bisa, produknya tidak. Bundel juga tidak '
                   'bisa dihapus, hanya dinonaktifkan.',
-                  style: XText.caption.copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: XColors.textTertiary),
                 ),
                 16.sbh,
                 CustomTextFormField(
@@ -172,12 +172,11 @@ class _BundleFormSheetState extends State<_BundleFormSheet> {
                   _SavingsLine(partsTotal: partsTotal, bundlePrice: price),
                 ],
                 24.sbh,
-                FilledButton(
+                XButton(
+                  label: 'Buat bundel',
+                  size: XButtonSize.large,
+                  expand: true,
                   onPressed: _submit,
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(52),
-                  ),
-                  child: const Text('Buat bundel'),
                 ),
                 12.sbh,
               ],
@@ -207,7 +206,8 @@ class _SavingsLine extends StatelessWidget {
     return Container(
       padding: 12.pa,
       decoration: BoxDecoration(
-        color: (saves ? kSuccessColor : kWarningColor).withValues(alpha: 0.08),
+        color: (saves ? XColors.success : XColors.warningStrong)
+            .withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -225,8 +225,8 @@ class _SavingsLine extends StatelessWidget {
                     ? 'Pembeli hemat ${formatRupiah(difference)}.'
                     : 'Bundel ini ${formatRupiah(difference)} lebih mahal '
                         'daripada beli satuan — server tetap menerimanya.',
-            style: XText.bodySPrimary
-                .copyWith(color: saves ? kSuccessColor : kWarningColor),
+            style: XText.bodySPrimary.copyWith(
+                color: saves ? XColors.success : XColors.warningStrong),
           ),
         ],
       ),
@@ -267,7 +267,7 @@ class _ProductPicker extends StatelessWidget {
         if (products.isEmpty) {
           return Text(
             'Toko ini belum punya produk untuk dibundel.',
-            style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
+            style: XText.bodySPrimary.copyWith(color: XColors.textTertiary),
           );
         }
 
@@ -327,7 +327,7 @@ class _PickerRow extends StatelessWidget {
                   // bundle detail does list it.
                   '${formatRupiah(product.basePrice)}'
                   '${product.isDraft ? ' · draf' : ''}',
-                  style: XText.caption.copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: XColors.textTertiary),
                 ),
               ],
             ),

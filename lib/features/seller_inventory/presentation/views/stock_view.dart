@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/xpedia/x_widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/domain/model/inventory/stock_movement.dart';
 import '../../../../core/domain/model/inventory/warehouse_stock.dart';
-import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/widgets/state_widgets.dart';
@@ -69,7 +68,8 @@ class _StockBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar(context, 'Stok gudang'),
+      backgroundColor: XColors.canvas,
+      appBar: const XAppBar(title: 'Stok gudang'),
       body: SafeArea(
         child: BlocBuilder<StockCubit, StockState>(
           builder: (context, state) => switch (state) {
@@ -133,7 +133,7 @@ class _StockBody extends StatelessWidget {
                   Text(
                     'Setiap perubahan stok tercatat di sini dan tidak pernah '
                     'ditimpa.',
-                    style: XText.caption.copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: XColors.textTertiary),
                   ),
                   8.sbh,
                   for (final movement in state.movements)
@@ -206,7 +206,7 @@ class _Summary extends StatelessWidget {
     return Container(
       padding: 16.pa,
       decoration: BoxDecoration(
-        color: kLightPrimaryColor.withValues(alpha: 0.06),
+        color: XColors.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -236,7 +236,7 @@ class _Metric extends StatelessWidget {
           2.sbh,
           Text(
             label,
-            style: XText.caption.copyWith(color: kLightThirdColor),
+            style: XText.caption.copyWith(color: XColors.textTertiary),
           ),
         ],
       ),
@@ -273,7 +273,7 @@ class _StockRow extends StatelessWidget {
                       if (stock.sku != null) stock.sku!,
                       if (stock.optionsLabel.isNotEmpty) stock.optionsLabel,
                     ].join(' · '),
-                    style: XText.caption.copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: XColors.textTertiary),
                   ),
                 ],
               ),
@@ -285,14 +285,14 @@ class _StockRow extends StatelessWidget {
                   '${stock.quantityAvailable}',
                   style: XText.titleL.copyWith(
                     color: stock.isOutOfStock
-                        ? kErrorColor
-                        : (stock.isLow ? kWarningColor : null),
+                        ? XColors.danger
+                        : (stock.isLow ? XColors.warningStrong : null),
                   ),
                 ),
                 if (stock.quantityReserved > 0)
                   Text(
                     '${stock.quantityReserved} direservasi',
-                    style: XText.caption.copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: XColors.textTertiary),
                   ),
               ],
             ),
@@ -317,7 +317,7 @@ class _MovementRow extends StatelessWidget {
           Text(
             movement.signedQuantity,
             style: XText.titleL.copyWith(
-              color: movement.isIncoming ? kSuccessColor : kErrorColor,
+              color: movement.isIncoming ? XColors.success : XColors.danger,
             ),
           ),
           12.sbw,
@@ -332,14 +332,14 @@ class _MovementRow extends StatelessWidget {
                 if (movement.notes != null)
                   Text(
                     movement.notes!,
-                    style: XText.caption.copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: XColors.textTertiary),
                   ),
               ],
             ),
           ),
           Text(
             formatDateTime(movement.createdAt),
-            style: XText.caption.copyWith(color: kLightThirdColor),
+            style: XText.caption.copyWith(color: XColors.textTertiary),
           ),
         ],
       ),

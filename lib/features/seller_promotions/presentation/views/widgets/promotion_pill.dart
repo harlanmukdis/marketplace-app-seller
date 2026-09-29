@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/domain/model/promotion/flash_sale.dart';
 import '../../../../../core/domain/model/promotion/store_voucher.dart';
-import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/xpedia_tokens.dart';
+import '../../../../../core/widgets/xpedia/x_widgets.dart';
 
 /// The state of a promotion, at a glance.
 ///
@@ -11,41 +11,36 @@ import '../../../../../core/utils/xpedia_tokens.dart';
 /// `status` column, so the pill is the derived answer rather than what the
 /// database happens to hold.
 class PromotionPill extends StatelessWidget {
-  const PromotionPill({super.key, required this.label, required this.color});
+  const PromotionPill({super.key, required this.label, required this.tone});
 
   PromotionPill.voucher(VoucherPhase phase, {super.key})
-      : label = phase.label,
-        color = switch (phase) {
-          VoucherPhase.running => kSuccessColor,
-          VoucherPhase.scheduled => kLightPrimaryColor,
-          VoucherPhase.exhausted => kWarningColor,
-          VoucherPhase.expired || VoucherPhase.inactive => kLightThirdColor,
-        };
+      : label = phase == VoucherPhase.running ? 'Sedang Berjalan' : phase.label,
+        tone = voucherTone(phase);
 
   PromotionPill.flashSale(FlashSalePhase phase, {super.key})
-      : label = phase.label,
-        color = switch (phase) {
-          FlashSalePhase.running => kSuccessColor,
-          FlashSalePhase.stalled => kErrorColor,
-          FlashSalePhase.scheduled => kLightPrimaryColor,
-          FlashSalePhase.ended || FlashSalePhase.cancelled => kLightThirdColor,
-        };
+      : label =
+            phase == FlashSalePhase.running ? 'Sedang Berjalan' : phase.label,
+        tone = flashSaleTone(phase);
 
   final String label;
-  final Color color;
+  final XTone tone;
+
+  static XTone voucherTone(VoucherPhase phase) => switch (phase) {
+        VoucherPhase.running => XTone.success,
+        VoucherPhase.scheduled => XTone.info,
+        VoucherPhase.exhausted => XTone.warning,
+        VoucherPhase.expired || VoucherPhase.inactive => XTone.neutral,
+      };
+
+  static XTone flashSaleTone(FlashSalePhase phase) => switch (phase) {
+        FlashSalePhase.running => XTone.success,
+        FlashSalePhase.stalled => XTone.danger,
+        FlashSalePhase.scheduled => XTone.info,
+        FlashSalePhase.ended || FlashSalePhase.cancelled => XTone.neutral,
+      };
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: XText.bodySPrimary.copyWith(color: color),
-      ),
-    );
+    return XChip(label: label, tone: tone);
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/widgets/xpedia/x_widgets.dart';
 
 import '../../../../../core/domain/model/inventory/warehouse_stock.dart';
-import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/validators.dart';
 import '../../../../../core/widgets/custom_text_form_field.dart';
@@ -140,7 +140,7 @@ class _StockMovementSheetState extends State<_StockMovementSheet> {
               4.sbh,
               Text(
                 widget.action.hint,
-                style: XText.caption.copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: XColors.textTertiary),
               ),
               16.sbh,
               Text('Varian', style: XText.labelL),
@@ -153,7 +153,7 @@ class _StockMovementSheetState extends State<_StockMovementSheet> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: kLightThirdColor.withValues(alpha: 0.3),
+                      color: XColors.textTertiary.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -162,8 +162,9 @@ class _StockMovementSheetState extends State<_StockMovementSheet> {
                         child: Text(
                           _variantLabel ?? 'Pilih varian',
                           style: XText.bodyM.copyWith(
-                            color:
-                                _variantLabel == null ? kLightThirdColor : null,
+                            color: _variantLabel == null
+                                ? XColors.textTertiary
+                                : null,
                           ),
                         ),
                       ),
@@ -179,7 +180,7 @@ class _StockMovementSheetState extends State<_StockMovementSheet> {
                   'Tersedia ${stock.quantityAvailable} dari '
                   '${stock.quantityOnHand} di gudang ini'
                   '${stock.quantityReserved > 0 ? ' — ${stock.quantityReserved} sedang direservasi checkout' : ''}.',
-                  style: XText.caption.copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: XColors.textTertiary),
                 ),
               ],
               16.sbh,
@@ -206,12 +207,11 @@ class _StockMovementSheetState extends State<_StockMovementSheet> {
                     : Validators.optional,
               ),
               24.sbh,
-              FilledButton(
+              XButton(
+                label: widget.action.title,
+                size: XButtonSize.large,
+                expand: true,
                 onPressed: _variantId == null ? null : _submit,
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                child: Text(widget.action.title),
               ),
               12.sbh,
             ],

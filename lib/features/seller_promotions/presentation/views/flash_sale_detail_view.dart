@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/xpedia/x_widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/domain/model/promotion/flash_sale.dart';
 import '../../../../core/domain/model/promotion/flash_sale_product.dart';
-import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/widgets/state_widgets.dart';
@@ -63,7 +62,8 @@ class _FlashSaleDetailBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar(context, 'Isi flash sale'),
+      backgroundColor: XColors.canvas,
+      appBar: const XAppBar(title: 'Isi flash sale'),
       floatingActionButton:
           BlocBuilder<FlashSaleDetailCubit, FlashSaleDetailState>(
         builder: (context, state) => switch (state) {
@@ -148,7 +148,7 @@ class _FlashSaleDetailBody extends StatelessWidget {
                   Text(
                     'Kuota di sini milik flash sale, terpisah dari stok gudang '
                     '— tidak ada yang mencocokkan keduanya.',
-                    style: XText.caption.copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: XColors.textTertiary),
                   ),
                   12.sbh,
                   if (state.products.isEmpty)
@@ -182,13 +182,13 @@ class _StalledBanner extends StatelessWidget {
     return Container(
       padding: 16.pa,
       decoration: BoxDecoration(
-        color: kErrorColor.withValues(alpha: 0.08),
+        color: XColors.danger.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const Icon(Icons.warning_amber_rounded, size: 18, color: kErrorColor),
+          Icon(Icons.warning_amber_rounded, size: 18, color: XColors.danger),
           8.sbw,
           Expanded(
             child: Text(
@@ -220,28 +220,28 @@ class _ProductRow extends StatelessWidget {
           2.sbh,
           Text(
             row.sku,
-            style: XText.caption.copyWith(color: kLightThirdColor),
+            style: XText.caption.copyWith(color: XColors.textTertiary),
           ),
           12.sbh,
           Row(
             children: <Widget>[
               Text(
                 formatRupiah(row.flashPrice),
-                style: XText.headingM.copyWith(color: kLightPrimaryColor),
+                style: XText.headingM.copyWith(color: XColors.primary),
               ),
               8.sbw,
               if (row.isDiscounted) ...<Widget>[
                 Text(
                   formatRupiah(row.originalPrice),
                   style: XText.bodySPrimary.copyWith(
-                    color: kLightThirdColor,
+                    color: XColors.textTertiary,
                     decoration: TextDecoration.lineThrough,
                   ),
                 ),
                 8.sbw,
                 Text(
                   '-${row.discountPercent}%',
-                  style: XText.bodySPrimary.copyWith(color: kSuccessColor),
+                  style: XText.bodySPrimary.copyWith(color: XColors.success),
                 ),
               ] else
                 // The server accepts a "discount" that is not one, so it has
@@ -250,7 +250,8 @@ class _ProductRow extends StatelessWidget {
                   child: Text(
                     'Tidak lebih murah dari harga normal '
                     '(${formatRupiah(row.originalPrice)})',
-                    style: XText.bodySPrimary.copyWith(color: kWarningColor),
+                    style: XText.bodySPrimary
+                        .copyWith(color: XColors.warningStrong),
                   ),
                 ),
             ],

@@ -404,9 +404,7 @@ class _MonitorState extends State<_Monitor> {
                       Text(
                         s.isLive ? 'RTMP · Encoder' : 'Encoder belum aktif',
                         style: XText.labelS.copyWith(
-                          color: s.isLive
-                              ? const Color(0xff34D399)
-                              : white70,
+                          color: s.isLive ? const Color(0xff34D399) : white70,
                         ),
                       ),
                     ],
@@ -581,8 +579,8 @@ class _PinnedCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'SEDANG DITAMPILKAN DI LIVE',
-                  style: XText.overline
-                      .copyWith(color: XColors.signatureGoldDark),
+                  style:
+                      XText.overline.copyWith(color: XColors.signatureGoldDark),
                 ),
               ),
               if (discount != null)
@@ -621,8 +619,8 @@ class _PinnedCard extends StatelessWidget {
                         children: <Widget>[
                           Text(
                             formatRupiah(live ?? base ?? 0),
-                            style: XText.priceL
-                                .copyWith(color: XColors.primary),
+                            style:
+                                XText.priceL.copyWith(color: XColors.primary),
                           ),
                           if (discount != null)
                             Text(
@@ -755,8 +753,8 @@ class _Thumb extends StatelessWidget {
                 color: XColors.sunken,
                 borderRadius: BorderRadius.circular(XRadius.md),
               ),
-              child: Icon(Icons.inventory_2_outlined,
-                  color: XColors.textTertiary),
+              child:
+                  Icon(Icons.inventory_2_outlined, color: XColors.textTertiary),
             ),
           ),
           if (rank != null)
@@ -878,8 +876,7 @@ class _ProductRow extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   spacing: XSpace.s4,
                   children: <Widget>[
-                    Text(formatRupiah(live ?? base ?? 0),
-                        style: XText.priceS),
+                    Text(formatRupiah(live ?? base ?? 0), style: XText.priceS),
                     if (live != null && base != null && live < base)
                       Text(
                         formatRupiah(base),
@@ -928,8 +925,7 @@ class _ProductRow extends StatelessWidget {
                       size: 16, color: XColors.textOnBrand),
                   const SizedBox(width: XSpace.s4),
                   Text('Di-pin',
-                      style:
-                          XText.labelM.copyWith(color: XColors.textOnBrand)),
+                      style: XText.labelM.copyWith(color: XColors.textOnBrand)),
                 ],
               ),
             )
@@ -1114,8 +1110,8 @@ class _NextSchedule extends StatelessWidget {
           )
         else
           XCard(
-            onTap: () => context.pushReplacement(
-                SellerRoutes.liveSessionPath(n.id)),
+            onTap: () =>
+                context.pushReplacement(SellerRoutes.liveSessionPath(n.id)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[

@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../../core/data_state.dart';
 import '../../../../../core/domain/model/notification/app_notification.dart';
 import '../../../../../core/domain/model/notification/notification_preference.dart';
-import '../../../../../core/utils/constant.dart';
-import '../../../../../core/utils/extensions.dart';
-import '../../../../../core/widgets/state_widgets.dart';
 import '../../../../../core/utils/xpedia_tokens.dart';
+import '../../../../../core/widgets/state_widgets.dart';
+import '../../../../../core/widgets/xpedia/x_widgets.dart';
 
 Future<void> showNotificationPreferencesSheet(
   BuildContext context, {
@@ -20,6 +19,10 @@ Future<void> showNotificationPreferencesSheet(
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: XColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(XRadius.lg)),
+      ),
       builder: (_) =>
           _PreferencesSheet(load: load, setPreference: setPreference),
     );
@@ -105,20 +108,27 @@ class _PreferencesSheetState extends State<_PreferencesSheet> {
 
     return SafeArea(
       child: Padding(
-        padding: 20.pa,
+        padding: const EdgeInsets.all(XSpace.screen),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Text('Pengaturan notifikasi', style: XText.headingM),
-            4.sbh,
+            Row(
+              children: <Widget>[
+                Icon(Icons.notifications_active_outlined,
+                    color: XColors.primary),
+                const SizedBox(width: XSpace.s8),
+                Text('Pengaturan notifikasi', style: XText.headingM),
+              ],
+            ),
+            const SizedBox(height: XSpace.s4),
             Text(
               'Mematikan sebuah channel hanya menghentikan kiriman ke luar. '
               'Notifikasi tetap masuk ke daftar di aplikasi ini — itu '
               'sekaligus riwayatnya, dan server tidak mengizinkannya dimatikan.',
-              style: XText.caption.copyWith(color: kLightThirdColor),
+              style: XText.bodyS,
             ),
-            16.sbh,
+            const SizedBox(height: XSpace.s16),
             if (preferences == null)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 32),
@@ -127,10 +137,11 @@ class _PreferencesSheetState extends State<_PreferencesSheet> {
             else if (preferences.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
-                child: EmptyStateView(
+                child: XEmptyState(
                   icon: Icons.tune_outlined,
-                  message: 'Belum ada yang bisa diatur. Pilihannya muncul '
-                      'setelah jenis notifikasi itu pernah diterima.',
+                  title: 'Belum ada yang bisa diatur',
+                  message: 'Pilihannya muncul setelah jenis notifikasi itu '
+                      'pernah diterima.',
                 ),
               )
             else
@@ -138,7 +149,8 @@ class _PreferencesSheetState extends State<_PreferencesSheet> {
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: preferences.length,
-                  separatorBuilder: (_, __) => const Divider(height: 24),
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: XSpace.s12),
                   itemBuilder: (context, index) {
                     final preference = preferences[index];
                     return _PreferenceGroup(
@@ -150,7 +162,7 @@ class _PreferencesSheetState extends State<_PreferencesSheet> {
                   },
                 ),
               ),
-            12.sbh,
+            const SizedBox(height: XSpace.s12),
           ],
         ),
       ),
@@ -171,33 +183,38 @@ class _PreferenceGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          NotificationType.label(preference.type),
-          style: XText.labelL,
-        ),
-        if (preference.isFullyMuted) ...<Widget>[
-          4.sbh,
-          Text(
-            'Semua channel luar dimatikan — tetap masuk ke daftar di aplikasi.',
-            style: XText.caption.copyWith(color: kWarningColor),
-          ),
-        ],
-        8.sbh,
-        for (final channel in NotificationChannel.mutable)
-          SwitchListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              NotificationChannel.label(channel),
-              style: XText.bodyM,
+    return XCard(
+      padding: const EdgeInsets.fromLTRB(
+          XSpace.card, XSpace.s12, XSpace.card, XSpace.s4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Text(NotificationType.label(preference.type), style: XText.titleM),
+          if (preference.isFullyMuted)
+            Text(
+              'Semua channel luar dimatikan — tetap masuk ke daftar di '
+              'aplikasi.',
+              style: XText.caption.copyWith(color: XColors.warningStrong),
             ),
-            value: preference.isEnabled(channel),
-            onChanged: isBusy ? null : (value) => onToggle(channel, value),
-          ),
-      ],
+          for (final channel in NotificationChannel.mutable)
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    NotificationChannel.label(channel),
+                    style: XText.bodyM,
+                  ),
+                ),
+                XSwitch(
+                  value: preference.isEnabled(channel),
+                  onChanged:
+                      isBusy ? null : (value) => onToggle(channel, value),
+                  semanticLabel: NotificationChannel.label(channel),
+                ),
+              ],
+            ),
+        ],
+      ),
     );
   }
 }

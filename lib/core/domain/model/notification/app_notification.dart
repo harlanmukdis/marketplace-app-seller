@@ -53,6 +53,8 @@ class AppNotification {
 
   bool get isAboutOrder => orderId != null;
 
+  NotificationCategory get category => NotificationCategory.of(type);
+
   /// Present on `staff_invitation`: accepting it joins the inviting store.
   String? get invitationToken => asStringOrNull(data['invitation_token']);
 }
@@ -74,6 +76,55 @@ abstract class NotificationType {
         orderNew => 'Pesanan baru',
         orderPaid => 'Pesanan dibayar',
         staffInvitation => 'Undangan staf',
+        'order_shipped_secure_plus' => 'Secure+',
         _ => type == null || type.isEmpty ? 'Notifikasi' : type,
       };
+}
+
+/// The three groups of S-40. The API carries no priority, so the group is
+/// read off `type`: anything about a deadline or a dispute is critical,
+/// anything about orders, stock, money or staff is operational, and the rest
+/// — admin broadcasts included — is information.
+enum NotificationCategory {
+  critical('Kritis', 'Kritis & Perlu Tindakan Segera'),
+  operational('Operasional', 'Operasional Toko & Pesanan'),
+  info('Promosi & Info', 'Update Sistem & Promosi');
+
+  const NotificationCategory(this.label, this.heading);
+
+  final String label;
+  final String heading;
+
+  static NotificationCategory of(String type) {
+    final t = type.toLowerCase();
+    bool has(List<String> words) => words.any(t.contains);
+    if (has(<String>[
+      'sla',
+      'deadline',
+      'complaint',
+      'komplain',
+      'dispute',
+      'refund',
+      'return',
+      'cancel',
+      'breach',
+      'overdue',
+    ])) {
+      return critical;
+    }
+    if (has(<String>[
+      'order',
+      'stock',
+      'inventory',
+      'wallet',
+      'withdraw',
+      'settlement',
+      'payout',
+      'staff',
+      'shipment',
+    ])) {
+      return operational;
+    }
+    return info;
+  }
 }

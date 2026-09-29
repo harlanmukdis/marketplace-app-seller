@@ -5,7 +5,6 @@ import '../../../../../core/domain/model/catalog/product.dart';
 import '../../../../../core/domain/model/catalog/product_variant.dart';
 import '../../../../../core/domain/repositories/auth_repository.dart';
 import '../../../../../core/domain/repositories/catalog_repository.dart';
-import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/widgets/state_widgets.dart';
@@ -158,7 +157,7 @@ class _VariantPickerState extends State<_VariantPicker> {
           title: Text(product.name, style: XText.bodyM),
           subtitle: Text(
             ProductStatus.label(product.status),
-            style: XText.caption.copyWith(color: kLightThirdColor),
+            style: XText.caption.copyWith(color: XColors.textTertiary),
           ),
           trailing: const Icon(Icons.chevron_right, size: 18),
           onTap: () => _openVariants(product),
@@ -189,7 +188,7 @@ class _VariantPickerState extends State<_VariantPicker> {
           ),
           subtitle: Text(
             '${variant.sku} · ${formatRupiah(variant.price)}',
-            style: XText.caption.copyWith(color: kLightThirdColor),
+            style: XText.caption.copyWith(color: XColors.textTertiary),
           ),
           onTap: () => Navigator.of(context).pop(
             PickedVariant(variant: variant, productName: product.name),

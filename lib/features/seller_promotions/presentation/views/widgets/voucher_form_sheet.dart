@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/widgets/xpedia/x_widgets.dart';
 
 import '../../../../../core/domain/model/promotion/store_voucher.dart';
-import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/utils/validators.dart';
@@ -164,7 +164,7 @@ class _VoucherFormSheetState extends State<_VoucherFormSheet> {
                 'Voucher tidak bisa diubah, dijeda, atau dihapus setelah '
                 'dibuat — API-nya tidak menyediakan jalan itu. Periksa dulu '
                 'sebelum mengirim.',
-                style: XText.caption.copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: XColors.textTertiary),
               ),
               16.sbh,
               CustomTextFormField(
@@ -183,7 +183,7 @@ class _VoucherFormSheetState extends State<_VoucherFormSheet> {
                 'Dikosongkan berarti server yang membuatkan kodenya. Kode '
                 'harus unik di seluruh marketplace, termasuk terhadap toko '
                 'lain yang tidak bisa dilihat dari sini.',
-                style: XText.caption.copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: XColors.textTertiary),
               ),
               20.sbh,
               AppDropdownField<String>(
@@ -255,12 +255,11 @@ class _VoucherFormSheetState extends State<_VoucherFormSheet> {
                 ],
               ),
               24.sbh,
-              FilledButton(
+              XButton(
+                label: 'Buat voucher',
+                size: XButtonSize.large,
+                expand: true,
                 onPressed: _submit,
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                child: const Text('Buat voucher'),
               ),
               12.sbh,
             ],

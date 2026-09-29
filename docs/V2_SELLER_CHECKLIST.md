@@ -1,7 +1,7 @@
 # Ceklist Implementasi — Blueprint Seller v2.0 (`docs/v2-seller/`)
 
 Dicek: **29 Sep 2026** · API `marketplace-api` **v1.28.0** (branch `main-harlan`, `6546a65`) ·
-Aplikasi branch `xpedia-redesign-api-v1.28`, diperbarui 29 Sep 2026 setelah daftar B dan layout S-36.
+Aplikasi branch `xpedia-redesign-api-v1.28`, diperbarui 29 Sep 2026 setelah daftar B, layout S-36, dan daftar C nomor 1–6.
 
 Sumber aturan: `marketplace-api/docs/v2-seller/01`–`19`. Brief itu ditulis 23–25 Sep, sebelum tim
 backend mengimplementasikan sebagian besarnya, jadi bagian "kondisi repo" di dalamnya **sudah basi**.
@@ -28,7 +28,7 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 | | ✅ | 🟡 | ❌ | — |
 |---|---|---|---|---|
 | **API** | 81 | 21 | 50 | 4 |
-| **Aplikasi** | 68 | 34 | 37 | 17 |
+| **Aplikasi** | 77 | 28 | 34 | 17 |
 
 **Yang paling menentukan urutan kerja:**
 
@@ -73,8 +73,8 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 | Total Units Sold | ❌ | ❌ | `sold_count` tidak pernah di-increment (utang teknis #7) | S-35 |
 | Followers | ✅ | ❌ | `follower_count` | S-34 |
 | Live Now / Total Live Hours | 🟡 | 🟡 | Jam live tampil di Partners Performance; `online_status` selalu `null` | S-34, S-36 |
-| Kelola storefront (banner 1 utama + 2 panel) | 🟡 | ❌ | Hanya satu `banner_url` | S-34 |
-| Etalase buatan seller | ✅ | 🟡 | CRUD lengkap; layout lama | S-34 |
+| Kelola storefront (banner 1 utama + 2 panel) | 🟡 | 🟡 | Banner utama bisa diganti (`store_banner`); 2 panel mini tidak ada di API | S-34 |
+| Etalase buatan seller | ✅ | ✅ | CRUD + seret untuk mengurutkan | S-34 |
 | Ulasan produk + balasan seller + laporkan | ✅ | ✅ | Dibaca per produk; foto ulasan & nama pengulas tidak dikirim API | S-37 |
 | Tidak ada badge status seller publik | ✅ | ✅ | Sesuai blueprint | — |
 
@@ -139,9 +139,9 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 
 | Fitur | API | App | Catatan | Layar |
 |---|---|---|---|---|
-| Pilih kurir aktif toko | ✅ | 🟡 | Berfungsi, layout lama | S-24 |
+| Pilih kurir aktif toko | ✅ | ✅ | Switch per kurir; tanpa layanan per kurir & jadwal pickup (API hanya kode + nama) | S-24 |
 | Cakupan pengiriman per produk (include/exclude kota) | ✅ | ✅ | `/products/{id}/shipping-coverage` | S-27 |
-| Gudang maks 3 titik | ✅ | 🟡 | `WAREHOUSE_QUOTA_EXCEEDED`; layout lama | S-25 |
+| Gudang maks 3 titik | ✅ | ✅ | Kuota x/3 + sisa lokasi; cakupan kota tetap per produk | S-25 |
 | Label tanpa PII pembeli | ❌ | ❌ | Tidak ada endpoint label | S-22 |
 | Handover diakui dari first valid scan | ❌ | ❌ | Tidak ada event scan kurir | S-23 |
 | Menu Shipping untuk memantau kiriman | 🟡 | ❌ | Hanya tracking satu baris | S-23 |
@@ -156,7 +156,7 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 | Lead time Pre-Order/Custom | ✅ | ✅ | Per produk | S-27 |
 | Lead time per varian | ❌ | ❌ | Hanya per produk | S-27 |
 | Harga per varian | ✅ | ✅ | | S-27 |
-| Stok per varian | ✅ | 🟡 | Diatur lewat Gudang; layout lama | S-27 |
+| Stok per varian | ✅ | ✅ | Diatur lewat Gudang → Atur Stok | S-27 |
 | Reservasi stok atomik | ✅ | — | | — |
 | Notifikasi stok menipis | ❌ | ❌ | | S-40 |
 | MOQ (minimum order) | ❌ | ❌ | | S-27 |
@@ -172,13 +172,13 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 
 | Fitur | API | App | Catatan | Layar |
 |---|---|---|---|---|
-| Voucher toko & flash sale | ✅ | 🟡 | Berfungsi, layout lama | S-31 |
+| Voucher toko & flash sale | ✅ | ✅ | Tab + filter Aktif/Terjadwal/Selesai sesuai S-31 | S-31 |
 | Ikut campaign platform (submit produk) | 🟡 | ❌ | Submit ada, tapi daftar campaign hanya untuk admin (A #15) | S-31 |
 | Campaign toko (target produk, jadwal + jam aktif, diskon % / Rp) | 🟡 | ❌ | Hanya lewat voucher/flash sale; tidak ada entitas campaign toko | S-31 |
 | Subsidi ongkir oleh seller | ✅ | 🟡 | Voucher `free_shipping` + split platform | S-31 |
 | Promo bertumpuk | ✅ | — | Voucher stacking | — |
-| Bundel produk | ✅ | 🟡 | Layout lama | S-31 |
-| Proteksi margin (proyeksi harga sebelum aktif) | — | ❌ | Murni UI | S-31 |
+| Bundel produk | ✅ | ✅ | Di Kelola Storefront | S-31 |
+| Proteksi margin (proyeksi harga sebelum aktif) | — | ✅ | Simulasi payout vs HPP; HPP tidak disimpan | S-31 |
 | Ubah / hentikan promo | ❌ | — | Voucher & flash sale tidak bisa diedit/dihapus (405) | S-31 |
 
 ## §11 Xpedia Growth — brief 10 · Layar S-32
@@ -261,7 +261,7 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 |---|---|---|---|---|
 | Profil toko, mode libur, kontak | ✅ | ✅ | | S-43 |
 | Jam operasional | ✅ | ✅ | `operational_hours` JSON bebas; app menulis `{open, close, days}` | S-43 |
-| Preferensi notifikasi | ✅ | 🟡 | Layout lama | S-43 |
+| Preferensi notifikasi | ✅ | ✅ | Dari Pengaturan Toko & Pusat Notifikasi | S-43 |
 | Ganti kata sandi | ❌ | ❌ | Hanya lupa / reset | S-44 |
 | Ganti HP / email | ❌ | ❌ | | S-44 |
 | OTP / 2FA | ❌ | ❌ | | S-44 |
@@ -283,9 +283,9 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 
 | Fitur | API | App | Catatan | Layar |
 |---|---|---|---|---|
-| Kotak masuk, tandai dibaca, bisukan per tipe | ✅ | 🟡 | Layout lama | S-40 |
+| Kotak masuk, tandai dibaca, bisukan per tipe | ✅ | ✅ | Layout S-40 | S-40 |
 | Notifikasi untuk semua event penting | ❌ | — | Baru 3 pemanggil: undangan staf, checkout, pesanan baru | — |
-| Prioritas Kritis / Operasional / Informasi | ❌ | ❌ | | S-40 |
+| Prioritas Kritis / Operasional / Informasi | ❌ | 🟡 | App menggolongkan dari `type`; API tidak mengirim prioritas | S-40 |
 | Log event append-only | 🟡 | — | Riwayat status pesanan & ledger ada; banyak event lain belum | — |
 
 ## Utang Teknis Prasyarat — brief 19
@@ -361,21 +361,21 @@ Dikerjakan 29 Sep 2026.
 
 API-nya sudah cukup; yang kurang di sisi app. Sisanya di §2–§19 yang bertanda ❌/🟡 menunggu API (daftar A).
 
-| # | Pekerjaan | Layar | Catatan |
-|---|---|---|---|
-| 1 | Restyle Kurir | S-24 | Berfungsi, layout lama |
-| 2 | Restyle Gudang & stok per varian | S-25 | Berfungsi, layout lama |
-| 3 | Restyle Promo: voucher, flash sale, bundel, subsidi ongkir | S-31 | Berfungsi, layout lama |
-| 4 | Proteksi margin (proyeksi harga sebelum promo aktif) | S-31 | Murni UI |
-| 5 | Kelola storefront + etalase | S-34 | Etalase layout lama; API hanya satu `banner_url` (desain 1 utama + 2 panel) |
-| 6 | Pusat notifikasi + preferensi | S-40, S-43 | Berfungsi, layout lama |
-| 7 | Member Since & Followers | S-34/S-35 | `opened_at` sudah dibaca model, `follower_count` belum; belum tampil |
-| 8 | Onboarding bertahap: pilih tipe → identitas → badan usaha & PIC | S-02, S-03, S-03b | Sekarang satu halaman |
-| 9 | Layar khusus penolakan duplikasi identitas | S-06 | Sekarang hanya pesan |
-| 10 | Layar keputusan refund | S-19 | Sekarang di Detail Pesanan |
-| 11 | Menu pemantauan pengiriman | S-23 | Dari daftar pesanan dikirim + `/tracking` (satu baris per kiriman) |
-| 12 | Pilih pesanan terkait saat buat tiket 911 | S-41 | API menerima `related_order_id`; form belum mengirimnya |
-| 13 | Bahasa Inggris untuk teks seller | — | Teks seller masih hardcode Indonesia |
+| # | Pekerjaan | Layar | Status | Catatan |
+|---|---|---|---|---|
+| 1 | Restyle Kurir | S-24 | ✅ | Switch per kurir; mematikan kurir terakhir ditolak (daftar kosong = semua) |
+| 2 | Restyle Gudang & stok per varian | S-25 | ✅ | Kuota 3 lokasi; cakupan kota & subsidi ongkir diarahkan ke Produk / Promo |
+| 3 | Restyle Promo: voucher, flash sale, bundel, subsidi ongkir | S-31 | ✅ | Tab, filter fase, kartu campaign; sub-layar & form ikut token |
+| 4 | Proteksi margin (proyeksi harga sebelum promo aktif) | S-31 | ✅ | Komisi 5% + Growth produk |
+| 5 | Kelola storefront + etalase | S-34 | ✅ | Ganti banner, etalase diurutkan dengan seret, bundel; panel mini & sorotan beranda tidak ada di API |
+| 6 | Pusat notifikasi + preferensi | S-40, S-43 | ✅ | Kategori diturunkan dari `type` |
+| 7 | Member Since & Followers | S-34/S-35 | ❌ | `opened_at` sudah dibaca model, `follower_count` belum; belum tampil |
+| 8 | Onboarding bertahap: pilih tipe → identitas → badan usaha & PIC | S-02, S-03, S-03b | ❌ | Sekarang satu halaman |
+| 9 | Layar khusus penolakan duplikasi identitas | S-06 | ❌ | Sekarang hanya pesan |
+| 10 | Layar keputusan refund | S-19 | ❌ | Sekarang di Detail Pesanan |
+| 11 | Menu pemantauan pengiriman | S-23 | ❌ | Dari daftar pesanan dikirim + `/tracking` (satu baris per kiriman) |
+| 12 | Pilih pesanan terkait saat buat tiket 911 | S-41 | ❌ | API menerima `related_order_id`; form belum mengirimnya |
+| 13 | Bahasa Inggris untuk teks seller | — | ❌ | Teks seller masih hardcode Indonesia |
 
 ---
 

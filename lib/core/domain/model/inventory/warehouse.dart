@@ -64,6 +64,11 @@ class Warehouse {
 
   bool get isActive => status == WarehouseStatus.active;
 
+  /// `max_warehouses_per_store`, default 3; a fourth create answers
+  /// `422 WAREHOUSE_QUOTA_EXCEEDED`. The setting is admin-side and not
+  /// readable by a seller, so this is the default rather than a guarantee.
+  static const int maxPerStore = 3;
+
   String get shortAddress => <String?>[city, province]
       .where((part) => part != null && part.isNotEmpty)
       .join(', ');

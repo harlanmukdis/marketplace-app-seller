@@ -46,6 +46,11 @@ final class CourierLoaded extends CourierState {
 
   bool isSelected(String code) => selectedCodes.contains(code);
 
+  /// On for buyers: every courier while unrestricted, else the selected ones.
+  bool isOn(String code) => hasNone || isSelected(code);
+
+  int get activeCount => hasNone ? available.length : selectedCodes.length;
+
   CourierLoaded copyWith({
     List<Courier>? available,
     Set<String>? selectedCodes,

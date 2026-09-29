@@ -10,6 +10,8 @@ import '../../../../core/domain/repositories/store_repository.dart';
 import '../../../../core/utils/xpedia_tokens.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../../../../core/widgets/xpedia/x_widgets.dart';
+import '../../../seller_notifications/presentation/cubits/notification_cubit/notification_cubit.dart';
+import '../../../seller_notifications/presentation/views/widgets/notification_preferences_sheet.dart';
 import '../../../../di/injector.dart';
 import '../cubits/store_cubit/store_cubit.dart';
 
@@ -118,6 +120,18 @@ class _StoreSettingsViewState extends State<StoreSettingsView> {
     showSuccessSnackBar(context, 'Pengaturan toko tersimpan.');
   }
 
+  /// The same sheet the notification centre opens. Its cubit only lends the
+  /// two preference calls, which read nothing from its state.
+  Future<void> _openPreferences() async {
+    final cubit = NotificationCubit();
+    await showNotificationPreferencesSheet(
+      context,
+      load: cubit.preferences,
+      setPreference: cubit.setPreference,
+    );
+    await cubit.close();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -169,15 +183,12 @@ class _StoreSettingsViewState extends State<StoreSettingsView> {
                     ),
                     const SizedBox(height: XSpace.cardGap),
                     XCard(
-                      child: SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
+                      child: _SwitchRow(
+                        title: 'Mode Libur',
+                        subtitle:
+                            'Toko ditandai tutup sementara untuk pembeli.',
                         value: _vacation,
                         onChanged: (v) => setState(() => _vacation = v),
-                        title: Text('Mode Libur', style: XText.titleM),
-                        subtitle: Text(
-                          'Toko ditandai tutup sementara untuk pembeli.',
-                          style: XText.bodyS,
-                        ),
                       ),
                     ),
                     const SizedBox(height: XSpace.cardGap),
@@ -217,6 +228,12 @@ class _StoreSettingsViewState extends State<StoreSettingsView> {
                     const SizedBox(height: XSpace.cardGap),
                     XListGroup(
                       children: <Widget>[
+                        XListRow(
+                          icon: Icons.notifications_active_outlined,
+                          title: 'Preferensi Notifikasi',
+                          subtitle: 'Atur push & email per jenis notifikasi',
+                          onTap: _openPreferences,
+                        ),
                         XListRow(
                           icon: Icons.local_shipping_outlined,
                           title: 'Kurir Aktif',
@@ -302,15 +319,11 @@ class _HoursCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
+          _SwitchRow(
+            title: 'Jam Operasional',
+            subtitle: 'Tampil ke pembeli di Partners Performance.',
             value: enabled,
             onChanged: onEnabled,
-            title: Text('Jam Operasional', style: XText.titleL),
-            subtitle: Text(
-              'Tampil ke pembeli di Partners Performance.',
-              style: XText.bodyS,
-            ),
           ),
           if (enabled) ...<Widget>[
             const SizedBox(height: XSpace.s8),
@@ -358,6 +371,43 @@ class _HoursCard extends StatelessWidget {
               ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Title + subtitle on the left, the design's [XSwitch] on the right.
+class _SwitchRow extends StatelessWidget {
+  const _SwitchRow({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => onChanged(!value),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(title, style: XText.titleM),
+                Text(subtitle, style: XText.bodyS),
+              ],
+            ),
+          ),
+          const SizedBox(width: XSpace.s12),
+          XSwitch(value: value, onChanged: onChanged, semanticLabel: title),
         ],
       ),
     );
