@@ -1,7 +1,7 @@
 # Ceklist Implementasi — Blueprint Seller v2.0 (`docs/v2-seller/`)
 
 Dicek: **29 Sep 2026** · API `marketplace-api` **v1.28.0** (branch `main-harlan`, `6546a65`) ·
-Aplikasi branch `xpedia-redesign-api-v1.28`, diperbarui setelah daftar B selesai.
+Aplikasi branch `xpedia-redesign-api-v1.28`, diperbarui 29 Sep 2026 setelah daftar B dan layout S-36.
 
 Sumber aturan: `marketplace-api/docs/v2-seller/01`–`19`. Brief itu ditulis 23–25 Sep, sebelum tim
 backend mengimplementasikan sebagian besarnya, jadi bagian "kondisi repo" di dalamnya **sudah basi**.
@@ -353,9 +353,29 @@ Dikerjakan 29 Sep 2026.
 | 7 | Sesi & perangkat (S-44) | ✅ | |
 | 8 | Jam operasional toko (S-43) | ✅ | Diuji live |
 | 9 | Lampiran bukti tiket 911 (S-42) | ✅ | Diuji live |
-| 10 | Live selling (S-36) | ✅ | Diuji live. App tidak menyiarkan video; RTMP + stream key untuk OBS |
+| 10 | Live selling (S-36) | ✅ | Diuji live; layout studio sesuai Stitch. App tidak menyiarkan video; RTMP + stream key untuk OBS. Pesanan/penjualan per sesi & komentar belum ada di API |
 | 11 | Staf & peran toko | ✅ | Staf belum bisa membuka toko (A #18) |
 | 12 | Restyle layar lama | 🟡 | Login/Daftar (S-01) & Verifikasi (S-08/09) ditata ulang; widget bersama dan skala teks semua layar sudah design system; tata letak Kurir, Gudang, Promo, Etalase, Notifikasi masih versi lama |
+
+## C. Sisa yang bisa dikerjakan app sekarang
+
+API-nya sudah cukup; yang kurang di sisi app. Sisanya di §2–§19 yang bertanda ❌/🟡 menunggu API (daftar A).
+
+| # | Pekerjaan | Layar | Catatan |
+|---|---|---|---|
+| 1 | Restyle Kurir | S-24 | Berfungsi, layout lama |
+| 2 | Restyle Gudang & stok per varian | S-25 | Berfungsi, layout lama |
+| 3 | Restyle Promo: voucher, flash sale, bundel, subsidi ongkir | S-31 | Berfungsi, layout lama |
+| 4 | Proteksi margin (proyeksi harga sebelum promo aktif) | S-31 | Murni UI |
+| 5 | Kelola storefront + etalase | S-34 | Etalase layout lama; API hanya satu `banner_url` (desain 1 utama + 2 panel) |
+| 6 | Pusat notifikasi + preferensi | S-40, S-43 | Berfungsi, layout lama |
+| 7 | Member Since & Followers | S-34/S-35 | `opened_at` sudah dibaca model, `follower_count` belum; belum tampil |
+| 8 | Onboarding bertahap: pilih tipe → identitas → badan usaha & PIC | S-02, S-03, S-03b | Sekarang satu halaman |
+| 9 | Layar khusus penolakan duplikasi identitas | S-06 | Sekarang hanya pesan |
+| 10 | Layar keputusan refund | S-19 | Sekarang di Detail Pesanan |
+| 11 | Menu pemantauan pengiriman | S-23 | Dari daftar pesanan dikirim + `/tracking` (satu baris per kiriman) |
+| 12 | Pilih pesanan terkait saat buat tiket 911 | S-41 | API menerima `related_order_id`; form belum mengirimnya |
+| 13 | Bahasa Inggris untuk teks seller | — | Teks seller masih hardcode Indonesia |
 
 ---
 
