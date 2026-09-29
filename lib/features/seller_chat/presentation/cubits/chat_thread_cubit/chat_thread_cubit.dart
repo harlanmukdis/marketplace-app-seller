@@ -1,10 +1,14 @@
 import 'dart:async';
 
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/data_state.dart';
 import '../../../../../core/domain/model/chat/chat_message.dart';
+import '../../../../../core/domain/model/media/uploaded_file.dart';
+import '../../../../../core/domain/repositories/store_repository.dart';
 import '../../../../../core/domain/repositories/auth_repository.dart';
 import '../../../../../core/domain/repositories/chat_repository.dart';
 import '../../../../../di/injector.dart';
@@ -88,9 +92,6 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
 
   Future<DataError?> send(String content) async {
     final trimmed = content.trim();
-    final current = state;
-    if (current is! ChatThreadLoaded) return null;
-
     // The server stores an empty message without complaint, so it is refused
     // here instead.
     if (trimmed.isEmpty) {
@@ -99,20 +100,99 @@ class ChatThreadCubit extends Cubit<ChatThreadState> {
         message: 'Pesan tidak boleh kosong.',
       );
     }
+    return _send(type: ChatMessageType.text, content: trimmed);
+  }
 
+  /// Uploads the photo, then sends its URL as an `image` message — the only
+  /// place a file can travel, since `chat_attachments` has no writer.
+  Future<DataError?> sendImage(Uint8List bytes, String fileName) async {
+    final current = state;
+    if (current is! ChatThreadLoaded) return null;
     emit(current.copyWith(isSending: true));
-    final result = await _chat.sendMessage(conversationId, content: trimmed);
+    final uploaded = await injector<StoreRepository>().upload(
+      bytes: bytes,
+      fileName: fileName,
+      storeId: _auth.activeStoreId,
+    );
     if (isClosed) return null;
+    if (uploaded is! DataSuccess<UploadedFile>) {
+      emit((state as ChatThreadLoaded).copyWith(isSending: false));
+      return uploaded is DataFailed<UploadedFile> ? uploaded.failure : null;
+    }
+    return _send(type: ChatMessageType.image, content: uploaded.value.url);
+  }
+
+  /// A product card. `content` carries the name so the bubble reads without
+  /// a lookup.
+  Future<DataError?> shareProduct(int productId, String name) => _send(
+        type: ChatMessageType.productShare,
+        content: name,
+        sharedProductId: productId,
+      );
+
+  /// An order reference — the order number, never buyer details.
+  Future<DataError?> shareOrder(int orderId, String orderNumber) => _send(
+        type: ChatMessageType.orderShare,
+        content: orderNumber,
+        sharedOrderId: orderId,
+      );
+
+  int _localSeq = 0;
+
+  /// Shows the message at once as `pending`, then replaces the thread with
+  /// the server's once the POST lands. A failure removes the placeholder.
+  Future<DataError?> _send({
+    required String type,
+    required String content,
+    int? sharedProductId,
+    int? sharedOrderId,
+  }) async {
+    final current = state;
+    if (current is! ChatThreadLoaded) return null;
+    final pending = ChatMessage.pending(
+      localId: ++_localSeq,
+      conversationId: conversationId,
+      senderUserId: current.myUserId ?? 0,
+      type: type,
+      content: content,
+      sharedProductId: sharedProductId,
+      sharedOrderId: sharedOrderId,
+    );
+    emit(current.copyWith(
+      messages: <ChatMessage>[...current.messages, pending],
+      isSending: true,
+    ));
+
+    final result = await _chat.sendMessage(
+      conversationId,
+      content: content,
+      type: type,
+      sharedProductId: sharedProductId,
+      sharedOrderId: sharedOrderId,
+    );
+    if (isClosed) return null;
+    final latest = state as ChatThreadLoaded;
 
     switch (result) {
       case DataSuccess<List<ChatMessage>>(:final value):
-        emit(current.copyWith(messages: value, isSending: false));
+        emit(latest.copyWith(messages: value, isSending: false));
         return null;
       case DataFailed<List<ChatMessage>>(:final failure):
-        emit(current.copyWith(isSending: false));
+        emit(latest.copyWith(
+          messages: latest.messages.where((m) => m.id != pending.id).toList(),
+          isSending: false,
+        ));
+        if (failure.code == 'CHAT_CONTENT_BLOCKED') {
+          return DataError(
+            code: failure.code,
+            message: 'Pesan tidak terkirim: nomor telepon, email, link, atau '
+                'nama platform lain tidak boleh dibagikan di chat. Semua '
+                'transaksi harus lewat Xpedia.',
+          );
+        }
         return failure;
       default:
-        emit(current.copyWith(isSending: false));
+        emit(latest.copyWith(isSending: false));
         return null;
     }
   }

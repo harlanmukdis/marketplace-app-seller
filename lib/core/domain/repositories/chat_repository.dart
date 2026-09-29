@@ -20,9 +20,14 @@ abstract class ChatRepository {
 
   /// Sends a message and returns the thread as it stands afterwards — the
   /// `POST` answers only `{ "id": N }`.
+  /// Refused with `422 CHAT_CONTENT_BLOCKED` when the text carries a phone
+  /// number, email, URL or another platform's name (anti-bypass, v1.18.0).
   Future<DataState<List<ChatMessage>>> sendMessage(
     int conversationId, {
     required String content,
+    String type,
+    int? sharedProductId,
+    int? sharedOrderId,
   });
 
   Future<DataState<bool>> markRead(int conversationId);

@@ -1,7 +1,17 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/function/custom_app_bar.dart';
+import '../../../../core/data_state.dart';
+import '../../../../core/domain/model/catalog/product.dart';
+import '../../../../core/domain/model/order/order.dart';
+import '../../../../core/domain/repositories/auth_repository.dart';
+import '../../../../core/domain/repositories/catalog_repository.dart';
+import '../../../../core/domain/repositories/order_repository.dart';
+import '../../../../core/utils/format_helper.dart';
+import '../../../../core/widgets/xpedia/x_widgets.dart';
+import '../../../../di/injector.dart';
+
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/widgets/state_widgets.dart';
@@ -68,10 +78,83 @@ class _ChatThreadBodyState extends State<_ChatThreadBody> {
     return true;
   }
 
+  Future<void> _report(Future<DataError?> future) async {
+    final error = await future;
+    if (!mounted) return;
+    if (error != null) {
+      showErrorSnackBar(context, error);
+      return;
+    }
+    _scrollToEnd();
+  }
+
+  Future<void> _sendPhoto() async {
+    final cubit = ChatThreadCubit.get(context);
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const <String>['jpg', 'jpeg', 'png', 'webp'],
+      withData: true,
+    );
+    final file = picked?.files.singleOrNull;
+    final bytes = file?.bytes;
+    if (bytes == null || !mounted) return;
+    await _report(cubit.sendImage(bytes, file!.name));
+  }
+
+  Future<void> _shareProduct() async {
+    final cubit = ChatThreadCubit.get(context);
+    final storeId = injector<AuthRepository>().activeStoreId;
+    if (storeId == null) return;
+    final result =
+        await injector<CatalogRepository>().getStoreProducts(storeId);
+    if (!mounted) return;
+    final products = result is DataSuccess<List<Product>>
+        ? result.value.where((p) => p.isActive).toList()
+        : const <Product>[];
+    final picked = await showModalBottomSheet<Product>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheet) => _Picker<Product>(
+        title: 'Bagikan Produk',
+        empty: 'Belum ada produk aktif.',
+        items: products,
+        label: (p) => p.name,
+        subtitle: (p) => formatRupiah(p.effectivePrice),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    await _report(cubit.shareProduct(picked.id, picked.name));
+  }
+
+  Future<void> _shareOrder() async {
+    final cubit = ChatThreadCubit.get(context);
+    final storeId = injector<AuthRepository>().activeStoreId;
+    if (storeId == null) return;
+    final result = await injector<OrderRepository>().getStoreOrders(storeId);
+    if (!mounted) return;
+    final orders =
+        result is DataSuccess<List<Order>> ? result.value : const <Order>[];
+    final picked = await showModalBottomSheet<Order>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheet) => _Picker<Order>(
+        title: 'Referensi Pesanan',
+        empty: 'Belum ada pesanan.',
+        items: orders,
+        label: (o) => o.orderNumber,
+        subtitle: (o) =>
+            '${OrderStatus.label(o.status)} · ${formatRupiah(o.grandTotal)}',
+      ),
+    );
+    if (picked == null || !mounted) return;
+    await _report(cubit.shareOrder(picked.id, picked.orderNumber));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar(context, 'Percakapan #${widget.conversationId}'),
+      backgroundColor: XColors.canvas,
+      appBar: XAppBar(title: 'Percakapan #${widget.conversationId}'),
       body: SafeArea(
         child: BlocConsumer<ChatThreadCubit, ChatThreadState>(
           listener: (context, state) {
@@ -95,6 +178,21 @@ class _ChatThreadBodyState extends State<_ChatThreadBody> {
       children: <Widget>[
         if (!state.isLive) const _ConnectionLostNotice(),
         if (state.myUserId == null) const _UnknownIdentityNotice(),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(
+            XSpace.screen,
+            XSpace.s12,
+            XSpace.screen,
+            0,
+          ),
+          child: XBanner(
+            tone: XTone.warning,
+            icon: Icons.shield_outlined,
+            title: 'Keamanan Percakapan.',
+            message: 'Jangan bagikan nomor WhatsApp, rekening di luar Xpedia, '
+                'atau link platform lain — pesan seperti itu diblokir.',
+          ),
+        ),
         Expanded(
           child: state.messages.isEmpty
               ? const EmptyStateView(
@@ -107,15 +205,82 @@ class _ChatThreadBodyState extends State<_ChatThreadBody> {
                   itemCount: state.messages.length,
                   itemBuilder: (context, index) {
                     final message = state.messages[index];
-                    return MessageBubble(
-                      message: message,
-                      isMine: state.isMine(message),
+                    final day = _day(message.createdAt);
+                    final prev = index == 0
+                        ? null
+                        : _day(state.messages[index - 1].createdAt);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        if (day != null && day != prev) DayDivider(day: day),
+                        MessageBubble(
+                          message: message,
+                          isMine: state.isMine(message),
+                        ),
+                      ],
                     );
                   },
                 ),
         ),
-        MessageComposer(isSending: state.isSending, onSend: _send),
+        MessageComposer(
+          isSending: state.isSending,
+          onSend: _send,
+          onPhoto: _sendPhoto,
+          onShareProduct: _shareProduct,
+          onShareOrder: _shareOrder,
+        ),
       ],
+    );
+  }
+}
+
+DateTime? _day(DateTime? t) =>
+    t == null ? null : DateTime(t.year, t.month, t.day);
+
+class _Picker<T> extends StatelessWidget {
+  const _Picker({
+    required this.title,
+    required this.empty,
+    required this.items,
+    required this.label,
+    required this.subtitle,
+  });
+
+  final String title;
+  final String empty;
+  final List<T> items;
+  final String Function(T) label;
+  final String Function(T) subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(XSpace.screen),
+              child: Text(title, style: XText.headingM),
+            ),
+            Expanded(
+              child: items.isEmpty
+                  ? Center(child: Text(empty, style: XText.bodyS))
+                  : ListView(
+                      children: <Widget>[
+                        for (final item in items)
+                          ListTile(
+                            title: Text(label(item), style: XText.bodyM),
+                            subtitle: Text(subtitle(item), style: XText.bodyS),
+                            onTap: () => Navigator.of(context).pop(item),
+                          ),
+                      ],
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

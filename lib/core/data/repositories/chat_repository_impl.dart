@@ -28,9 +28,18 @@ class ChatRepositoryImpl with RepositoryGuard implements ChatRepository {
   Future<DataState<List<ChatMessage>>> sendMessage(
     int conversationId, {
     required String content,
+    String type = ChatMessageType.text,
+    int? sharedProductId,
+    int? sharedOrderId,
   }) =>
       guard(() async {
-        await _service.sendMessage(conversationId, content: content);
+        await _service.sendMessage(
+          conversationId,
+          content: content,
+          type: type,
+          sharedProductId: sharedProductId,
+          sharedOrderId: sharedOrderId,
+        );
         // The POST answers with an id and nothing else, so the thread is
         // re-read rather than having the sent message assembled locally.
         return _oldestFirst(await _service.getMessages(conversationId));
