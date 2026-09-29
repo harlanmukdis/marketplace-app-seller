@@ -5,7 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/route/app_route_seller.dart';
 import '../../../../core/domain/model/wallet/bank_account.dart';
 import '../../../../core/domain/model/wallet/store_wallet.dart';
+import '../../../../core/domain/model/wallet/wallet_extras.dart';
+import '../../../../core/domain/repositories/auth_repository.dart';
+import '../../../../core/domain/repositories/wallet_extras_repository.dart';
 import '../../../../core/utils/format_helper.dart';
+import '../../../../core/widgets/demo/demo_widgets.dart';
+import '../../../../di/injector.dart';
 import '../../../../core/utils/xpedia_tokens.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../../../../core/widgets/xpedia/x_widgets.dart';
@@ -85,10 +90,13 @@ class _WalletBody extends StatelessWidget {
                 ? () => openWithdraw(context, cubit)
                 : null,
           ),
+          const _HeldBalanceCard(),
           const SizedBox(height: XSpace.sectionGap),
           _Accounts(state: state),
           const SizedBox(height: XSpace.sectionGap),
           _Ledger(state: state),
+          const SizedBox(height: XSpace.sectionGap),
+          const _WithdrawalHistory(),
           const SizedBox(height: XSpace.sectionGap),
           const XBanner(
             tone: XTone.info,
@@ -459,6 +467,143 @@ class _LedgerRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+int get _walletStoreId => injector<AuthRepository>().activeStoreId ?? 0;
+
+/// "Saldo Ditahan": revenue of orders shipped but not yet completed. Hidden
+/// while the API has no such figure — `held_balance` is never written.
+class _HeldBalanceCard extends StatelessWidget {
+  const _HeldBalanceCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return PendingBuilder<HeldBalance>(
+      compact: true,
+      load: () =>
+          injector<WalletExtrasRepository>().getHeldBalance(_walletStoreId),
+      pending: (_) => const SizedBox.shrink(),
+      builder: (context, held, _) => Padding(
+        padding: const EdgeInsets.only(top: XSpace.cardGap),
+        child: XCard(
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: XColors.warningSubtle,
+                  borderRadius: BorderRadius.circular(XRadius.md),
+                ),
+                child: const Icon(Icons.hourglass_top_rounded,
+                    color: XColors.warning),
+              ),
+              const SizedBox(width: XSpace.s12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Text('Saldo Ditahan', style: XText.bodyS),
+                        const SizedBox(width: XSpace.s8),
+                        const DemoBadge(),
+                      ],
+                    ),
+                    Text(formatRupiah(held.amount), style: XText.titleL),
+                    Text(
+                      '${held.orderCount} pesanan aktif — cair saat pesanan '
+                      'Selesai',
+                      style: XText.caption,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WithdrawalHistory extends StatelessWidget {
+  const _WithdrawalHistory();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const DemoSectionHeader(title: 'Riwayat Penarikan'),
+        PendingBuilder<List<WithdrawalRecord>>(
+          compact: true,
+          load: () =>
+              injector<WalletExtrasRepository>().getWithdrawals(_walletStoreId),
+          empty: const XCard(
+            child: XEmptyState(
+              icon: Icons.receipt_long_outlined,
+              title: 'Belum ada penarikan',
+            ),
+          ),
+          builder: (context, list, _) => XListGroup(
+            children: <Widget>[
+              for (final w in list)
+                Padding(
+                  padding: const EdgeInsets.all(XSpace.s12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Icon(
+                        Icons.account_balance_outlined,
+                        color: XColors.textSecondary,
+                      ),
+                      const SizedBox(width: XSpace.s12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              'Penarikan ke ${w.bankName} ${w.accountMasked}',
+                              style: XText.titleM,
+                            ),
+                            Text('Ref: ${w.reference}', style: XText.caption),
+                            Text(formatDateTime(w.requestedAt),
+                                style: XText.caption),
+                            if (w.rejectReason != null)
+                              Text(
+                                w.rejectReason!,
+                                style: XText.caption
+                                    .copyWith(color: XColors.danger),
+                              ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Text('-${formatRupiah(w.amount)}',
+                              style: XText.priceS),
+                          const SizedBox(height: 2),
+                          XChip(
+                            label: WithdrawalStatus.label(w.status),
+                            tone: switch (w.status) {
+                              WithdrawalStatus.success => XTone.success,
+                              WithdrawalStatus.rejected => XTone.danger,
+                              _ => XTone.warning,
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -57,6 +57,28 @@ import '../core/domain/repositories/shipping_repository.dart';
 import '../core/domain/repositories/store_repository.dart';
 import '../core/domain/repositories/verification_repository.dart';
 import '../core/domain/repositories/wallet_repository.dart';
+import '../core/data/demo/demo_account_security_repository.dart';
+import '../core/data/demo/demo_campaign_repository.dart';
+import '../core/data/demo/demo_discovery_repository.dart';
+import '../core/domain/repositories/campaign_repository.dart';
+import '../core/data/demo/demo_insights_repositories.dart';
+import '../core/data/demo/demo_live_insights_repository.dart';
+import '../core/domain/repositories/live_insights_repository.dart';
+import '../core/domain/repositories/discovery_repository.dart';
+import '../core/domain/repositories/account_security_repository.dart';
+import '../core/data/demo/demo_order_case_repository.dart';
+import '../core/data/demo/demo_product_extras_repository.dart';
+import '../core/domain/repositories/product_extras_repository.dart';
+import '../core/domain/repositories/store_insights_repository.dart';
+import '../core/data/demo/demo_shipment_monitor_repository.dart';
+import '../core/data/demo/demo_store_inbox_repository.dart';
+import '../core/data/demo/demo_storefront_extras_repository.dart';
+import '../core/domain/repositories/storefront_extras_repository.dart';
+import '../core/data/demo/demo_wallet_extras_repository.dart';
+import '../core/domain/repositories/wallet_extras_repository.dart';
+import '../core/domain/repositories/shipment_monitor_repository.dart';
+import '../core/domain/repositories/order_case_repository.dart';
+import '../core/domain/repositories/store_inbox_repository.dart';
 import 'injector.dart';
 
 /// Repositories take services, so this runs after [initializeService].
@@ -105,6 +127,46 @@ void initializeRepository() {
 
   injector.registerLazySingleton<ChatRepository>(
     () => ChatRepositoryImpl(injector<ChatService>()),
+  );
+
+  // ── Ahead of the API (lib/core/data/demo) ───────────────────────────────
+  // Sample data under DEMO_DATA, "Menunggu API" otherwise. Swap each for a
+  // *RepositoryImpl once its endpoint exists.
+  injector.registerLazySingleton<StoreInboxRepository>(
+    () => const DemoStoreInboxRepository(),
+  );
+  injector.registerLazySingleton<OrderCaseRepository>(
+    DemoOrderCaseRepository.new,
+  );
+  injector.registerLazySingleton<ShipmentMonitorRepository>(
+    () => const DemoShipmentMonitorRepository(),
+  );
+  injector.registerLazySingleton<StoreInsightsRepository>(
+    () => DemoStoreInsightsRepository(injector<CatalogRepository>()),
+  );
+  injector.registerLazySingleton<CampaignRepository>(
+    DemoCampaignRepository.new,
+  );
+  injector.registerLazySingleton<ProductExtrasRepository>(
+    DemoProductExtrasRepository.new,
+  );
+  injector.registerLazySingleton<StorefrontExtrasRepository>(
+    DemoStorefrontExtrasRepository.new,
+  );
+  injector.registerLazySingleton<LiveInsightsRepository>(
+    () => const DemoLiveInsightsRepository(),
+  );
+  injector.registerLazySingleton<DiscoveryRepository>(
+    () => const DemoDiscoveryRepository(),
+  );
+  injector.registerLazySingleton<AccountSecurityRepository>(
+    DemoAccountSecurityRepository.new,
+  );
+  injector.registerLazySingleton<WalletExtrasRepository>(
+    () => const DemoWalletExtrasRepository(),
+  );
+  injector.registerLazySingleton<CatalogQualityRepository>(
+    () => DemoCatalogQualityRepository(injector<CatalogRepository>()),
   );
 
   injector.registerLazySingleton<LocationRepository>(

@@ -64,6 +64,11 @@ class _OrderListBody extends StatelessWidget {
         showBack: !embedded,
         actions: <Widget>[
           XIconAction(
+            icon: Icons.assignment_return_outlined,
+            tooltip: 'Komplain & Pembatalan',
+            onPressed: () => context.push(SellerRoutes.cases),
+          ),
+          XIconAction(
             icon: Icons.notifications_none_rounded,
             tooltip: 'Notifikasi',
             onPressed: () => context.push(SellerRoutes.notifications),

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/data_state.dart';
+import '../../../../core/domain/model/chat/store_conversation.dart';
+import '../../../../core/domain/repositories/auth_repository.dart';
+import '../../../../core/domain/repositories/store_inbox_repository.dart';
 import '../../../../core/utils/xpedia_tokens.dart';
+import '../../../../di/injector.dart';
 import '../../../../core/widgets/xpedia/x_widgets.dart';
 import '../../../seller_account/presentation/views/account_tab.dart';
 import '../../../seller_catalog/presentation/views/product_list_view.dart';
@@ -25,6 +30,26 @@ class SellerHomeShell extends StatefulWidget {
 
 class _SellerHomeShellState extends State<SellerHomeShell> {
   int _index = 0;
+
+  /// Unread messages across the store inbox. Stays 0 while that inbox
+  /// waits on the API (outside `DEMO_DATA`).
+  int _chatUnread = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadChatUnread();
+  }
+
+  Future<void> _loadChatUnread() async {
+    final storeId = injector<AuthRepository>().activeStoreId;
+    if (storeId == null) return;
+    final result =
+        await injector<StoreInboxRepository>().getConversations(storeId);
+    if (!mounted || result is! DataSuccess<List<StoreConversation>>) return;
+    setState(() =>
+        _chatUnread = result.value.fold<int>(0, (n, c) => n + c.unreadCount));
+  }
 
   static const List<(IconData, IconData, String)> _items =
       <(IconData, IconData, String)>[
@@ -68,7 +93,7 @@ class _SellerHomeShellState extends State<SellerHomeShell> {
             bottomNavigationBar: _BottomNav(
               index: _index,
               items: _items,
-              badges: <int, int>{1: toProcess},
+              badges: <int, int>{1: toProcess, 3: _chatUnread},
               onSelect: _select,
             ),
           );

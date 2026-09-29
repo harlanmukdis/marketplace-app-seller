@@ -4,12 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../di/injector.dart';
+import '../../../../core/domain/repositories/live_insights_repository.dart';
+import '../../../../core/domain/model/live/live_insights.dart';
+import '../../../../core/data_state.dart';
 
 import '../../../../config/route/app_route_seller.dart';
 import '../../../../core/domain/model/catalog/product.dart';
 import '../../../../core/domain/model/live/live_session.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/utils/xpedia_tokens.dart';
+import '../../../../core/widgets/demo/demo_widgets.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../../../../core/widgets/xpedia/x_widgets.dart';
 import '../cubits/live_cubit.dart';
@@ -173,7 +178,10 @@ class _Body extends StatelessWidget {
                             context, () => cubit.pin(id), 'Produk di-pin.'),
                       ),
                       const SizedBox(height: XSpace.s24),
-                      _Comments(isLive: session.isLive),
+                      _Comments(
+                        sessionId: session.id,
+                        isLive: session.isLive,
+                      ),
                       if (session.isLive || s.ingest != null) ...<Widget>[
                         const SizedBox(height: XSpace.s24),
                         _EncoderCard(session: session, ingest: s.ingest),
@@ -244,10 +252,18 @@ class _Monitor extends StatefulWidget {
 class _MonitorState extends State<_Monitor> {
   Timer? _tick;
 
+  /// Orders and sales for this session — "—" while the API has none.
+  LiveStats? _stats;
+
   @override
   void initState() {
     super.initState();
     _syncTimer();
+    injector<LiveInsightsRepository>().getStats(widget.session.id).then((r) {
+      if (mounted && r is DataSuccess<LiveStats>) {
+        setState(() => _stats = r.value);
+      }
+    });
   }
 
   @override
@@ -440,16 +456,20 @@ class _MonitorState extends State<_Monitor> {
                         label: 'Puncak',
                         value: formatThousands(s.peakViewerCount),
                       ),
-                      const _Stat(
+                      _Stat(
                         icon: Icons.shopping_bag_outlined,
-                        iconColor: Color(0xff60A5FA),
+                        iconColor: const Color(0xff60A5FA),
                         label: 'Pesanan',
-                        value: '—',
-                        valueColor: Color(0xff34D399),
+                        value: _stats == null
+                            ? '—'
+                            : formatThousands(_stats!.orders),
+                        valueColor: const Color(0xff34D399),
                       ),
-                      const _Stat(
+                      _Stat(
                         label: 'Penjualan',
-                        value: '—',
+                        value: _stats == null
+                            ? '—'
+                            : _compactRupiah(_stats!.grossSales),
                         valueColor: XColors.signatureGoldLight,
                       ),
                     ],
@@ -948,8 +968,9 @@ class _ProductRow extends StatelessWidget {
 /// keeps its place in the layout and says so; the anti-bypass rule applies
 /// the moment one exists.
 class _Comments extends StatelessWidget {
-  const _Comments({required this.isLive});
+  const _Comments({required this.sessionId, required this.isLive});
 
+  final int sessionId;
   final bool isLive;
 
   @override
@@ -964,6 +985,8 @@ class _Comments extends StatelessWidget {
               const SizedBox(width: XSpace.s8),
               Icon(Icons.circle, size: 8, color: XColors.success),
             ],
+            const SizedBox(width: XSpace.s8),
+            const DemoBadge(),
           ],
         ),
         const SizedBox(height: XSpace.s8),
@@ -971,18 +994,29 @@ class _Comments extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Icon(Icons.forum_outlined, color: XColors.textTertiary),
-                  const SizedBox(width: XSpace.s12),
-                  Expanded(
-                    child: Text(
-                      'Komentar penonton akan tampil di sini. Pesanan dari '
-                      'live tetap masuk ke tab Pesanan.',
-                      style: XText.bodyS,
+              PendingBuilder<List<LiveComment>>(
+                compact: true,
+                load: () =>
+                    injector<LiveInsightsRepository>().getComments(sessionId),
+                pending: (_) => Row(
+                  children: <Widget>[
+                    Icon(Icons.forum_outlined, color: XColors.textTertiary),
+                    const SizedBox(width: XSpace.s12),
+                    Expanded(
+                      child: Text(
+                        'Komentar penonton akan tampil di sini. Pesanan dari '
+                        'live tetap masuk ke tab Pesanan.',
+                        style: XText.bodyS,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                empty: Text('Belum ada komentar.', style: XText.bodyS),
+                builder: (context, comments, _) => Column(
+                  children: <Widget>[
+                    for (final c in comments) _CommentRow(comment: c),
+                  ],
+                ),
               ),
               const SizedBox(height: XSpace.s12),
               const XBanner(
@@ -1316,6 +1350,69 @@ class _ProductPickerState extends State<_ProductPicker> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+String _compactRupiah(int v) {
+  if (v >= 1000000000) {
+    return '${(v / 1000000000).toStringAsFixed(1).replaceAll('.', ',')} M';
+  }
+  if (v >= 1000000) {
+    return '${(v / 1000000).toStringAsFixed(2).replaceAll('.', ',')} jt';
+  }
+  return formatRupiah(v);
+}
+
+class _CommentRow extends StatelessWidget {
+  const _CommentRow({required this.comment});
+
+  final LiveComment comment;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = comment;
+    String two(int n) => n.toString().padLeft(2, '0');
+    final t = c.at;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: XSpace.s8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          CircleAvatar(
+            radius: 14,
+            backgroundColor:
+                c.checkedOut ? XColors.successSubtle : XColors.brandSubtle,
+            child: Text(
+              c.buyerName.isEmpty ? '?' : c.buyerName[0],
+              style: XText.labelM.copyWith(
+                color: c.checkedOut ? XColors.successStrong : XColors.primary,
+              ),
+            ),
+          ),
+          const SizedBox(width: XSpace.s8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Wrap(
+                  spacing: XSpace.s8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: <Widget>[
+                    Text(c.buyerName, style: XText.labelM),
+                    if (t != null)
+                      Text('${two(t.hour)}:${two(t.minute)}',
+                          style: XText.caption),
+                    if (c.checkedOut)
+                      const XChip(label: 'Telah Checkout', tone: XTone.warning),
+                  ],
+                ),
+                Text(c.text, style: XText.bodyM),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

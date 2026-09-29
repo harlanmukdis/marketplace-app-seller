@@ -16,6 +16,7 @@ import '../../../../core/utils/xpedia_tokens.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../../../../core/widgets/xpedia/x_widgets.dart';
 import '../cubits/product_form_cubit/product_form_cubit.dart';
+import 'widgets/product_extras_section.dart';
 import 'widgets/certification_sheet.dart';
 import 'widgets/coverage_sheet.dart';
 import 'widgets/product_card.dart';
@@ -475,6 +476,8 @@ class _ProductFormBodyState extends State<_ProductFormBody> {
           _shippingSection(state),
           gap,
           _descriptionSection(state),
+          gap,
+          ProductExtrasSection(productId: product?.id),
           if (product != null) ...<Widget>[
             gap,
             _GrowthRow(product: product),

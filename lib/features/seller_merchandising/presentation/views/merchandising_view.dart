@@ -11,6 +11,9 @@ import '../../../../core/domain/model/merchandising/product_bundle.dart';
 import '../../../../core/domain/model/merchandising/store_showcase.dart';
 import '../../../../core/domain/model/store/store.dart';
 import '../../../../core/domain/repositories/store_repository.dart';
+import '../../../../core/widgets/demo/demo_widgets.dart';
+import '../../../../core/domain/repositories/storefront_extras_repository.dart';
+import '../../../../core/domain/model/store/storefront_extras.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/utils/xpedia_tokens.dart';
 import '../../../../core/widgets/state_widgets.dart';
@@ -29,9 +32,9 @@ import 'widgets/showcase_form_sheet.dart';
 /// bundle can never be deleted or have its contents changed, while a showcase
 /// can be edited freely.
 ///
-/// Not drawn, because the API has nowhere to put them: the design's two mini
-/// banners (a store has one `banner_url`) and the home-page highlight
-/// switches.
+/// The two mini banners and the home-page highlight switches have nowhere to
+/// live in the store profile; they go through [StorefrontExtrasRepository]
+/// (sample data under `DEMO_DATA`, "Menunggu API" otherwise).
 class MerchandisingView extends StatelessWidget {
   const MerchandisingView({super.key});
 
@@ -228,6 +231,8 @@ class _MerchandisingBodyState extends State<_MerchandisingBody> {
                 uploading: _uploadingBanner,
                 onChange: () => _changeBanner(store),
               ),
+              const SizedBox(height: XSpace.s12),
+              _MiniBanners(storeId: store.id),
               const SizedBox(height: XSpace.s24),
             ],
             _ShowcaseSection(
@@ -239,6 +244,10 @@ class _MerchandisingBodyState extends State<_MerchandisingBody> {
             const SizedBox(height: XSpace.s24),
             _BundleSection(onCreate: _createBundle),
             const SizedBox(height: XSpace.s24),
+            if (store != null) ...<Widget>[
+              _Highlights(storeId: store.id),
+              const SizedBox(height: XSpace.s24),
+            ],
           ],
         ),
       ),
@@ -389,9 +398,8 @@ class _BannerSection extends StatelessWidget {
         ),
         const SizedBox(height: XSpace.s8),
         const XBanner(
-          message: 'Rekomendasi ukuran 1200×600 px (maks. 2 MB), JPG/PNG. '
-              'Banner mini dan tautan banner belum didukung — toko punya satu '
-              'banner.',
+          message: 'Rekomendasi ukuran banner utama 1200×600 px, banner mini '
+              '600×600 px (maks. 2 MB), JPG/PNG.',
         ),
       ],
     );
@@ -699,6 +707,196 @@ class _BundleCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// "1 Utama + 2 Mini": the two small panels beside the main banner.
+class _MiniBanners extends StatefulWidget {
+  const _MiniBanners({required this.storeId});
+
+  final int storeId;
+
+  @override
+  State<_MiniBanners> createState() => _MiniBannersState();
+}
+
+class _MiniBannersState extends State<_MiniBanners> {
+  Key _key = UniqueKey();
+  int? _uploading;
+
+  Future<void> _replace(int slot) async {
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const <String>['jpg', 'jpeg', 'png', 'webp'],
+      withData: true,
+    );
+    final file = picked?.files.singleOrNull;
+    final bytes = file?.bytes;
+    if (bytes == null || !mounted) return;
+    setState(() => _uploading = slot);
+    final uploaded = await injector<StoreRepository>().upload(
+      bytes: bytes,
+      fileName: file!.name,
+      context: 'store_banner',
+    );
+    DataError? error;
+    if (uploaded is DataSuccess<UploadedFile>) {
+      error = await injector<StorefrontExtrasRepository>()
+          .setMiniBanner(widget.storeId, slot, uploaded.value.url);
+    } else if (uploaded is DataFailed<UploadedFile>) {
+      error = uploaded.failure;
+    }
+    if (!mounted) return;
+    setState(() {
+      _uploading = null;
+      _key = UniqueKey();
+    });
+    showDemoActionResult(context, error, 'Banner mini $slot diperbarui');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return KeyedSubtree(
+      key: _key,
+      child: PendingBuilder<List<MiniBanner>>(
+        compact: true,
+        load: () => injector<StorefrontExtrasRepository>()
+            .getMiniBanners(widget.storeId),
+        pending: (e) => const ApiPendingCard(
+          message: 'Dua banner mini di samping banner utama menunggu API — '
+              'toko baru punya satu kolom banner.',
+        ),
+        builder: (context, banners, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Text('Banner Mini', style: XText.titleM),
+                const SizedBox(width: XSpace.s8),
+                const DemoBadge(),
+              ],
+            ),
+            const SizedBox(height: XSpace.s8),
+            Row(
+              children: <Widget>[
+                for (final b in banners) ...<Widget>[
+                  if (b.slot > 1) const SizedBox(width: XSpace.s8),
+                  Expanded(
+                    child: XCard(
+                      padding: EdgeInsets.zero,
+                      onTap: _uploading == null ? () => _replace(b.slot) : null,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          AspectRatio(
+                            aspectRatio: 1.4,
+                            child: _uploading == b.slot
+                                ? const Center(
+                                    child: CircularProgressIndicator())
+                                : b.imageUrl == null
+                                    ? Container(
+                                        color: XColors.sunken,
+                                        child: Icon(
+                                            Icons.add_photo_alternate_outlined,
+                                            color: XColors.textTertiary),
+                                      )
+                                    : Image.network(
+                                        normaliseUploadUrl(b.imageUrl!),
+                                        fit: BoxFit.cover,
+                                      ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(XSpace.s8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                XChip(
+                                  label:
+                                      b.imageUrl == null ? 'Kosong' : 'Aktif',
+                                  tone: b.imageUrl == null
+                                      ? XTone.neutral
+                                      : XTone.success,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(b.caption ?? 'Banner mini ${b.slot}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: XText.labelM),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "Sorotan Produk Beranda Toko": optional blocks on the store's home tab.
+class _Highlights extends StatefulWidget {
+  const _Highlights({required this.storeId});
+
+  final int storeId;
+
+  @override
+  State<_Highlights> createState() => _HighlightsState();
+}
+
+class _HighlightsState extends State<_Highlights> {
+  final Map<String, bool> _local = <String, bool>{};
+
+  Future<void> _set(StorefrontHighlight h, bool value) async {
+    setState(() => _local[h.key] = value);
+    final error = await injector<StorefrontExtrasRepository>()
+        .setHighlight(widget.storeId, h.key, value);
+    if (!mounted) return;
+    if (error != null) setState(() => _local.remove(h.key));
+    showDemoActionResult(context, error,
+        '${h.title} ${value ? 'ditampilkan' : 'disembunyikan'}');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const DemoSectionHeader(
+          title: 'Sorotan Produk Beranda Toko',
+          subtitle: 'Komponen tambahan pada beranda toko Anda.',
+        ),
+        PendingBuilder<List<StorefrontHighlight>>(
+          compact: true,
+          load: () => injector<StorefrontExtrasRepository>()
+              .getHighlights(widget.storeId),
+          builder: (context, list, _) => XListGroup(
+            children: <Widget>[
+              for (final h in list)
+                XListRow(
+                  icon: switch (h.key) {
+                    HighlightKey.flashSale => Icons.bolt,
+                    HighlightKey.signature => Icons.verified,
+                    _ => Icons.play_circle_outline,
+                  },
+                  iconColor: XColors.primary,
+                  title: h.title,
+                  subtitle: h.description,
+                  trailing: XSwitch(
+                    value: _local[h.key] ?? h.enabled,
+                    onChanged: (v) => _set(h, v),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

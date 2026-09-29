@@ -377,6 +377,28 @@ API-nya sudah cukup; yang kurang di sisi app. Sisanya di §2–§19 yang bertand
 | 12 | Pilih pesanan terkait saat buat tiket 911 | S-41 | ❌ | API menerima `related_order_id`; form belum mengirimnya |
 | 13 | Bahasa Inggris untuk teks seller | — | ❌ | Teks seller masih hardcode Indonesia |
 
+## D. Tampilan dengan data contoh (menunggu API)
+
+Dibuat 29 Sep 2026. Layar sudah ada; datanya dari repository tiruan (`lib/core/data/demo/`).
+Jalankan dengan `--dart-define=DEMO_DATA=true` untuk melihat data contoh (bertanda **Data
+contoh**); tanpa flag itu layar menampilkan **Menunggu API**. Aksi tulis hanya simulasi. Saat
+endpoint tersedia, cukup ganti implementasi repository di `injector_repository.dart`.
+
+| # | Area | Layar | Repository | Catatan |
+|---|---|---|---|---|
+| 1 | Inbox chat toko + badge belum dibaca | S-29 | `StoreInboxRepository` | Tanpa flag: tampilan penjelasan lama |
+| 2 | Permintaan pembatalan, komplain & retur | S-18, S-19 | `OrderCaseRepository` | Dari tab Pesanan & menu Akun |
+| 3 | Label pengiriman, monitoring kiriman | S-22, S-23 | `ShipmentMonitorRepository` | Label disusun dari data pesanan asli; cetak/unduh simulasi |
+| 4 | Corong konversi, sumber traffic, produk terlaris | S-33 | `StoreInsightsRepository` | Nama produk terlaris dari katalog asli |
+| 5 | Status moderasi, skor Natural Performance | S-28, S-32 | `CatalogQualityRepository` | |
+| 6 | Saldo ditahan, riwayat penarikan | S-38 | `WalletExtrasRepository` | |
+| 7 | Ganti kata sandi / HP / email, 2FA, biometrik | S-44 | `AccountSecurityRepository` | |
+| 8 | Pencarian global, pengumuman resmi | S-12, S-11 | `DiscoveryRepository` | Pesanan & produk di pencarian = data asli |
+| 9 | Komentar live, pesanan & penjualan per sesi | S-36 | `LiveInsightsRepository` | |
+| 10 | 2 banner mini, sorotan beranda | S-34 | `StorefrontExtrasRepository` | Gambar tetap diunggah sungguhan |
+| 11 | Galeri 9 foto, MOQ, grosir, merek/kondisi, dimensi | S-27 | `ProductExtrasRepository` | Kartu terpisah di form produk (setelah produk tersimpan) |
+| 12 | Durasi Growth (7 hari / terus) + proyeksi; daftar campaign platform | S-32, S-31 | `CatalogQualityRepository`, `CampaignRepository` | Submit campaign akan memakai endpoint yang sudah ada |
+
 ---
 
 *Perbarui dokumen ini setiap kali satu item selesai, dan cek ulang kolom API setiap kali

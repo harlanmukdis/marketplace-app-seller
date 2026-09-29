@@ -3,11 +3,17 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/utils/app_routes.dart';
 import '../../features/seller_auth/presentation/views/seller_login_view.dart';
+import '../../features/seller_cases/presentation/views/cancellation_request_view.dart';
+import '../../features/seller_cases/presentation/views/complaint_view.dart';
+import '../../features/seller_cases/presentation/views/order_cases_view.dart';
 import '../../features/seller_catalog/presentation/views/product_form_view.dart';
 import '../../features/seller_chat/presentation/views/chat_inbox_view.dart';
 import '../../features/seller_chat/presentation/views/chat_thread_view.dart';
+import '../../features/seller_chat/presentation/views/sample_chat_thread_view.dart';
 import '../../features/seller_catalog/presentation/views/product_list_view.dart';
+import '../../features/seller_catalog/presentation/views/product_moderation_view.dart';
 import '../../features/seller_auth/presentation/views/seller_register_view.dart';
+import '../../features/seller_home/presentation/views/global_search_view.dart';
 import '../../features/seller_home/presentation/views/seller_home_shell.dart';
 import '../../features/seller_merchandising/presentation/views/bundle_detail_view.dart';
 import '../../features/seller_merchandising/presentation/views/merchandising_view.dart';
@@ -23,12 +29,15 @@ import '../../features/seller_performance/presentation/views/analytics_view.dart
 import '../../features/seller_performance/presentation/views/performance_view.dart';
 import '../../features/seller_reviews/presentation/views/review_view.dart';
 import '../../features/seller_orders/presentation/views/order_invoice_view.dart';
+import '../../features/seller_orders/presentation/views/shipping_label_view.dart';
+import '../../features/seller_shipping/presentation/views/shipment_monitor_view.dart';
 import '../../features/seller_staff/presentation/views/staff_view.dart';
 import '../../features/seller_store/presentation/views/store_settings_view.dart';
 import '../../features/seller_support/presentation/views/support_view.dart';
 import '../../features/seller_support/presentation/views/ticket_detail_view.dart';
 import '../../features/seller_orders/presentation/views/order_list_view.dart';
 import '../../features/seller_promotions/presentation/views/flash_sale_detail_view.dart';
+import '../../features/seller_promotions/presentation/views/platform_campaign_view.dart';
 import '../../features/seller_promotions/presentation/views/promotion_view.dart';
 import '../../features/seller_inventory/presentation/views/warehouse_list_view.dart';
 import '../../features/seller_shipping/presentation/views/courier_view.dart';
@@ -66,6 +75,12 @@ abstract class SellerRoutes {
 
   static String productEditPath(int productId) => '/seller/products/$productId';
 
+  /// Orders, products and help in one search box (S-12).
+  static const String search = '/seller/search';
+
+  /// Curation decisions per product (S-28).
+  static const String productModeration = '/seller/moderation';
+
   /// Verification is the only route out of `inactive`, so it hangs off the
   /// dashboard rather than being buried in settings.
   static const String verification = '/seller/verification';
@@ -87,11 +102,28 @@ abstract class SellerRoutes {
 
   static String orderDetailPath(int orderId) => '/seller/orders/$orderId';
 
+  /// Shipping label preview (S-22) for an order that has its AWB.
+  static const String shippingLabel = '/seller/orders/:id/label';
+
+  static String shippingLabelPath(int orderId) =>
+      '/seller/orders/$orderId/label';
+
+  /// Shipments in transit, with their last scan (S-23).
+  static const String shipmentMonitor = '/seller/shipments';
+
   /// The Final Invoice — only for a completed order.
   static const String orderInvoice = '/seller/orders/:id/invoice';
 
   static String orderInvoicePath(int orderId) =>
       '/seller/orders/$orderId/invoice';
+
+  /// Buyer cases: cancellation requests (S-18) and complaints (S-19).
+  static const String cases = '/seller/cases';
+  static const String cancellation = '/seller/cases/cancel/:id';
+  static const String complaint = '/seller/cases/complaint/:id';
+
+  static String cancellationPath(int id) => '/seller/cases/cancel/$id';
+  static String complaintPath(int id) => '/seller/cases/complaint/$id';
 
   /// Profile, vacation mode, private contacts (S-43).
   static const String storeSettings = '/seller/store/settings';
@@ -103,8 +135,7 @@ abstract class SellerRoutes {
   static const String growth = '/seller/growth';
   static const String growthProduct = '/seller/growth/:productId';
 
-  static String growthProductPath(int productId) =>
-      '/seller/growth/$productId';
+  static String growthProductPath(int productId) => '/seller/growth/$productId';
 
   /// Partners Performance (S-35) and Analytics (S-33).
   static const String performance = '/seller/performance';
@@ -131,6 +162,9 @@ abstract class SellerRoutes {
   /// Where the store's earnings land, and the only route out of them.
   static const String wallet = '/seller/wallet';
 
+  /// Platform campaigns a seller can join.
+  static const String platformCampaigns = '/seller/campaigns';
+
   /// Vouchers and flash sales, both create-and-list only.
   static const String promotions = '/seller/promotions';
 
@@ -149,6 +183,13 @@ abstract class SellerRoutes {
 
   static String chatThreadPath(int conversationId) =>
       '/seller/chat/$conversationId';
+
+  /// A conversation from the sample inbox (`DEMO_DATA`). Registered before
+  /// [chatThread], or "sample" would be read as an id.
+  static const String chatSample = '/seller/chat/sample/:id';
+
+  static String chatSamplePath(int conversationId) =>
+      '/seller/chat/sample/$conversationId';
 
   /// The account's notifications — per user, not per store.
   static const String notifications = '/seller/notifications';
@@ -190,10 +231,13 @@ final List<RouteBase> appRouterSeller = <RouteBase>[
     ),
   ),
   _sellerRoute(SellerRoutes.verification, const VerificationView()),
+  _sellerRoute(SellerRoutes.search, const GlobalSearchView()),
+  _sellerRoute(SellerRoutes.productModeration, const ProductModerationView()),
   _sellerRoute(SellerRoutes.couriers, const CourierView()),
   _sellerRoute(SellerRoutes.orders, const OrderListView()),
   _sellerRoute(SellerRoutes.wallet, const WalletView()),
   _sellerRoute(SellerRoutes.promotions, const PromotionView()),
+  _sellerRoute(SellerRoutes.platformCampaigns, const PlatformCampaignView()),
   _sellerRoute(SellerRoutes.chat, const ChatInboxView()),
   _sellerRoute(SellerRoutes.notifications, const NotificationInboxView()),
   _sellerRoute(SellerRoutes.merchandising, const MerchandisingView()),
@@ -210,6 +254,12 @@ final List<RouteBase> appRouterSeller = <RouteBase>[
     ),
   ),
   _sellerRouteBuilder(
+    SellerRoutes.chatSample,
+    (state) => SampleChatThreadView(
+      conversationId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+    ),
+  ),
+  _sellerRouteBuilder(
     SellerRoutes.chatThread,
     (state) => ChatThreadView(
       conversationId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
@@ -222,6 +272,19 @@ final List<RouteBase> appRouterSeller = <RouteBase>[
     ),
   ),
   _sellerRoute(SellerRoutes.storeSettings, const StoreSettingsView()),
+  _sellerRoute(SellerRoutes.cases, const OrderCasesView()),
+  _sellerRouteBuilder(
+    SellerRoutes.cancellation,
+    (state) => CancellationRequestView(
+      requestId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+    ),
+  ),
+  _sellerRouteBuilder(
+    SellerRoutes.complaint,
+    (state) => ComplaintView(
+      complaintId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+    ),
+  ),
   _sellerRoute(SellerRoutes.security, const SecurityView()),
   _sellerRoute(SellerRoutes.support, const SupportView()),
   _sellerRoute(SellerRoutes.performance, const PerformanceView()),
@@ -248,6 +311,13 @@ final List<RouteBase> appRouterSeller = <RouteBase>[
       ticketId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
     ),
   ),
+  _sellerRouteBuilder(
+    SellerRoutes.shippingLabel,
+    (state) => ShippingLabelView(
+      orderId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+    ),
+  ),
+  _sellerRoute(SellerRoutes.shipmentMonitor, const ShipmentMonitorView()),
   _sellerRouteBuilder(
     SellerRoutes.orderInvoice,
     (state) => OrderInvoiceView(

@@ -7,13 +7,19 @@ import '../../../../core/utils/format_helper.dart';
 import '../../../../core/utils/xpedia_tokens.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../../../../core/widgets/xpedia/x_widgets.dart';
+import '../../../../core/domain/model/performance/store_insights.dart';
+import '../../../../core/domain/repositories/auth_repository.dart';
+import '../../../../core/domain/repositories/store_insights_repository.dart';
+import '../../../../core/widgets/demo/demo_widgets.dart';
+import '../../../../di/injector.dart';
 import '../cubits/performance_cubit.dart';
 import 'performance_view.dart';
 
 /// "Analytics" (S-33). What has data, shown in the design's order: sales for
 /// the period, new vs loyal buyers, stock mismatches. Funnel, traffic source,
-/// visitors and best products have no server data and are named as such, not
-/// filled with numbers. See [AnalyticsCubit].
+/// visitors and best products have no server data: they come from
+/// [StoreInsightsRepository], which shows sample data marked "Data contoh"
+/// under `DEMO_DATA` and "Menunggu API" otherwise.
 class AnalyticsView extends StatelessWidget {
   const AnalyticsView({super.key});
 
@@ -75,13 +81,18 @@ class AnalyticsView extends StatelessWidget {
                       const SizedBox(height: XSpace.cardGap),
                       _MismatchCard(snapshot: s),
                       const SizedBox(height: XSpace.cardGap),
-                      const XBanner(
-                        tone: XTone.neutral,
-                        icon: Icons.hourglass_empty_rounded,
-                        title: 'Belum tersedia dari server:',
-                        message: 'corong konversi, sumber trafik, pengunjung '
-                            'toko, dan produk terlaris.',
+                      _FunnelCard(
+                        key: ValueKey<AnalyticsPeriod>(s.period),
+                        days: switch (s.period) {
+                          AnalyticsPeriod.today => 1,
+                          AnalyticsPeriod.week => 7,
+                          AnalyticsPeriod.month => 30,
+                        },
                       ),
+                      const SizedBox(height: XSpace.cardGap),
+                      const _TrafficCard(),
+                      const SizedBox(height: XSpace.cardGap),
+                      const _TopProductsCard(),
                       const SizedBox(height: XSpace.s24),
                     ],
                   ),
@@ -298,6 +309,294 @@ class _MismatchCard extends StatelessWidget {
               ),
         ],
       ),
+    );
+  }
+}
+
+int get _storeId => injector<AuthRepository>().activeStoreId ?? 0;
+
+String _pct(double v) =>
+    '${v.toStringAsFixed(v < 10 ? 2 : 1)}%'.replaceAll('.', ',');
+
+class _FunnelCard extends StatelessWidget {
+  const _FunnelCard({super.key, required this.days});
+
+  final int days;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const DemoSectionHeader(
+          title: 'Funnel Konversi Penjualan',
+          subtitle: 'Dari kunjungan hingga checkout selesai',
+        ),
+        PendingBuilder<ConversionFunnel>(
+          compact: true,
+          load: () => injector<StoreInsightsRepository>()
+              .getFunnel(_storeId, days: days),
+          builder: (context, f, _) => XCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: _Kpi(
+                        label: 'Pengunjung Unik Toko',
+                        value: formatThousands(f.visitors),
+                      ),
+                    ),
+                    const SizedBox(width: XSpace.s8),
+                    Expanded(
+                      child: _Kpi(
+                        label: 'Tingkat Konversi Toko',
+                        value: _pct(f.conversion),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: XSpace.s12),
+                for (var i = 0; i < f.steps.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: XSpace.s8),
+                    child: _FunnelBar(
+                      index: i + 1,
+                      step: f.steps[i],
+                      percent: f.percentOf(f.steps[i]),
+                    ),
+                  ),
+                if (f.bestCategory != null)
+                  Text.rich(
+                    TextSpan(
+                      style: XText.bodyS,
+                      children: <InlineSpan>[
+                        const TextSpan(text: 'Konversi tertinggi: '),
+                        TextSpan(
+                          text: 'Kategori ${f.bestCategory}',
+                          style: XText.labelM,
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Kpi extends StatelessWidget {
+  const _Kpi({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(XSpace.s12),
+      decoration: BoxDecoration(
+        color: XColors.sunken,
+        borderRadius: BorderRadius.circular(XRadius.md),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(label, style: XText.caption),
+          Text(value, style: XText.stat),
+        ],
+      ),
+    );
+  }
+}
+
+class _FunnelBar extends StatelessWidget {
+  const _FunnelBar({
+    required this.index,
+    required this.step,
+    required this.percent,
+  });
+
+  final int index;
+  final FunnelStep step;
+  final double percent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(child: Text('$index. ${step.label}', style: XText.bodyM)),
+            Text(formatThousands(step.count), style: XText.titleM),
+            Text('  (${_pct(percent)})', style: XText.caption),
+          ],
+        ),
+        const SizedBox(height: 4),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(XRadius.full),
+          child: LinearProgressIndicator(
+            value: (percent / 100).clamp(0.02, 1.0),
+            minHeight: 8,
+            backgroundColor: XColors.sunken,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Color.lerp(XColors.primary, XColors.success, index / 5)!,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TrafficCard extends StatelessWidget {
+  const _TrafficCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        DemoSectionHeader(
+          title: 'Sumber Trafik Pembeli',
+          trailing: Text('30 Hari', style: XText.labelM),
+        ),
+        PendingBuilder<List<TrafficSource>>(
+          compact: true,
+          load: () =>
+              injector<StoreInsightsRepository>().getTrafficSources(_storeId),
+          builder: (context, sources, _) {
+            final colors = <Color>[
+              XColors.primary,
+              XColors.success,
+              XColors.warning,
+              XTone.preOrder.foreground,
+            ];
+            return XCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(XRadius.full),
+                    child: SizedBox(
+                      height: 12,
+                      child: Row(
+                        children: <Widget>[
+                          for (var i = 0; i < sources.length; i++)
+                            Expanded(
+                              flex: sources[i].percent.round(),
+                              child:
+                                  Container(color: colors[i % colors.length]),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: XSpace.s12),
+                  for (var i = 0; i < sources.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      child: Row(
+                        children: <Widget>[
+                          Icon(Icons.circle,
+                              size: 10, color: colors[i % colors.length]),
+                          const SizedBox(width: XSpace.s8),
+                          Expanded(
+                            child: Text(sources[i].label, style: XText.bodyM),
+                          ),
+                          Text('${sources[i].percent.round()}%',
+                              style: XText.titleM),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _TopProductsCard extends StatelessWidget {
+  const _TopProductsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const DemoSectionHeader(title: 'Produk Terbaik Berdasarkan Omzet'),
+        PendingBuilder<List<TopProduct>>(
+          compact: true,
+          load: () =>
+              injector<StoreInsightsRepository>().getTopProducts(_storeId),
+          builder: (context, products, _) {
+            final total = products.fold<int>(0, (n, p) => n + p.revenue);
+            return XCard(
+              child: Column(
+                children: <Widget>[
+                  for (var i = 0; i < products.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: XColors.sunken,
+                              borderRadius: BorderRadius.circular(XRadius.md),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text('#${i + 1}',
+                                style: XText.titleM
+                                    .copyWith(color: XColors.primary)),
+                          ),
+                          const SizedBox(width: XSpace.s12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(products[i].name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: XText.titleM),
+                                Text(
+                                  '${formatThousands(products[i].unitsSold)} '
+                                  'unit terjual',
+                                  style: XText.bodyS,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: <Widget>[
+                              Text(formatRupiah(products[i].revenue),
+                                  style: XText.priceS),
+                              Text(
+                                '${_pct(total == 0 ? 0 : products[i].revenue * 100 / total)} '
+                                'omzet',
+                                style: XText.caption,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

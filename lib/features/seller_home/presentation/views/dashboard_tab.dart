@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../di/injector.dart';
+import '../../../../core/widgets/demo/demo_widgets.dart';
+import '../../../../core/domain/repositories/discovery_repository.dart';
+import '../../../../core/domain/model/notification/announcement.dart';
+import '../../../../core/data_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -151,6 +156,11 @@ class _Header extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
                   XIconAction(
+                    icon: Icons.search_rounded,
+                    tooltip: 'Cari',
+                    onPressed: () => context.push(SellerRoutes.search),
+                  ),
+                  XIconAction(
                     icon: Icons.notifications_none_rounded,
                     tooltip: 'Notifikasi',
                     badge: unread,
@@ -246,13 +256,33 @@ class _StatusStrip extends StatelessWidget {
   }
 }
 
-class _InfoUpdate extends StatelessWidget {
+class _InfoUpdate extends StatefulWidget {
   const _InfoUpdate();
+
+  @override
+  State<_InfoUpdate> createState() => _InfoUpdateState();
+}
+
+class _InfoUpdateState extends State<_InfoUpdate> {
+  /// Official announcements, first in the strip. Empty while the API has
+  /// none (outside `DEMO_DATA`).
+  List<Announcement> _news = const <Announcement>[];
+
+  @override
+  void initState() {
+    super.initState();
+    injector<DiscoveryRepository>().getAnnouncements().then((r) {
+      if (mounted && r is DataSuccess<List<Announcement>>) {
+        setState(() => _news = r.value);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final summary = context.watch<HomeSummaryCubit>().state;
     final items = summary.notifications.take(5).toList();
+    final news = _news;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -262,9 +292,9 @@ class _InfoUpdate extends StatelessWidget {
           trailing: 'Lihat Semua',
           onTrailing: () => context.push(SellerRoutes.notifications),
         ),
-        if (summary.loading && items.isEmpty)
+        if (summary.loading && items.isEmpty && news.isEmpty)
           const LinearProgressIndicator(minHeight: 2)
-        else if (items.isEmpty)
+        else if (items.isEmpty && news.isEmpty)
           XCard(
             child: Row(
               children: <Widget>[
@@ -282,11 +312,14 @@ class _InfoUpdate extends StatelessWidget {
             height: 150,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: items.length,
+              itemCount: news.length + items.length,
               separatorBuilder: (_, __) =>
                   const SizedBox(width: XSpace.cardGap),
-              itemBuilder: (context, i) {
-                final n = items[i];
+              itemBuilder: (context, index) {
+                if (index < news.length) {
+                  return _AnnouncementCard(announcement: news[index]);
+                }
+                final n = items[index - news.length];
                 return SizedBox(
                   width: 280,
                   child: XCard(
@@ -608,6 +641,70 @@ class _QuickAccess extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _AnnouncementCard extends StatelessWidget {
+  const _AnnouncementCard({required this.announcement});
+
+  final Announcement announcement;
+
+  @override
+  Widget build(BuildContext context) {
+    final a = announcement;
+    final promo = a.kind == AnnouncementKind.promo;
+    return SizedBox(
+      width: 280,
+      child: InkWell(
+        onTap:
+            promo ? () => context.push(SellerRoutes.platformCampaigns) : null,
+        borderRadius: BorderRadius.circular(XRadius.md),
+        child: Container(
+          padding: const EdgeInsets.all(XSpace.card),
+          decoration: BoxDecoration(
+            color: promo ? XColors.warningSubtle : XColors.brandSubtle,
+            borderRadius: BorderRadius.circular(XRadius.md),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      AnnouncementKind.label(a.kind),
+                      style: XText.overline.copyWith(
+                        color: promo ? XColors.warningStrong : XColors.primary,
+                      ),
+                    ),
+                  ),
+                  const DemoBadge(),
+                ],
+              ),
+              const SizedBox(height: XSpace.s6),
+              Text(a.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: XText.titleM),
+              const SizedBox(height: XSpace.s4),
+              Expanded(
+                child: Text(a.body,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: XText.bodyS),
+              ),
+              if (a.cta != null)
+                Text(
+                  '${a.cta} →',
+                  style: XText.labelM.copyWith(
+                    color: promo ? XColors.warningStrong : XColors.primary,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

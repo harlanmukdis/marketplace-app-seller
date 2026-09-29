@@ -30,6 +30,19 @@ abstract class AppConfig {
     defaultValue: true,
   );
 
+  /// Draws the screens whose API does not exist yet with sample data, each
+  /// marked "Data contoh". Off by default so a release build never shows
+  /// invented figures; the same screens then say the feature is waiting on
+  /// the API.
+  ///
+  /// ```bash
+  /// flutter run -d macos --dart-define=DEMO_DATA=true
+  /// ```
+  static const bool demoData = bool.fromEnvironment(
+    'DEMO_DATA',
+    defaultValue: false,
+  );
+
   static const Duration connectTimeout = Duration(seconds: 20);
   static const Duration receiveTimeout = Duration(seconds: 30);
   static const Duration sendTimeout = Duration(seconds: 30);

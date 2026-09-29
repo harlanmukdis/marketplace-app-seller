@@ -163,7 +163,23 @@ Point the app at a different backend without editing code:
 ```bash
 flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000/api/v1
 flutter run -d chrome --dart-define=LOG_HTTP=false      # silence the request log
+flutter run -d macos --dart-define=DEMO_DATA=true       # sample data for screens the API cannot feed yet
+flutter test --dart-define=DEMO_DATA=true test/core/demo_data_test.dart
 ```
+
+**`DEMO_DATA` (2026-09-29).** Screens built ahead of their endpoint read a
+`*Repository` whose only implementation lives in `lib/core/data/demo/` and
+goes through `demoOr` / `demoWrite`: sample data marked "Data contoh" when the
+flag is on, `DataError.apiPending` ("Menunggu API") when it is off — the
+default, so a release never shows invented figures. Writes are simulated
+(in-memory for the session); file uploads are still real. When an endpoint
+ships, register a real `*RepositoryImpl` in `injector_repository.dart` in
+place of the `Demo*` one; screens do not change. Covered: store chat inbox,
+cancellation requests & complaints, shipment monitor, shipping label actions,
+analytics funnel / traffic / best sellers, moderation, Natural Performance,
+Growth duration & projection, held balance, withdrawal history, account
+security, announcements & help search, live stats & comments, mini banners &
+home highlights, product extras, platform campaigns.
 
 `intl` is pinned to `^0.20.2`. Flutter 3.41's bundled `flutter_localizations` requires exactly `0.20.2`, and the kit's original `^0.19.0` made `flutter pub get` fail outright.
 

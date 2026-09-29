@@ -502,6 +502,16 @@ class _Shipping extends StatelessWidget {
               ],
             ),
           ),
+          if (awb != null && awb.isNotEmpty) ...<Widget>[
+            const SizedBox(height: XSpace.s12),
+            XButton.secondary(
+              label: 'Lihat Label Pengiriman',
+              icon: Icons.print_outlined,
+              expand: true,
+              onPressed: () =>
+                  context.push(SellerRoutes.shippingLabelPath(order.id)),
+            ),
+          ],
           if (onPartial != null) ...<Widget>[
             const SizedBox(height: XSpace.s12),
             XButton.ghost(

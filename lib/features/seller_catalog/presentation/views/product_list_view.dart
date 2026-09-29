@@ -74,6 +74,11 @@ class _ProductListBody extends StatelessWidget {
         subtitle: store?.name,
         actions: <Widget>[
           XIconAction(
+            icon: Icons.fact_check_outlined,
+            tooltip: 'Status Moderasi Produk',
+            onPressed: () => context.push(SellerRoutes.productModeration),
+          ),
+          XIconAction(
             icon: Icons.trending_up_rounded,
             tooltip: 'Xpedia Growth',
             onPressed: () => context.push(SellerRoutes.growth),

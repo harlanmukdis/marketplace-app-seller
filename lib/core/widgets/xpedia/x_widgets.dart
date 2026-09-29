@@ -307,12 +307,19 @@ class XSectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: XSpace.s12),
       child: Row(
         children: <Widget>[
-          Flexible(child: Text(title, style: XText.headingM)),
-          if (count != null) ...<Widget>[
-            const SizedBox(width: XSpace.s8),
-            Text('$count', style: XText.titleM),
-          ],
-          const Spacer(),
+          // One Expanded, not Flexible + Spacer: those two split the free
+          // space in half and park the trailing link mid-row.
+          Expanded(
+            child: Row(
+              children: <Widget>[
+                Flexible(child: Text(title, style: XText.headingM)),
+                if (count != null) ...<Widget>[
+                  const SizedBox(width: XSpace.s8),
+                  Text('$count', style: XText.titleM),
+                ],
+              ],
+            ),
+          ),
           if (trailing != null)
             InkWell(
               onTap: onTrailing,

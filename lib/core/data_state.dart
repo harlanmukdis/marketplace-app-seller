@@ -60,6 +60,15 @@ class DataError {
         message: error.toString(),
       );
 
+  /// The screen exists but its endpoint does not yet — see
+  /// `lib/core/data/demo/`. Rendered as "Menunggu API", never as a failure.
+  factory DataError.apiPending(String feature) => DataError(
+        code: DataErrorCode.apiPending,
+        message: '$feature belum tersedia — menunggu API dari backend.',
+      );
+
+  bool get isApiPending => code == DataErrorCode.apiPending;
+
   bool get isUnauthenticated => code == DataErrorCode.unauthenticated;
 
   bool get isNoSellerContext => code == DataErrorCode.noSellerContext;
@@ -67,8 +76,7 @@ class DataError {
   /// Either flavour of "you cannot do this", so callers do not have to know
   /// which permission layer refused.
   bool get isForbidden =>
-      code == DataErrorCode.forbidden ||
-      code == DataErrorCode.permissionDenied;
+      code == DataErrorCode.forbidden || code == DataErrorCode.permissionDenied;
 
   /// `error.details.missing` on a 422, when present.
   List<String> get missingFields {
@@ -86,6 +94,9 @@ class DataError {
 /// Error codes the app branches on. Documented in API doc 1.5; anything not
 /// listed here still arrives intact in [DataError.code].
 abstract class DataErrorCode {
+  /// Client-side: a feature built ahead of its endpoint (see
+  /// [DataError.apiPending]).
+  static const String apiPending = 'API_PENDING';
   static const String malformedJson = 'MALFORMED_JSON';
   static const String unauthenticated = 'UNAUTHENTICATED';
   static const String forbidden = 'FORBIDDEN';

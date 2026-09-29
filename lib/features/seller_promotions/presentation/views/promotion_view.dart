@@ -165,6 +165,13 @@ class _PromotionBodyState extends State<_PromotionBody> {
       backgroundColor: XColors.canvas,
       appBar: XAppBar(
         title: 'Campaign & Promo Seller',
+        actions: <Widget>[
+          XIconAction(
+            icon: Icons.campaign_outlined,
+            tooltip: 'Campaign Xpedia',
+            onPressed: () => context.push(SellerRoutes.platformCampaigns),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),
           child: Padding(

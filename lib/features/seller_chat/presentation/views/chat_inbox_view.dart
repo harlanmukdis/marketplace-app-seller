@@ -10,7 +10,13 @@ import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../../../seller_home/presentation/views/widgets/section_card.dart';
+import '../../../../core/domain/model/chat/store_conversation.dart';
+import '../../../../core/domain/repositories/auth_repository.dart';
+import '../../../../core/domain/repositories/store_inbox_repository.dart';
+import '../../../../core/widgets/demo/demo_widgets.dart';
+import '../../../../di/injector.dart';
 import '../cubits/chat_inbox_cubit/chat_inbox_cubit.dart';
+import 'store_inbox_view.dart';
 import '../../../../core/utils/xpedia_tokens.dart';
 
 /// Chat, and the one thing the backend cannot yet do.
@@ -26,6 +32,39 @@ import '../../../../core/utils/xpedia_tokens.dart';
 /// [ChatThreadView] — so the thread is reachable by id in the meantime.
 class ChatInboxView extends StatelessWidget {
   const ChatInboxView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return PendingBuilder<List<StoreConversation>>(
+      load: () {
+        final storeId = injector<AuthRepository>().activeStoreId ?? 0;
+        return injector<StoreInboxRepository>().getConversations(storeId);
+      },
+      // No store inbox endpoint yet: the buyer-side explanation stays.
+      pending: (_) => const _LegacyChatInbox(),
+      empty: const _LegacyChatInbox(),
+      builder: (context, conversations, reload) => StoreInboxView(
+        conversations: conversations,
+        onRefresh: reload,
+        onOpenById: () => _openConversationById(context),
+      ),
+    );
+  }
+}
+
+Future<void> _openConversationById(BuildContext context) async {
+  final id = await showDialog<int>(
+    context: context,
+    builder: (_) => const _OpenByIdDialog(),
+  );
+  if (id == null || !context.mounted) return;
+  await context.push(SellerRoutes.chatThreadPath(id));
+}
+
+/// What the Chat tab shows until the backend lists a store's conversations:
+/// the gap, stated plainly, and the buyer-side list under its own name.
+class _LegacyChatInbox extends StatelessWidget {
+  const _LegacyChatInbox();
 
   @override
   Widget build(BuildContext context) {

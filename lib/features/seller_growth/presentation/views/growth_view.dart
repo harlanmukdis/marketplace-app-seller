@@ -3,7 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/domain/model/catalog/product.dart';
 import '../../../../core/domain/model/catalog/product_growth.dart';
+import '../../../../core/domain/model/performance/store_insights.dart';
+import '../../../../core/domain/repositories/auth_repository.dart';
+import '../../../../core/domain/repositories/store_insights_repository.dart';
 import '../../../../core/utils/format_helper.dart';
+import '../../../../core/widgets/demo/demo_widgets.dart';
+import '../../../../di/injector.dart';
 import '../../../../core/utils/xpedia_tokens.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../../../../core/widgets/xpedia/x_widgets.dart';
@@ -153,15 +158,7 @@ class _GrowthBodyState extends State<_GrowthBody> {
                 children: <Widget>[
                   const _Hero(),
                   const SizedBox(height: XSpace.cardGap),
-                  const XBanner(
-                    tone: XTone.success,
-                    icon: Icons.verified_outlined,
-                    title: 'Syarat: skor Natural Performance ≥ 60.',
-                    message: 'Skor dihitung dari rating, unit terjual, '
-                        'tingkat pesanan sukses, dan ketersediaan stok. Bila '
-                        'belum memenuhi, server menolak saat Growth '
-                        'diaktifkan.',
-                  ),
+                  const _NaturalPerformanceCard(),
                   const SizedBox(height: XSpace.sectionGap),
                   Text('PILIH PRODUK', style: XText.overline),
                   const SizedBox(height: XSpace.s8),
@@ -212,6 +209,12 @@ class _GrowthBodyState extends State<_GrowthBody> {
                       onChanged: (v) => setState(() => _percent = v),
                     ),
                     const SizedBox(height: XSpace.cardGap),
+                    _DurationCard(
+                      key: ValueKey<int>(product.id),
+                      productId: product.id,
+                      enabled: !locked,
+                    ),
+                    const SizedBox(height: XSpace.cardGap),
                     XBanner(
                       tone: XTone.warning,
                       icon: Icons.lock_clock_outlined,
@@ -221,6 +224,14 @@ class _GrowthBodyState extends State<_GrowthBody> {
                           : 'Terkunci 7×24 jam setelah disimpan.',
                       message: 'Menjaga stabilitas algoritma rekomendasi dan '
                           'rotasi katalog. Berlaku juga untuk menonaktifkan.',
+                    ),
+                    const SizedBox(height: XSpace.cardGap),
+                    _ProjectionCard(
+                      key: ValueKey<String>(
+                          '${product.id}-${_percent ?? current}'),
+                      productId: product.id,
+                      percent: (_percent ?? current).toDouble(),
+                      price: product.basePrice,
                     ),
                     const SizedBox(height: XSpace.cardGap),
                     _Report(performance: state.performance),
@@ -452,6 +463,264 @@ class _Report extends StatelessWidget {
               ],
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// The ≥60 gate, with the score when there is one to show. The API enforces
+/// the gate but never reports the number.
+class _NaturalPerformanceCard extends StatelessWidget {
+  const _NaturalPerformanceCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return PendingBuilder<NaturalPerformanceScore>(
+      compact: true,
+      load: () => injector<CatalogQualityRepository>()
+          .getNaturalPerformance(injector<AuthRepository>().activeStoreId ?? 0),
+      pending: (_) => const XBanner(
+        tone: XTone.success,
+        icon: Icons.verified_outlined,
+        title: 'Syarat: skor Natural Performance ≥ 60.',
+        message: 'Skor dihitung dari rating, unit terjual, tingkat pesanan '
+            'sukses, dan ketersediaan stok. Bila belum memenuhi, server '
+            'menolak saat Growth diaktifkan.',
+      ),
+      builder: (context, np, _) {
+        final tone = np.isEligible ? XTone.success : XTone.danger;
+        return XCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        style: XText.titleM,
+                        children: <InlineSpan>[
+                          const TextSpan(text: 'Skor Natural Performance: '),
+                          TextSpan(
+                            text: '${np.score}/100',
+                            style:
+                                XText.titleM.copyWith(color: tone.foreground),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  XChip(
+                    label: np.isEligible ? 'Eligible' : 'Belum Memenuhi',
+                    tone: tone,
+                  ),
+                ],
+              ),
+              const SizedBox(height: XSpace.s8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(XRadius.full),
+                child: LinearProgressIndicator(
+                  value: np.score / 100,
+                  minHeight: 8,
+                  backgroundColor: XColors.sunken,
+                  valueColor: AlwaysStoppedAnimation<Color>(tone.foreground),
+                ),
+              ),
+              const SizedBox(height: XSpace.s8),
+              Text(
+                'Toko dengan skor di atas ${np.threshold} berhak mengaktifkan '
+                'komisi pertumbuhan untuk percepatan visibilitas.',
+                style: XText.bodyS,
+              ),
+              if (np.components.isNotEmpty) ...<Widget>[
+                const SizedBox(height: XSpace.s8),
+                for (final (label, points) in np.components)
+                  XKeyValue(
+                    label: label,
+                    value: '$points poin',
+                    labelStyle: XText.bodyS,
+                    valueStyle: XText.labelM,
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                  ),
+              ],
+              const SizedBox(height: XSpace.s4),
+              const Align(alignment: Alignment.centerLeft, child: DemoBadge()),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// "DURASI AKTIF": seven days, or until switched off.
+class _DurationCard extends StatefulWidget {
+  const _DurationCard({
+    super.key,
+    required this.productId,
+    required this.enabled,
+  });
+
+  final int productId;
+  final bool enabled;
+
+  @override
+  State<_DurationCard> createState() => _DurationCardState();
+}
+
+class _DurationCardState extends State<_DurationCard> {
+  GrowthDuration? _local;
+
+  Future<void> _set(GrowthDuration value) async {
+    final previous = _local;
+    setState(() => _local = value);
+    final error = await injector<CatalogQualityRepository>()
+        .setGrowthDuration(widget.productId, value);
+    if (!mounted) return;
+    if (error != null) setState(() => _local = previous);
+    showDemoActionResult(context, error, 'Durasi: ${value.label}');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PendingBuilder<GrowthDuration>(
+      compact: true,
+      load: () => injector<CatalogQualityRepository>()
+          .getGrowthDuration(widget.productId),
+      builder: (context, stored, _) {
+        final value = _local ?? stored;
+        return XCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Expanded(child: Text('DURASI AKTIF', style: XText.overline)),
+                  const DemoBadge(),
+                ],
+              ),
+              const SizedBox(height: XSpace.s8),
+              SegmentedButton<GrowthDuration>(
+                segments: <ButtonSegment<GrowthDuration>>[
+                  for (final d in GrowthDuration.values)
+                    ButtonSegment<GrowthDuration>(
+                      value: d,
+                      label: Text(d.label),
+                    ),
+                ],
+                selected: <GrowthDuration>{value},
+                showSelectedIcon: false,
+                onSelectionChanged:
+                    widget.enabled ? (s) => _set(s.first) : null,
+              ),
+              const SizedBox(height: XSpace.s8),
+              Text(
+                value == GrowthDuration.sevenDays
+                    ? 'Komisi tambahan berhenti otomatis setelah 7 hari.'
+                    : 'Komisi tambahan berlaku sampai Anda menonaktifkannya.',
+                style: XText.bodyS,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// "Proyeksi Dampak Performa": the next 7 days without and with Growth.
+class _ProjectionCard extends StatelessWidget {
+  const _ProjectionCard({
+    super.key,
+    required this.productId,
+    required this.percent,
+    required this.price,
+  });
+
+  final int productId;
+  final double percent;
+  final int price;
+
+  @override
+  Widget build(BuildContext context) {
+    return PendingBuilder<GrowthProjection>(
+      compact: true,
+      load: () => injector<CatalogQualityRepository>().getGrowthProjection(
+        productId,
+        percent: percent,
+        price: price,
+      ),
+      builder: (context, p, _) => XCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text('Proyeksi Dampak Performa', style: XText.titleL),
+                ),
+                const DemoBadge(),
+              ],
+            ),
+            Text('Estimasi simulasi 7 hari ke depan', style: XText.bodyS),
+            const SizedBox(height: XSpace.s12),
+            Row(
+              children: <Widget>[
+                Expanded(flex: 3, child: Text('Metrik', style: XText.overline)),
+                Expanded(
+                  flex: 2,
+                  child: Text('Tanpa Growth',
+                      textAlign: TextAlign.end, style: XText.overline),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text('Dengan (${percent.round()}%)',
+                      textAlign: TextAlign.end,
+                      style: XText.overline.copyWith(color: XColors.primary)),
+                ),
+              ],
+            ),
+            const Divider(),
+            for (final (metric, sub, without, withG, lift) in p.rows)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(metric, style: XText.titleM),
+                          Text(sub, style: XText.caption),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text(without,
+                          textAlign: TextAlign.end, style: XText.bodyM),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Text(withG,
+                              style: XText.titleM
+                                  .copyWith(color: XColors.primary)),
+                          if (percent > 0)
+                            Text(lift,
+                                style: XText.labelS
+                                    .copyWith(color: XColors.success)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
