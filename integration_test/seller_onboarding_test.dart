@@ -6,6 +6,7 @@ import 'package:navy_wear/config/route/app_route_seller.dart';
 import 'package:navy_wear/core/data/local/session_store.dart';
 import 'package:navy_wear/core/utils/app_routes.dart';
 import 'package:navy_wear/core/utils/local_network.dart';
+import 'package:navy_wear/core/widgets/xpedia/x_widgets.dart';
 import 'package:navy_wear/di/injector.dart';
 import 'package:navy_wear/main.dart';
 
@@ -103,7 +104,10 @@ void main() {
     await tester.enterText(fields.at(3), 'Password123');
     await tester.pump();
 
-    await tapButton(tester, 'Daftar');
+    final registerButton =
+        find.widgetWithText(XButton, 'Lanjutkan Registrasi');
+    await tester.ensureVisible(registerButton);
+    await tester.tap(registerButton);
     // Registration chains register -> verify -> login, then the bootstrap sends
     // an account with no store to the picker rather than straight home.
     await pumpUntil(tester, find.text('Pilih toko'));

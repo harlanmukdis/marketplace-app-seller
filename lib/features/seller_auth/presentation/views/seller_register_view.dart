@@ -3,14 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/route/app_route_seller.dart';
-import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
-import '../../../../core/utils/constant.dart';
-import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 import '../../../../core/widgets/custom_text_form_field.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../cubits/seller_auth_cubit/seller_auth_cubit.dart';
+import 'widgets/auth_layout.dart';
 
 /// Creates the **account**, not the store.
 ///
@@ -76,99 +74,88 @@ class _SellerRegisterBodyState extends State<_SellerRegisterBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: customAppBar(context, 'Daftar akun'),
-      body: SafeArea(
-        child: BlocBuilder<SellerAuthCubit, SellerAuthState>(
-          builder: (context, state) {
-            final isBusy = state is SellerAuthInProgress;
-
-            return SingleChildScrollView(
-              padding: 24.pa,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 480),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        Text(
-                          'Buat akun dulu, tokonya menyusul',
-                          style: AppStyles.styleSemiBold18(context),
-                        ),
-                        8.sbh,
-                        Text(
-                          'Satu akun bisa punya beberapa toko. Toko pertama '
-                          'dibuat setelah akun jadi.',
-                          style: AppStyles.styleRegular12(context)
-                              .copyWith(color: kLightThirdColor),
-                        ),
-                        24.sbh,
-                        CustomTextFormField(
-                          controller: _fullNameController,
-                          labelText: 'Nama lengkap',
-                          textInputAction: TextInputAction.next,
-                          validator: Validators.required('Nama lengkap'),
-                        ),
-                        16.sbh,
-                        CustomTextFormField(
-                          controller: _emailController,
-                          labelText: 'Email',
-                          hintText: 'nama@toko.com',
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          validator: Validators.email,
-                        ),
-                        16.sbh,
-                        CustomTextFormField(
-                          controller: _phoneController,
-                          labelText: 'Nomor HP (opsional)',
-                          keyboardType: TextInputType.phone,
-                          textInputAction: TextInputAction.next,
-                          validator: Validators.optional,
-                        ),
-                        16.sbh,
-                        CustomTextFormField(
-                          controller: _passwordController,
-                          labelText: 'Kata sandi',
-                          obscureText: true,
-                          textInputAction: TextInputAction.done,
-                          validator: Validators.password,
-                        ),
-                        32.sbh,
-                        FilledButton(
-                          onPressed: isBusy ? null : _submit,
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size.fromHeight(52),
-                          ),
-                          child: isBusy
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: kWhiteColor,
-                                  ),
-                                )
-                              : const Text('Daftar'),
-                        ),
-                        16.sbh,
-                        Center(
-                          child: TextButton(
-                            onPressed: isBusy
-                                ? null
-                                : () => context.go(SellerRoutes.login),
-                            child: const Text('Sudah punya akun? Masuk'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+    return BlocBuilder<SellerAuthCubit, SellerAuthState>(
+      builder: (context, state) => AuthLayout(
+        isRegister: true,
+        onSwitch: () => context.canPop()
+            ? context.pop()
+            : context.go(SellerRoutes.login),
+        actionLabel: 'Lanjutkan Registrasi',
+        busy: state is SellerAuthInProgress,
+        onAction: _submit,
+        footer: TextButton(
+          onPressed: () => context.canPop()
+              ? context.pop()
+              : context.go(SellerRoutes.login),
+          child: Text.rich(
+            TextSpan(
+              children: <InlineSpan>[
+                TextSpan(text: 'Sudah punya akun? ', style: XText.bodyS),
+                TextSpan(
+                  text: 'Masuk di sini',
+                  style: XText.labelM.copyWith(color: XColors.primary),
                 ),
+              ],
+            ),
+          ),
+        ),
+        form: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const AuthLabel('Nama Lengkap (sesuai KTP)'),
+              CustomTextFormField(
+                controller: _fullNameController,
+                hintText: 'Nama lengkap',
+                prefix: const Icon(Icons.person_outline_rounded),
+                validator: Validators.required('Nama lengkap'),
               ),
-            );
-          },
+              const SizedBox(height: XSpace.s16),
+              const AuthLabel('Alamat Email Bisnis'),
+              CustomTextFormField(
+                controller: _emailController,
+                hintText: 'nama@tokoanda.com',
+                keyboardType: TextInputType.emailAddress,
+                prefix: const Icon(Icons.mail_outline_rounded),
+                validator: Validators.email,
+              ),
+              const SizedBox(height: XSpace.s16),
+              const AuthLabel('Nomor Handphone / WhatsApp', required: false),
+              CustomTextFormField(
+                controller: _phoneController,
+                hintText: '0812 3456 7890',
+                keyboardType: TextInputType.phone,
+                prefix: const Padding(
+                  padding: EdgeInsets.only(left: 12, right: 8),
+                  child: Text('+62'),
+                ),
+                validator: Validators.optional,
+              ),
+              const SizedBox(height: XSpace.s6),
+              Text(
+                'Dipakai untuk notifikasi pesanan masuk.',
+                style: XText.caption,
+              ),
+              const SizedBox(height: XSpace.s16),
+              const AuthLabel('Kata Sandi'),
+              CustomTextFormField(
+                controller: _passwordController,
+                hintText: 'Minimal 8 karakter',
+                obscureText: true,
+                textInputAction: TextInputAction.done,
+                prefix: const Icon(Icons.lock_outline_rounded),
+                onSubmitted: (_) => _submit(),
+                validator: Validators.password,
+              ),
+              const SizedBox(height: XSpace.s12),
+              Text(
+                'Satu akun bisa punya beberapa toko. Toko pertama dibuat '
+                'setelah akun jadi.',
+                style: XText.bodyS,
+              ),
+            ],
+          ),
         ),
       ),
     );

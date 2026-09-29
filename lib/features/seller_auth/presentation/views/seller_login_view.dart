@@ -3,16 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/route/app_route_seller.dart';
-import '../../../../core/function/components.dart';
-import '../../../../core/utils/app_styles.dart';
-import '../../../../core/utils/constant.dart';
-import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/validators.dart';
-import '../../../../core/widgets/custom_buttons.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 import '../../../../core/widgets/custom_text_form_field.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../cubits/seller_auth_cubit/seller_auth_cubit.dart';
+import 'widgets/auth_layout.dart';
 
+/// "Masuk" half of S-01.
 class SellerLoginView extends StatelessWidget {
   const SellerLoginView({super.key});
 
@@ -47,127 +45,76 @@ class _SellerLoginBodyState extends State<_SellerLoginBody> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
     final error = await SellerAuthCubit.get(context).login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
-
     if (!mounted) return;
-
     if (error != null) {
       showErrorSnackBar(context, error);
       return;
     }
-
     context.go(SellerRoutes.home);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: 24.pa,
-            child: ConstrainedBox(
-              // The target is a browser, where an unconstrained form stretches
-              // across the whole window and becomes unreadable.
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Text(
-                      'Masuk sebagai Toko',
-                      style: AppStyles.styleSemiBold24(context),
-                    ),
-                    8.sbh,
-                    Text(
-                      'Kelola pesanan, stok, dan pencairan dana toko Anda.',
-                      style: AppStyles.styleRegular14(context)
-                          .copyWith(color: kLightThirdColor),
-                    ),
-                    32.sbh,
-                    Text('Email', style: AppStyles.styleMedium14(context)),
-                    8.sbh,
-                    CustomTextFormField(
-                      controller: _emailController,
-                      hintText: 'nama@toko.com',
-                      keyboardType: TextInputType.emailAddress,
-                      filled: true,
-                      validator: Validators.email,
-                    ),
-                    16.sbh,
-                    Text('Kata sandi', style: AppStyles.styleMedium14(context)),
-                    8.sbh,
-                    CustomTextFormField(
-                      controller: _passwordController,
-                      hintText: '••••••••',
-                      obscureText: _obscurePassword,
-                      textInputAction: TextInputAction.done,
-                      filled: true,
-                      onSubmitted: (_) => _submit(),
-                      suffix: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                        ),
-                        onPressed: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
-                        ),
-                      ),
-                      validator: Validators.required('Kata sandi'),
-                    ),
-                    32.sbh,
-                    BlocBuilder<SellerAuthCubit, SellerAuthState>(
-                      builder: (context, state) {
-                        final isBusy = state is SellerAuthInProgress;
-                        return CustomButton(
-                          onPressed: isBusy ? null : _submit,
-                          child: isBusy
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: kWhiteColor,
-                                  ),
-                                )
-                              : const Text('Masuk'),
-                        );
-                      },
-                    ),
-                    16.sbh,
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Text(
-                          'Belum punya akun toko?',
-                          style: AppStyles.styleRegular14(context),
-                        ),
-                        4.sbw,
-                        CustomTextButton(
-                          onPressed: () =>
-                              context.push(SellerRoutes.register),
-                          child: Text(
-                            'Daftar',
-                            style:
-                                AppStyles.styleSemiBold14(context).copyWith(
-                              color: isAppDarkMode()
-                                  ? kDarkPrimaryColor
-                                  : kLightPrimaryColor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+    return BlocBuilder<SellerAuthCubit, SellerAuthState>(
+      builder: (context, state) => AuthLayout(
+        isRegister: false,
+        onSwitch: () => context.push(SellerRoutes.register),
+        actionLabel: 'Masuk',
+        busy: state is SellerAuthInProgress,
+        onAction: _submit,
+        footer: TextButton(
+          onPressed: () => context.push(SellerRoutes.register),
+          child: Text.rich(
+            TextSpan(
+              children: <InlineSpan>[
+                TextSpan(text: 'Belum punya akun toko? ', style: XText.bodyS),
+                TextSpan(
+                  text: 'Daftar',
+                  style: XText.labelM.copyWith(color: XColors.primary),
                 ),
-              ),
+              ],
             ),
+          ),
+        ),
+        form: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const AuthLabel('Alamat Email'),
+              CustomTextFormField(
+                controller: _emailController,
+                hintText: 'nama@tokoanda.com',
+                keyboardType: TextInputType.emailAddress,
+                prefix: const Icon(Icons.mail_outline_rounded),
+                validator: Validators.email,
+              ),
+              const SizedBox(height: XSpace.s16),
+              const AuthLabel('Kata Sandi'),
+              CustomTextFormField(
+                controller: _passwordController,
+                hintText: '••••••••',
+                obscureText: _obscurePassword,
+                textInputAction: TextInputAction.done,
+                prefix: const Icon(Icons.lock_outline_rounded),
+                onSubmitted: (_) => _submit(),
+                suffix: IconButton(
+                  tooltip: _obscurePassword ? 'Tampilkan' : 'Sembunyikan',
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                ),
+                validator: Validators.required('Kata sandi'),
+              ),
+            ],
           ),
         ),
       ),

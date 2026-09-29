@@ -6,6 +6,7 @@ import 'package:navy_wear/config/route/app_route_seller.dart';
 import 'package:navy_wear/core/data/local/session_store.dart';
 import 'package:navy_wear/core/utils/app_routes.dart';
 import 'package:navy_wear/core/utils/local_network.dart';
+import 'package:navy_wear/core/widgets/xpedia/x_widgets.dart';
 import 'package:navy_wear/di/injector.dart';
 import 'package:navy_wear/features/seller_catalog/presentation/views/widgets/product_card.dart';
 import 'package:navy_wear/main.dart';
@@ -102,7 +103,8 @@ void main() {
     await tester.enterText(fields.at(1), seedPassword);
     await tester.pump();
 
-    await tester.tap(find.text('Masuk'));
+    // The tab and the button both say "Masuk"; the button is the XButton.
+    await tester.tap(find.widgetWithText(XButton, 'Masuk'));
     await pumpUntil(tester, find.text('Beranda'));
 
     // Beranda's header names the store the session landed on, which is the
