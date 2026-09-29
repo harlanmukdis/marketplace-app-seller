@@ -1,7 +1,7 @@
 # Ceklist Implementasi — Blueprint Seller v2.0 (`docs/v2-seller/`)
 
 Dicek: **29 Sep 2026** · API `marketplace-api` **v1.28.0** (branch `main-harlan`, `6546a65`) ·
-Aplikasi branch `xpedia-redesign-api-v1.28`.
+Aplikasi branch `xpedia-redesign-api-v1.28`, diperbarui setelah daftar B selesai.
 
 Sumber aturan: `marketplace-api/docs/v2-seller/01`–`19`. Brief itu ditulis 23–25 Sep, sebelum tim
 backend mengimplementasikan sebagian besarnya, jadi bagian "kondisi repo" di dalamnya **sudah basi**.
@@ -27,8 +27,8 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 
 | | ✅ | 🟡 | ❌ | — |
 |---|---|---|---|---|
-| **API** | 84 | 18 | 50 | 4 |
-| **Aplikasi** | 44 | 36 | 59 | 17 |
+| **API** | 81 | 21 | 50 | 4 |
+| **Aplikasi** | 68 | 34 | 37 | 17 |
 
 **Yang paling menentukan urutan kerja:**
 
@@ -57,8 +57,8 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 | Kapasitas 500 SKU untuk company | ✅ | ✅ | `sku_quota` + bar kapasitas di Daftar Produk | S-26 |
 | Ajukan tambahan kuota SKU | ❌ | 🟡 | Hanya admin (`PATCH /admin/stores/{id}/sku-quota`); app mengarahkan ke Xpedia 911 | S-07 |
 | Dokumen wajib per tipe (approval ditolak bila kurang) | ❌ | 🟡 | `approve()` tidak menghitung dokumen; app membatasi jenis dokumen di sisi klien | S-08 |
-| Unggah dokumen KYC | ✅ | 🟡 | Berfungsi, layout lama | S-08 |
-| Status verifikasi | ✅ | 🟡 | Berfungsi, layout lama | S-09 |
+| Unggah dokumen KYC | ✅ | ✅ | Kartu per dokumen, sesuai S-08 | S-08 |
+| Status verifikasi | ✅ | ✅ | Hero status, akses fitur, riwayat — sesuai S-09 | S-09 |
 | Reason code penolakan | ❌ | 🟡 | Masih teks bebas `rejection_reason` | S-09 |
 | Screening produk kimia/berbahaya | ✅ | 🟡 | Antrean fast-track admin ada; seller hanya tahu lewat penolakan tayang | S-28 |
 | Audit trail perubahan identitas/rekening | 🟡 | — | Transisi verifikasi dicatat; perubahan rekening tidak | — |
@@ -67,15 +67,15 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 
 | Fitur | API | App | Catatan | Layar |
 |---|---|---|---|---|
-| Partners Performance (rating, order, service, live) | ✅ | ❌ | `GET /stores/{id}/partners-performance` | S-35 |
+| Partners Performance (rating, order, service, live) | ✅ | ✅ | Plus tier & health score. Toko belum aktif dapat 404 (A #19) | S-35 |
 | Member Since | ✅ | ❌ | `opened_at` | S-35 |
-| Completed Orders & Successful Orders % | 🟡 | ❌ | `completed_orders`, `success_rate_percent` ada; definisi "seller-caused" baru sebagian | S-35 |
+| Completed Orders & Successful Orders % | 🟡 | ✅ | `completed_orders`, `success_rate_percent`; definisi "seller-caused" baru sebagian | S-35 |
 | Total Units Sold | ❌ | ❌ | `sold_count` tidak pernah di-increment (utang teknis #7) | S-35 |
 | Followers | ✅ | ❌ | `follower_count` | S-34 |
-| Live Now / Total Live Hours | 🟡 | ❌ | Jam live ada di `live_performance`; `online_status` selalu `null` | S-34, S-36 |
+| Live Now / Total Live Hours | 🟡 | 🟡 | Jam live tampil di Partners Performance; `online_status` selalu `null` | S-34, S-36 |
 | Kelola storefront (banner 1 utama + 2 panel) | 🟡 | ❌ | Hanya satu `banner_url` | S-34 |
 | Etalase buatan seller | ✅ | 🟡 | CRUD lengkap; layout lama | S-34 |
-| Ulasan produk + balasan seller + laporkan | ✅ | ❌ | `/products/{id}/reviews`, `/reviews/{id}/reply`, `/report` | S-37 |
+| Ulasan produk + balasan seller + laporkan | ✅ | ✅ | Dibaca per produk; foto ulasan & nama pengulas tidak dikirim API | S-37 |
 | Tidak ada badge status seller publik | ✅ | ✅ | Sesuai blueprint | — |
 
 ## §4 Home / Dashboard — brief 03 · Layar S-11, S-12
@@ -132,7 +132,7 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 | Scan QR/barcode stiker (seller & kurir) | ❌ | ❌ | Kode segel teks saja | S-21 |
 | Hard gate "no scan, no delivery" | ✅ | — | Pembeli wajib memasukkan kode segel | — |
 | Retensi bukti 100 hari | ✅ | — | | — |
-| Lihat bukti yang sudah diunggah | ✅ | ❌ | `GET /orders/{id}/shipment-evidence` | S05 |
+| Lihat bukti yang sudah diunggah | ✅ | ✅ | Kartu bukti di detail pesanan (`/shipment-evidence`) | S05 |
 | Penanda Secure+ di pesanan sebelum kirim | ❌ | 🟡 | Tidak ada flag; app mengetahuinya dari penolakan ship | S-13 |
 
 ## §8 Pengiriman & Kurir — brief 07 · Layar S-21 s/d S-25
@@ -173,7 +173,7 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 | Fitur | API | App | Catatan | Layar |
 |---|---|---|---|---|
 | Voucher toko & flash sale | ✅ | 🟡 | Berfungsi, layout lama | S-31 |
-| Ikut campaign platform (submit produk) | ✅ | ❌ | `/stores/{id}/campaigns/{id}/products` | S-31 |
+| Ikut campaign platform (submit produk) | 🟡 | ❌ | Submit ada, tapi daftar campaign hanya untuk admin (A #15) | S-31 |
 | Campaign toko (target produk, jadwal + jam aktif, diskon % / Rp) | 🟡 | ❌ | Hanya lewat voucher/flash sale; tidak ada entitas campaign toko | S-31 |
 | Subsidi ongkir oleh seller | ✅ | 🟡 | Voucher `free_shipping` + split platform | S-31 |
 | Promo bertumpuk | ✅ | — | Voucher stacking | — |
@@ -199,10 +199,10 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 |---|---|---|---|---|
 | Daftar percakapan toko (inbox) | ❌ | 🟡 | `/chat/conversations` hanya percakapan sebagai pembeli; app menjelaskan keterbatasannya | S-29 |
 | Badge belum dibaca | ❌ | ❌ | Kolom `*_unread_count` tidak pernah ditulis | S-29 |
-| Kirim & baca pesan | ✅ | 🟡 | Berfungsi, layout lama | S-30 |
-| Tipe: teks, foto, kartu produk, referensi order (tanpa video/file) | ✅ | 🟡 | Enum dibatasi; app baru mengirim teks | S-30 |
-| 4 status pesan (pending, 1 ✓, 2 ✓, 2 ✓ biru) | ✅ | ❌ | `status` + `delivered_at` per pesan | S-30 |
-| Moderasi anti-bypass kontak | ✅ | 🟡 | `422 CHAT_CONTENT_BLOCKED`; app menampilkan pesan umum | S-30 |
+| Kirim & baca pesan | ✅ | ✅ | Layout S-30, pembatas hari, banner keamanan | S-30 |
+| Tipe: teks, foto, kartu produk, referensi order (tanpa video/file) | ✅ | ✅ | Composer: foto, bagikan produk, bagikan pesanan | S-30 |
+| 4 status pesan (pending, 1 ✓, 2 ✓, 2 ✓ biru) | ✅ | ✅ | `status` + `delivered_at`; pending di sisi app. Terverifikasi | S-30 |
+| Moderasi anti-bypass kontak | ✅ | ✅ | `CHAT_CONTENT_BLOCKED` dijelaskan ke seller | S-30 |
 
 ## §13 Xpedia Wallet — brief 12 · Layar S-38, S-39
 
@@ -223,26 +223,26 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 
 | Fitur | API | App | Catatan | Layar |
 |---|---|---|---|---|
-| Penjualan bulanan (hanya Completed) | ❌ | ❌ | `/stores/{id}/analytics` kosong (tabel tidak pernah diisi) | S-33 |
-| Pelanggan baru vs loyal | ✅ | ❌ | `/stores/{id}/customer-segmentation` | S-33 |
+| Penjualan bulanan (hanya Completed) | ❌ | 🟡 | `/stores/{id}/analytics` kosong; app menghitung GMV dari pesanan Completed | S-33 |
+| Pelanggan baru vs loyal | ✅ | ✅ | `/stores/{id}/customer-segmentation` | S-33 |
 | Kunjungan toko (dedup 30 menit) | ✅ | — | Dicatat dari sisi buyer | — |
 | Product viewed (≥ 2 detik) | 🟡 | — | Server memakai ambang 3 detik | — |
 | Corong konversi (visit → view → klik → keranjang → terjual) | ❌ | ❌ | | S-33 |
 | Sumber traffic | ❌ | ❌ | | S-33 |
 | Produk terlaris | ❌ | ❌ | `sold_count` tidak pernah di-increment | S-33 |
-| Riwayat stok tidak sinkron | ✅ | ❌ | `/stores/{id}/stock-mismatch-events` | S-33 |
+| Riwayat stok tidak sinkron | ✅ | ✅ | `/stores/{id}/stock-mismatch-events` | S-33 |
 
 ## §15 Performance — brief 14 · Layar S-35
 
 | Fitur | API | App | Catatan | Layar |
 |---|---|---|---|---|
-| Periode bulan kalender (reset tanggal 1) | ✅ | ❌ | | S-35 |
-| Cancellation rate (hanya kesalahan seller) | ✅ | ❌ | | S-35 |
-| Rata-rata waktu balas chat | ✅ | ❌ | `avg_reply_minutes` | S-35 |
+| Periode bulan kalender (reset tanggal 1) | ✅ | ✅ | | S-35 |
+| Cancellation rate (hanya kesalahan seller) | ✅ | ✅ | | S-35 |
+| Rata-rata waktu balas chat | ✅ | ✅ | `avg_reply_minutes` | S-35 |
 | Ketepatan handover | ❌ | ❌ | Butuh scan kurir | S-35 |
 | Complaint rate (hanya yang terbukti) | ❌ | ❌ | | S-35 |
-| Successful Orders % | 🟡 | ❌ | `success_rate_percent` | S-35 |
-| Tier & health score | ✅ | ❌ | `/stores/{id}/tier`, `/health-score` | S-35 |
+| Successful Orders % | 🟡 | ✅ | `success_rate_percent` | S-35 |
+| Tier & health score | ✅ | ✅ | `/stores/{id}/tier`, `/health-score`; kosong sebelum worker malam jalan | S-35 |
 
 ## §16 Xpedia 911 — brief 15 · Layar S-41, S-42
 
@@ -252,7 +252,7 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 | Tepat 4 kategori (Pesanan, Pengiriman, Wallet, Produk) | 🟡 | 🟡 | Server memakai 4 kategori lain (`order_transaction`, `payment_wallet`, `account_security`, `report_violation`) | S-41 |
 | Pilih objek terkait (pesanan/AWB/transaksi/produk) | 🟡 | ❌ | API hanya `related_order_id` | S-41 |
 | Identitas "Tim Xpedia 911" | ✅ | ✅ | | S-42 |
-| Lampiran bukti | ✅ | ❌ | `attachment_url` | S-42 |
+| Lampiran bukti | ✅ | ✅ | `attachment_url`, konteks unggah `support_ticket_evidence` | S-42 |
 | Live chat 911 | ❌ | ❌ | Ada di desain | S-41 |
 
 ## §17 Pengaturan & Keamanan — brief 16 · Layar S-43, S-44
@@ -260,24 +260,24 @@ Kolom **Layar** merujuk ke `assets/stitch_xpedia_seller_project/`.
 | Fitur | API | App | Catatan | Layar |
 |---|---|---|---|---|
 | Profil toko, mode libur, kontak | ✅ | ✅ | | S-43 |
-| Jam operasional | ✅ | ❌ | Field `operational_hours` ada | S-43 |
+| Jam operasional | ✅ | ✅ | `operational_hours` JSON bebas; app menulis `{open, close, days}` | S-43 |
 | Preferensi notifikasi | ✅ | 🟡 | Layout lama | S-43 |
 | Ganti kata sandi | ❌ | ❌ | Hanya lupa / reset | S-44 |
 | Ganti HP / email | ❌ | ❌ | | S-44 |
 | OTP / 2FA | ❌ | ❌ | | S-44 |
-| Riwayat sesi & perangkat, keluar dari sesi lain | ✅ | ❌ | `/me/sessions`, `/me/devices` | S-44 |
+| Riwayat sesi & perangkat, keluar dari sesi lain | ✅ | ✅ | `/me/sessions`, `/me/devices` | S-44 |
 | PIN penarikan | ✅ | ✅ | | S-44 |
 | Bahasa Indonesia & English | — | 🟡 | App: teks seller hardcode Indonesia; berkas terjemahan kit berisi en/ar | — |
-| Staf & peran toko | ✅ | ❌ | Modul `store_staff` | — |
+| Staf & peran toko | 🟡 | ✅ | Undang, ubah peran, izin per peran; staf belum bisa membuka toko (A #18, #20) | — |
 
 ## §18 Live Selling — brief 17 · Layar S-36
 
 | Fitur | API | App | Catatan | Layar |
 |---|---|---|---|---|
-| Buat, mulai, akhiri sesi live | ✅ | ❌ | `/stores/{id}/live-sessions`, `/start`, `/end` | S-36 |
-| Pin produk saat live | ✅ | ❌ | `/live-sessions/{id}/products/{id}/pin` | S-36 |
-| Voucher live | ✅ | ❌ | | S-36 |
-| Live Now / total jam live di storefront | 🟡 | ❌ | | S-34 |
+| Buat, mulai, akhiri sesi live | 🟡 | ✅ | Tidak ada daftar sesi & transisi tidak divalidasi (A #16, #17); app mengingat id sesi | S-36 |
+| Pin produk saat live | ✅ | ✅ | `/live-sessions/{id}/products/{id}/pin` | S-36 |
+| Voucher live | ✅ | ✅ | | S-36 |
+| Live Now / total jam live di storefront | 🟡 | 🟡 | Total jam tampil di Performa; status "Live Now" belum | S-34 |
 
 ## §19 Notifikasi & Audit — brief 18 · Layar S-40
 
@@ -326,25 +326,36 @@ Tidak bisa diselesaikan di app sebelum backend menyediakannya. Diurutkan dari da
 12. Growth: **Aktif 7 Hari / Always On**, **atribusi 7 hari**.
 13. Kategori Xpedia 911 disamakan dengan desain, dan pemilihan objek selain pesanan.
 14. Logo wajib + moderasi, reason code penolakan verifikasi, validasi dokumen wajib.
+15. **Daftar campaign untuk seller** — `/admin/campaigns` butuh izin admin, jadi seller tidak bisa
+    memilih campaign untuk diikuti.
+16. **Daftar sesi live toko** (`GET /stores/{id}/live-sessions` menjawab 405) dan **validasi
+    transisi** start/end — sesi yang sudah selesai bisa di-start lagi (terverifikasi).
+17. 🔴 **Kebocoran `stream_key`** — `GET /live-sessions/{id}` publik dan mengembalikan stream key
+    tanpa login (terverifikasi). Siapa pun yang tahu id bisa menyiarkan atas nama toko.
+18. **`GET /stores` untuk staf** — hanya toko milik sendiri, jadi staf yang menerima undangan tidak
+    bisa membuka toko tersebut.
+19. **`/partners-performance` untuk pemilik toko belum aktif** — lewat `find_public()`, jadi 404.
+20. **Undang staf ke email tak terdaftar / ubah izin peran yang tidak ada** — exception tak
+    tertangkap, dijawab halaman HTML, bukan error envelope.
 
 ## B. API sudah ada, app belum
 
-Bisa langsung dikerjakan di app. Diurutkan menurut nilai bagi seller.
+Dikerjakan 29 Sep 2026.
 
-| Prioritas | Pekerjaan | Endpoint | Layar |
+| # | Pekerjaan | Status | Catatan |
 |---|---|---|---|
-| 1 | Partners Performance + tier & health score | `/partners-performance`, `/tier`, `/health-score` | S-35 |
-| 2 | Chat: 4 status centang, kartu produk & referensi order | `/chat/conversations/{id}/messages` | S-30 |
-| 3 | Ulasan produk + balas + laporkan | `/products/{id}/reviews`, `/reviews/{id}/reply`, `/report` | S-37 |
-| 4 | Analytics: pelanggan baru/loyal, stok tidak sinkron | `/customer-segmentation`, `/stock-mismatch-events` | S-33 |
-| 5 | Lihat bukti Secure+ di detail pesanan | `/orders/{id}/shipment-evidence` | S05 |
-| 6 | Ikut campaign platform | `/stores/{id}/campaigns/{id}/products` | S-31 |
-| 7 | Sesi & perangkat, keluar dari sesi lain | `/me/sessions`, `/me/devices` | S-44 |
-| 8 | Jam operasional toko | `PATCH /stores/{id}/settings` | S-43 |
-| 9 | Lampiran bukti di tiket 911 | `attachment_url` | S-42 |
-| 10 | Live selling (sesi, pin produk, voucher) | `/live-sessions/*` | S-36 |
-| 11 | Staf & peran toko | `store_staff` | — |
-| 12 | Restyle layar lama ke desain: verifikasi (S-08/09), kurir (S-24), gudang (S-25), promo & bundel (S-31), etalase (S-34), chat (S-29/30), notifikasi (S-40), login (S-01) | — | — |
+| 1 | Partners Performance + tier & health score (S-35) | ✅ | |
+| 2 | Chat: 4 status centang, foto, kartu produk & referensi pesanan (S-30) | ✅ | Diuji live. Inbox toko tetap menunggu API |
+| 3 | Ulasan produk + balas + laporkan (S-37) | ✅ | Belum bisa diuji live — seed tanpa ulasan |
+| 4 | Analytics: pelanggan baru/loyal, stok tidak sinkron, penjualan per periode (S-33) | ✅ | |
+| 5 | Bukti Secure+ di detail pesanan | ✅ | |
+| 6 | Ikut campaign platform | ⛔ | Diblokir API: tidak ada daftar campaign untuk seller (A #15) |
+| 7 | Sesi & perangkat (S-44) | ✅ | |
+| 8 | Jam operasional toko (S-43) | ✅ | Diuji live |
+| 9 | Lampiran bukti tiket 911 (S-42) | ✅ | Diuji live |
+| 10 | Live selling (S-36) | ✅ | Diuji live. App tidak menyiarkan video; RTMP + stream key untuk OBS |
+| 11 | Staf & peran toko | ✅ | Staf belum bisa membuka toko (A #18) |
+| 12 | Restyle layar lama | 🟡 | Login/Daftar (S-01) & Verifikasi (S-08/09) ditata ulang; widget bersama dan skala teks semua layar sudah design system; tata letak Kurir, Gudang, Promo, Etalase, Notifikasi masih versi lama |
 
 ---
 
