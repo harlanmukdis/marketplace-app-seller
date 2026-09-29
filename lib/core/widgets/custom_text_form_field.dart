@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../function/components.dart';
 import '../function/get_responsive_font_size.dart';
 import '../utils/constant.dart';
+import '../utils/xpedia_tokens.dart';
 
 class CustomTextFormField extends StatelessWidget {
   const CustomTextFormField({
@@ -73,7 +74,8 @@ class CustomTextFormField extends StatelessWidget {
       validator: validator ??
           (text) {
             if (text == null || text.trim().isEmpty) {
-              return 'هذا الحقل مطلوب';
+              // The kit shipped this in Arabic; the seller app is Indonesian.
+              return 'Wajib diisi';
             }
             return null;
           },
@@ -89,12 +91,13 @@ class CustomTextFormField extends StatelessWidget {
       keyboardType: keyboardType,
       maxLines: maxLines,
       textInputAction: textInputAction,
+      // The Xpedia filled field (S-27): sunken fill, no outline, radius 8,
+      // a 2dp primary ring on focus.
       decoration: InputDecoration(
           contentPadding: contentPadding ??
-              const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-          fillColor: fillColor ??
-              (isAppDarkMode() ? kLightSecondColor : const Color(0xffF4F6F9)),
-          filled: filled,
+              const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          fillColor: fillColor ?? XColors.sunken,
+          filled: filled ?? true,
           labelText: labelText,
           hintText: hintText,
           hintStyle: hintStyle ??
@@ -111,16 +114,18 @@ class CustomTextFormField extends StatelessWidget {
           prefixIcon: prefix,
           prefixIconColor: kLightThirdColor,
           border: customOutlineInputBorder(),
-          enabledBorder: customOutlineInputBorder()),
+          enabledBorder: customOutlineInputBorder(),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: borderRadius ?? BorderRadius.circular(XRadius.md),
+            borderSide: BorderSide(color: XColors.primary, width: 2),
+          )),
     );
   }
 
   OutlineInputBorder customOutlineInputBorder() {
     return OutlineInputBorder(
-      borderRadius: borderRadius ?? BorderRadius.circular(16),
-      borderSide: BorderSide(
-          color:
-              isAppDarkMode() ? Colors.transparent : const Color(0xffEDEDED)),
+      borderRadius: borderRadius ?? BorderRadius.circular(XRadius.md),
+      borderSide: BorderSide.none,
     );
   }
 }

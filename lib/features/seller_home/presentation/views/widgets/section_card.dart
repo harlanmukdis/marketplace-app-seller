@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/function/components.dart';
-import '../../../../../core/utils/app_styles.dart';
-import '../../../../../core/utils/constant.dart';
-import '../../../../../core/utils/extensions.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
-/// The bordered container every dashboard block sits in, so the tabs share one
-/// visual rhythm instead of each inventing its own card.
+/// The bordered container the older seller screens sit their blocks in.
+///
+/// Restyled to the Xpedia card (design.md §4): white surface, radius 8, a
+/// 1dp border-subtle outline, 16 padding, Title/M heading. The API is
+/// unchanged, so every screen still using it follows the design system.
 class SectionCard extends StatelessWidget {
   const SectionCard({
     super.key,
@@ -21,61 +21,51 @@ class SectionCard extends StatelessWidget {
   final Widget child;
   final String? title;
   final Widget? trailing;
+
+  /// Border colour for a card that must stand out (a warning, a selection).
   final Color? accent;
   final VoidCallback? onTap;
   final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = isAppDarkMode();
-
-    final content = Container(
-      width: double.infinity,
-      padding: padding ?? 16.pa,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: accent ?? (isDark ? Colors.white12 : kBorderColor),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          if (title != null) ...<Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    title!,
-                    style: AppStyles.styleSemiBold14(context),
-                  ),
-                ),
-                if (trailing != null) trailing!,
-              ],
-            ),
-            12.sbh,
-          ],
-          child,
-        ],
-      ),
-    );
-
-    if (onTap == null) return content;
-
     return Material(
-      color: isDark ? kDarkColor : kWhiteColor,
-      borderRadius: BorderRadius.circular(16),
+      color: XColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(XRadius.md),
+        side: BorderSide(color: accent ?? XColors.borderSubtle),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: content,
+        child: Padding(
+          padding: padding ?? const EdgeInsets.all(XSpace.card),
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                if (title != null) ...<Widget>[
+                  Row(
+                    children: <Widget>[
+                      Expanded(child: Text(title!, style: XText.titleL)),
+                      if (trailing != null) trailing!,
+                    ],
+                  ),
+                  const SizedBox(height: XSpace.s12),
+                ],
+                child,
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-/// A label/value pair. [emphasis] promotes the value to a heavier style for
-/// the one number that matters most on a card.
+/// A label/value pair. [emphasis] promotes the value for the one number that
+/// matters most on a card.
 class StatRow extends StatelessWidget {
   const StatRow({
     super.key,
@@ -93,24 +83,24 @@ class StatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: XSpace.s4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Expanded(
             child: Text(
               label,
-              style: AppStyles.styleRegular12(context)
-                  .copyWith(color: kLightThirdColor),
+              style: XText.bodyM.copyWith(color: XColors.textSecondary),
             ),
           ),
-          8.sbw,
-          Text(
-            value,
-            textAlign: TextAlign.end,
-            style: emphasis
-                ? AppStyles.styleSemiBold16(context).copyWith(color: valueColor)
-                : AppStyles.styleMedium12(context).copyWith(color: valueColor),
+          const SizedBox(width: XSpace.s8),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: (emphasis ? XText.priceM : XText.bodyM)
+                  .copyWith(color: valueColor),
+            ),
           ),
         ],
       ),

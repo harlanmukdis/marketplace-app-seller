@@ -5,7 +5,8 @@ import '../data_state.dart';
 import '../utils/app_styles.dart';
 import '../utils/constant.dart';
 import '../utils/extensions.dart';
-import 'custom_buttons.dart';
+import '../utils/xpedia_tokens.dart';
+import 'xpedia/x_widgets.dart';
 
 class LoadingIndicatorView extends StatelessWidget {
   const LoadingIndicatorView({super.key, this.message});
@@ -99,10 +100,10 @@ class ErrorStateView extends StatelessWidget {
             ],
             if (onRetry != null) ...<Widget>[
               24.sbh,
-              CustomButton(
-                width: 200,
+              XButton.secondary(
+                label: retryLabel,
+                icon: Icons.refresh_rounded,
                 onPressed: onRetry,
-                child: Text(retryLabel),
               ),
             ],
           ],
@@ -136,23 +137,26 @@ class EmptyStateView extends StatelessWidget {
   final IconData icon;
   final Widget? action;
 
+  /// The Xpedia empty state (design.md §4): icon, one line, one action —
+  /// never a large illustration.
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: 24.pa,
+        padding: const EdgeInsets.symmetric(
+          horizontal: XSpace.s24,
+          vertical: XSpace.s32,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(icon, size: 48, color: kLightThirdColor),
-            16.sbh,
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: AppStyles.styleMedium14(context)
-                  .copyWith(color: kLightThirdColor),
-            ),
-            if (action != null) ...<Widget>[24.sbh, action!],
+            Icon(icon, size: 32, color: XColors.textTertiary),
+            const SizedBox(height: XSpace.s12),
+            Text(message, textAlign: TextAlign.center, style: XText.titleM),
+            if (action != null) ...<Widget>[
+              const SizedBox(height: XSpace.s16),
+              action!,
+            ],
           ],
         ),
       ),
@@ -167,7 +171,7 @@ void showErrorSnackBar(BuildContext context, DataError error) {
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        backgroundColor: kErrorColor,
+        backgroundColor: XColors.dangerStrong,
         content: Text('${error.message}\n(${error.code})'),
         duration: const Duration(seconds: 5),
       ),
@@ -179,7 +183,7 @@ void showSuccessSnackBar(BuildContext context, String message) {
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        backgroundColor: kSuccessColor,
+        backgroundColor: XColors.successStrong,
         content: Text(message),
       ),
     );

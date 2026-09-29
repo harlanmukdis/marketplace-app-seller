@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../function/components.dart';
 import '../utils/app_styles.dart';
 import '../utils/constant.dart';
+import '../utils/xpedia_tokens.dart';
 import '../utils/extensions.dart';
 
 /// A labelled dropdown styled to match [CustomTextFormField], so forms that mix
@@ -38,31 +38,31 @@ class AppDropdownField<T> extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(label, style: AppStyles.styleMedium14(context)),
+        Text(label, style: XText.labelL),
         8.sbh,
         DropdownButtonFormField<T>(
           initialValue: value,
           isExpanded: true,
           hint: hint == null ? null : Text(hint!),
           validator: validator,
+          // Same filled style as CustomTextFormField (S-27).
           decoration: InputDecoration(
             filled: true,
-            fillColor:
-                isAppDarkMode() ? kLightSecondColor : const Color(0xffF4F6F9),
+            fillColor: XColors.sunken,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(XRadius.md),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: isAppDarkMode()
-                    ? Colors.transparent
-                    : const Color(0xffEDEDED),
-              ),
+              borderRadius: BorderRadius.circular(XRadius.md),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(XRadius.md),
+              borderSide: BorderSide(color: XColors.primary, width: 2),
             ),
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
           items: items
               .map(
