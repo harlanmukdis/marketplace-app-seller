@@ -140,7 +140,10 @@ void main() {
     await tester.enterText(vFields.at(4), '1234567890'); // account number
     await tester.pump();
 
-    await tapButton(tester, 'Kirim pengajuan');
+    final submitVerification = find.widgetWithText(XButton, 'Kirim pengajuan');
+    await tester.ensureVisible(submitVerification);
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.tap(submitVerification);
     // Submitting flips the screen to the status view, which is also the only
     // place documents can be attached — the endpoint rejects uploads before a
     // request exists.

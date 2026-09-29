@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/domain/model/verification/store_verification.dart';
-import '../../../../core/function/custom_app_bar.dart';
 import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
@@ -11,8 +10,9 @@ import '../../../../core/utils/format_helper.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/app_dropdown_field.dart';
 import '../../../../core/widgets/custom_text_form_field.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 import '../../../../core/widgets/state_widgets.dart';
-import '../../../seller_home/presentation/views/widgets/section_card.dart';
+import '../../../../core/widgets/xpedia/x_widgets.dart';
 import '../cubits/verification_cubit/verification_cubit.dart';
 
 /// Store verification — the only route out of `inactive`, and so the only way
@@ -35,7 +35,8 @@ class _VerificationBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: customAppBar(context, 'Verifikasi toko'),
+      backgroundColor: XColors.canvas,
+      appBar: const XAppBar(title: 'Verifikasi Toko'),
       body: SafeArea(
         child: BlocBuilder<VerificationCubit, VerificationState>(
           builder: (context, state) => switch (state) {
@@ -141,8 +142,23 @@ class _SubmitFormState extends State<_SubmitForm> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Text(
+                  'LANGKAH 1 DARI 2 • DATA IDENTITAS & REKENING',
+                  style: XText.overline.copyWith(color: XColors.primary),
+                ),
+                const SizedBox(height: XSpace.s6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(XRadius.full),
+                  child: LinearProgressIndicator(
+                    value: 0.5,
+                    minHeight: 4,
+                    backgroundColor: XColors.brandSubtle,
+                    color: XColors.primary,
+                  ),
+                ),
+                const SizedBox(height: XSpace.s16),
+                Text(
                   widget.resubmitting ? 'Ajukan ulang' : 'Ajukan verifikasi',
-                  style: AppStyles.styleSemiBold18(context),
+                  style: XText.headingXL,
                 ),
                 8.sbh,
                 Text(
@@ -185,8 +201,7 @@ class _SubmitFormState extends State<_SubmitForm> {
                 ),
                 if (_isBusiness) ...<Widget>[
                   24.sbh,
-                  Text('Penanggung jawab (PIC)',
-                      style: AppStyles.styleMedium14(context)),
+                  Text('Penanggung jawab (PIC)', style: XText.titleM),
                   4.sbh,
                   Text(
                     'Wajib untuk badan usaha. KTP PIC tidak boleh sudah '
@@ -216,8 +231,7 @@ class _SubmitFormState extends State<_SubmitForm> {
                   ),
                 ],
                 24.sbh,
-                Text('Rekening pencairan',
-                    style: AppStyles.styleMedium14(context)),
+                Text('Rekening pencairan', style: XText.titleM),
                 4.sbh,
                 Text(
                   'Ke sinilah hasil penjualan ditarik nanti.',
@@ -244,21 +258,13 @@ class _SubmitFormState extends State<_SubmitForm> {
                   validator: Validators.accountNumber,
                 ),
                 32.sbh,
-                FilledButton(
-                  onPressed: widget.isBusy ? null : _submit,
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(52),
-                  ),
-                  child: widget.isBusy
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: kWhiteColor,
-                          ),
-                        )
-                      : const Text('Kirim pengajuan'),
+                XButton(
+                  label: 'Kirim pengajuan',
+                  icon: Icons.verified_user_outlined,
+                  size: XButtonSize.large,
+                  expand: true,
+                  loading: widget.isBusy,
+                  onPressed: _submit,
                 ),
                 32.sbh,
               ],
@@ -270,7 +276,8 @@ class _SubmitFormState extends State<_SubmitForm> {
   }
 }
 
-/// Step two and onward: where the request stands, and what is still missing.
+/// Step two and onward (S-08, S-09): where the request stands, each required
+/// document with its upload, what the store can do meanwhile, and history.
 class _Status extends StatelessWidget {
   const _Status({required this.state});
 
@@ -307,124 +314,134 @@ class _Status extends StatelessWidget {
   Widget build(BuildContext context) {
     final verification = state.verification;
     final missing = verification.missingDocuments;
+    final required = DocumentType.requiredFor(verification.type);
+    final approved = verification.status == VerificationStatus.approved;
+    const gap = SizedBox(height: XSpace.cardGap);
 
     return RefreshIndicator(
       onRefresh: () => VerificationCubit.get(context).load(),
       child: ListView(
-        padding: 20.pa,
+        padding: const EdgeInsets.all(XSpace.screen),
         children: <Widget>[
-          Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560),
+          _StatusCard(verification: verification),
+          gap,
+          if (!approved && missing.isNotEmpty) ...<Widget>[
+            const XBanner(
+              tone: XTone.warning,
+              icon: Icons.schedule_rounded,
+              title: 'Lengkapi dokumen.',
+              message: 'Toko belum bisa memproses pesanan atau menayangkan '
+                  'produk sebelum verifikasi disetujui.',
+            ),
+            gap,
+          ],
+          XCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Icon(Icons.fact_check_outlined, color: XColors.primary),
+                    const SizedBox(width: XSpace.s8),
+                    Expanded(
+                      child: Text('Dokumen', style: XText.titleL),
+                    ),
+                    Text(
+                      '${required.length - missing.length} dari '
+                      '${required.length}',
+                      style: XText.caption,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: XSpace.s4),
+                Text(
+                  missing.isEmpty
+                      ? 'Semua dokumen yang diminta sudah terunggah.'
+                      : 'Masih kurang: '
+                          '${missing.map(DocumentType.label).join(', ')}.',
+                  style: XText.bodyS.copyWith(
+                    color: missing.isEmpty
+                        ? XColors.successStrong
+                        : XColors.warningStrong,
+                  ),
+                ),
+                const SizedBox(height: XSpace.s12),
+                for (final docType in required) ...<Widget>[
+                  _DocumentRow(
+                    docType: docType,
+                    document: verification.documents
+                        .where((doc) => doc.docType == docType)
+                        .firstOrNull,
+                    onAttach: state.canAttachDocuments && !state.isBusy
+                        ? () => _attach(context, docType)
+                        : null,
+                  ),
+                  const SizedBox(height: XSpace.s8),
+                ],
+              ],
+            ),
+          ),
+          gap,
+          XCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Text('Data Pengajuan', style: XText.titleL),
+                const SizedBox(height: XSpace.s8),
+                XKeyValue(
+                  label: 'Jenis',
+                  value: VerificationType.label(verification.type),
+                ),
+                XKeyValue(
+                  label: 'Nomor KTP',
+                  value: _mask(verification.idCardNumber),
+                ),
+                XKeyValue(label: 'NPWP', value: verification.taxNumber ?? '-'),
+                XKeyValue(
+                  label: 'Rekening',
+                  value: verification.bankAccountNumber == null
+                      ? '-'
+                      : '${verification.bankName ?? ''} '
+                              '${_mask(verification.bankAccountNumber)}'
+                          .trim(),
+                ),
+              ],
+            ),
+          ),
+          gap,
+          _AccessCard(approved: approved),
+          if (verification.history.isNotEmpty) ...<Widget>[
+            gap,
+            XCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  _StatusCard(verification: verification),
-                  12.sbh,
-                  SectionCard(
-                    title: 'Data pengajuan',
-                    child: Column(
-                      children: <Widget>[
-                        StatRow(
-                          label: 'Jenis',
-                          value: VerificationType.label(verification.type),
-                        ),
-                        StatRow(
-                          label: 'Nomor KTP',
-                          value: verification.idCardNumber ?? '-',
-                        ),
-                        StatRow(
-                          label: 'NPWP',
-                          value: verification.taxNumber ?? '-',
-                        ),
-                        StatRow(
-                          label: 'Rekening',
-                          value: verification.bankAccountNumber == null
-                              ? '-'
-                              : '${verification.bankName ?? ''} '
-                                  '${verification.bankAccountNumber}'.trim(),
-                        ),
-                      ],
+                  Text('Riwayat', style: XText.titleL),
+                  const SizedBox(height: XSpace.s8),
+                  for (final event in verification.history.reversed)
+                    XKeyValue(
+                      label: VerificationStatus.label(event.toStatus),
+                      value: formatDateTime(event.createdAt),
                     ),
-                  ),
-                  12.sbh,
-                  SectionCard(
-                    title: 'Dokumen',
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        if (missing.isEmpty)
-                          Text(
-                            'Semua dokumen yang diminta sudah terunggah.',
-                            style: AppStyles.styleRegular12(context)
-                                .copyWith(color: kSuccessColor),
-                          )
-                        else
-                          Text(
-                            'Masih kurang: '
-                            '${missing.map(DocumentType.label).join(', ')}.',
-                            style: AppStyles.styleRegular12(context)
-                                .copyWith(color: kWarningColor),
-                          ),
-                        12.sbh,
-                        for (final docType in DocumentType.requiredFor(
-                          verification.type,
-                        ))
-                          _DocumentRow(
-                            docType: docType,
-                            document: verification.documents
-                                .where((doc) => doc.docType == docType)
-                                .firstOrNull,
-                            onAttach: state.canAttachDocuments && !state.isBusy
-                                ? () => _attach(context, docType)
-                                : null,
-                          ),
-                      ],
-                    ),
-                  ),
-                  if (verification.history.isNotEmpty) ...<Widget>[
-                    12.sbh,
-                    SectionCard(
-                      title: 'Riwayat',
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          for (final event in verification.history.reversed)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 6),
-                              child: Row(
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Text(
-                                      VerificationStatus.label(event.toStatus),
-                                      style:
-                                          AppStyles.styleRegular12(context),
-                                    ),
-                                  ),
-                                  Text(
-                                    formatDateTime(event.createdAt),
-                                    style: AppStyles.styleRegular10(context)
-                                        .copyWith(color: kLightThirdColor),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  if (state.canResubmit) ...<Widget>[
-                    24.sbh,
-                    _SubmitForm(isBusy: state.isBusy, resubmitting: true),
-                  ],
-                  32.sbh,
                 ],
               ),
             ),
-          ),
+          ],
+          if (state.canResubmit) ...<Widget>[
+            const SizedBox(height: XSpace.sectionGap),
+            _SubmitForm(isBusy: state.isBusy, resubmitting: true),
+          ],
+          const SizedBox(height: XSpace.s24),
         ],
       ),
     );
+  }
+
+  /// `3171234567890001` -> `•••• •••• •••• 0001`.
+  static String _mask(String? value) {
+    if (value == null || value.isEmpty) return '-';
+    if (value.length <= 4) return value;
+    return '•••• ${value.substring(value.length - 4)}';
   }
 }
 
@@ -435,51 +452,79 @@ class _StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (Color color, String note) = switch (verification.status) {
+    final (XTone tone, IconData icon, String title, String note) =
+        switch (verification.status) {
       VerificationStatus.approved => (
-          kSuccessColor,
+          XTone.success,
+          Icons.verified_rounded,
+          'Verifikasi Disetujui',
           'Toko sudah aktif dan bisa berjualan.',
         ),
       VerificationStatus.rejected => (
-          kErrorColor,
+          XTone.danger,
+          Icons.gpp_bad_outlined,
+          'Pengajuan Ditolak',
           verification.rejectionReason ??
               'Pengajuan ditolak tanpa alasan tertulis.',
         ),
       _ => (
-          kWarningColor,
-          'Pengajuan sudah masuk dan menunggu ditinjau admin. '
-              'Tidak ada yang perlu dilakukan selain menunggu.',
+          XTone.warning,
+          Icons.hourglass_top_rounded,
+          'Pengajuan Sedang Diproses',
+          'Dokumen diterima tim kepatuhan Xpedia Partners dan ditinjau '
+              'dalam 2×24 jam kerja. Tidak ada yang perlu dilakukan selain '
+              'menunggu.',
         ),
     };
 
-    return Container(
-      padding: 16.pa,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return XCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  VerificationStatus.label(verification.status),
-                  style: AppStyles.styleSemiBold16(context)
-                      .copyWith(color: color),
-                ),
-              ),
-              if (verification.submittedAt != null)
-                Text(
-                  formatDate(verification.submittedAt),
-                  style: AppStyles.styleRegular10(context)
-                      .copyWith(color: kLightThirdColor),
-                ),
-            ],
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: tone.background,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 32, color: tone.foreground),
           ),
-          8.sbh,
-          Text(note, style: AppStyles.styleRegular12(context)),
+          const SizedBox(height: XSpace.s12),
+          XChip(
+            label: VerificationStatus.label(verification.status),
+            tone: tone,
+          ),
+          const SizedBox(height: XSpace.s8),
+          Text(title, textAlign: TextAlign.center, style: XText.headingM),
+          const SizedBox(height: XSpace.s4),
+          Text(
+            note,
+            textAlign: TextAlign.center,
+            style: XText.bodyM.copyWith(color: XColors.textSecondary),
+          ),
+          if (verification.submittedAt != null) ...<Widget>[
+            const SizedBox(height: XSpace.s12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(XSpace.s12),
+              decoration: BoxDecoration(
+                color: XColors.brandSubtle,
+                borderRadius: BorderRadius.circular(XRadius.md),
+              ),
+              child: Row(
+                children: <Widget>[
+                  Icon(Icons.shield_outlined, color: XColors.primary),
+                  const SizedBox(width: XSpace.s8),
+                  Expanded(
+                    child: Text(
+                      'Diajukan ${formatDateTime(verification.submittedAt)}',
+                      style: XText.bodyS,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -500,39 +545,107 @@ class _DocumentRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final uploaded = document != null;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+    return Container(
+      padding: const EdgeInsets.all(XSpace.s12),
+      decoration: BoxDecoration(
+        color: uploaded ? XColors.canvas : XTone.warning.background,
+        borderRadius: BorderRadius.circular(XRadius.md),
+      ),
       child: Row(
         children: <Widget>[
-          Icon(
-            uploaded ? Icons.check_circle_outline : Icons.upload_file_outlined,
-            size: 18,
-            color: uploaded ? kSuccessColor : kLightThirdColor,
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: XColors.surface,
+              borderRadius: BorderRadius.circular(XRadius.md),
+            ),
+            child: Icon(
+              uploaded ? Icons.task_outlined : Icons.upload_file_outlined,
+              color: uploaded ? XColors.success : XColors.warningStrong,
+            ),
           ),
-          12.sbw,
+          const SizedBox(width: XSpace.s12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
+                Text(DocumentType.label(docType), style: XText.titleM),
                 Text(
-                  DocumentType.label(docType),
-                  style: AppStyles.styleRegular14(context),
+                  uploaded
+                      ? 'Diunggah ${formatDate(document!.uploadedAt)}'
+                      : 'Belum diunggah · JPG, PNG atau PDF',
+                  style: XText.bodyS,
                 ),
-                if (uploaded && document!.uploadedAt != null)
-                  Text(
-                    'Diunggah ${formatDate(document!.uploadedAt)}',
-                    style: AppStyles.styleRegular10(context)
-                        .copyWith(color: kLightThirdColor),
-                  ),
               ],
             ),
           ),
           if (onAttach != null)
-            TextButton(
+            XButton.secondary(
+              label: uploaded ? 'Ganti' : 'Unggah',
+              icon: Icons.upload_rounded,
+              size: XButtonSize.small,
               onPressed: onAttach,
-              child: Text(uploaded ? 'Ganti' : 'Unggah'),
+            )
+          else if (uploaded)
+            const XChip(label: 'Terunggah', tone: XTone.success),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Status Akses Fitur Toko" (S-09): what the store can do before approval.
+class _AccessCard extends StatelessWidget {
+  const _AccessCard({required this.approved});
+
+  final bool approved;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(IconData icon, String title, String note, bool open) =>
+        Padding(
+          padding: const EdgeInsets.only(bottom: XSpace.s8),
+          child: Container(
+            padding: const EdgeInsets.all(XSpace.s12),
+            decoration: BoxDecoration(
+              color: XColors.canvas,
+              borderRadius: BorderRadius.circular(XRadius.md),
             ),
+            child: Row(
+              children: <Widget>[
+                Icon(icon, color: open ? XColors.success : XColors.danger),
+                const SizedBox(width: XSpace.s12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(title, style: XText.titleM),
+                      Text(note, style: XText.bodyS),
+                    ],
+                  ),
+                ),
+                XChip(
+                  label: open ? 'Siap' : 'Terkunci',
+                  tone: open ? XTone.success : XTone.danger,
+                  icon: open ? Icons.check_rounded : Icons.lock_outline_rounded,
+                ),
+              ],
+            ),
+          ),
+        );
+    return XCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Text('Status Akses Fitur Toko', style: XText.titleL),
+          const SizedBox(height: XSpace.s12),
+          row(Icons.inventory_2_outlined, 'Tayangkan Produk',
+              'Produk bisa dibuat sebagai draf sekarang', approved),
+          row(Icons.local_shipping_outlined, 'Terima & Kelola Pesanan',
+              'Butuh verifikasi disetujui', approved),
+          row(Icons.account_balance_wallet_outlined, 'Xpedia Wallet',
+              'Atur rekening & PIN sekarang', true),
         ],
       ),
     );
