@@ -199,7 +199,8 @@ class _CreateSheetState extends State<_CreateSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(XSpace.screen),
@@ -220,8 +221,7 @@ class _CreateSheetState extends State<_CreateSheet> {
                   XListRow(
                     icon: Icons.event_outlined,
                     title: 'Jadwal',
-                    subtitle:
-                        _at == null ? 'Opsional' : formatDateTime(_at),
+                    subtitle: _at == null ? 'Opsional' : formatDateTime(_at),
                     onTap: _pickTime,
                   ),
                 ],
@@ -233,7 +233,8 @@ class _CreateSheetState extends State<_CreateSheet> {
                 expand: true,
                 onPressed: _title.text.trim().isEmpty
                     ? null
-                    : () => Navigator.of(context).pop((_title.text.trim(), _at)),
+                    : () =>
+                        Navigator.of(context).pop((_title.text.trim(), _at)),
               ),
             ],
           ),

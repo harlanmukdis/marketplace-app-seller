@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/domain/model/verification/store_verification.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
@@ -169,8 +168,7 @@ class _SubmitFormState extends State<_SubmitForm> {
                       : 'Toko baru bisa berjualan setelah pengajuan ini '
                           'disetujui admin. Isi datanya dulu, dokumennya '
                           'diunggah di langkah berikutnya.',
-                  style: AppStyles.styleRegular12(context)
-                      .copyWith(color: kLightThirdColor),
+                  style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
                 ),
                 24.sbh,
                 AppDropdownField<String>(
@@ -206,8 +204,7 @@ class _SubmitFormState extends State<_SubmitForm> {
                   Text(
                     'Wajib untuk badan usaha. KTP PIC tidak boleh sudah '
                     'terdaftar di akun seller lain.',
-                    style: AppStyles.styleRegular10(context)
-                        .copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: kLightThirdColor),
                   ),
                   12.sbh,
                   CustomTextFormField(
@@ -235,8 +232,7 @@ class _SubmitFormState extends State<_SubmitForm> {
                 4.sbh,
                 Text(
                   'Ke sinilah hasil penjualan ditarik nanti.',
-                  style: AppStyles.styleRegular10(context)
-                      .copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: kLightThirdColor),
                 ),
                 12.sbh,
                 CustomTextFormField(
@@ -603,8 +599,7 @@ class _AccessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget row(IconData icon, String title, String note, bool open) =>
-        Padding(
+    Widget row(IconData icon, String title, String note, bool open) => Padding(
           padding: const EdgeInsets.only(bottom: XSpace.s8),
           child: Container(
             padding: const EdgeInsets.all(XSpace.s12),

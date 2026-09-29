@@ -27,7 +27,8 @@ class SellerAuthCubit extends Cubit<SellerAuthState> {
     required String password,
   }) async {
     emit(const SellerAuthInProgress());
-    final result = await _authRepository.login(email: email, password: password);
+    final result =
+        await _authRepository.login(email: email, password: password);
     if (isClosed) return null;
 
     switch (result) {

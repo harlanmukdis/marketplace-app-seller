@@ -132,7 +132,8 @@ class _Invoice extends StatelessWidget {
                   ),
                 ),
               Divider(height: XSpace.s24, color: XColors.borderSubtle),
-              XKeyValue(label: 'Subtotal', value: formatRupiah(invoice.subtotal)),
+              XKeyValue(
+                  label: 'Subtotal', value: formatRupiah(invoice.subtotal)),
               XKeyValue(
                 label: 'Ongkos Kirim',
                 value: formatRupiah(invoice.shippingCost),

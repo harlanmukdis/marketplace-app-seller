@@ -41,8 +41,9 @@ final class ChatThreadLoaded extends ChatThreadState {
   /// The newest message on screen. Used to tell an arrival from something
   /// already shown, and it is what `poll?since_id=` would be given if the
   /// long-poll were usable here — zero on an empty thread means "everything".
-  int get newestId =>
-      messages.isEmpty ? 0 : messages.map((m) => m.id).reduce((a, b) => a > b ? a : b);
+  int get newestId => messages.isEmpty
+      ? 0
+      : messages.map((m) => m.id).reduce((a, b) => a > b ? a : b);
 
   bool isMine(ChatMessage message) =>
       myUserId != null && message.senderUserId == myUserId;

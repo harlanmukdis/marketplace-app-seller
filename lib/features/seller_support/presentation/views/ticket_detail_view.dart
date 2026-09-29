@@ -44,8 +44,8 @@ class _TicketBodyState extends State<_TicketBody> {
 
   Future<void> _send() async {
     final text = _message.text;
-    final error = await TicketCubit.get(context)
-        .reply(text, attachment: _attachment);
+    final error =
+        await TicketCubit.get(context).reply(text, attachment: _attachment);
     if (!mounted) return;
     if (error != null) {
       showErrorSnackBar(context, error);

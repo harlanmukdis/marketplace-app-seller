@@ -47,7 +47,8 @@ class SupportCubit extends Cubit<SupportState> {
     if (isClosed) return;
     emit(switch (result) {
       DataSuccess<List<SupportTicket>>(:final value) => SupportLoaded(value),
-      DataFailed<List<SupportTicket>>(:final failure) => SupportFailure(failure),
+      DataFailed<List<SupportTicket>>(:final failure) =>
+        SupportFailure(failure),
       _ => const SupportLoaded(<SupportTicket>[]),
     });
   }
@@ -165,9 +166,7 @@ class TicketCubit extends Cubit<TicketState> {
       if (isClosed) return null;
       if (uploaded is! DataSuccess<UploadedFile>) {
         emit(TicketLoaded(current.ticket, current.messages));
-        return uploaded is DataFailed<UploadedFile>
-            ? uploaded.failure
-            : null;
+        return uploaded is DataFailed<UploadedFile> ? uploaded.failure : null;
       }
       url = uploaded.value.url;
     }

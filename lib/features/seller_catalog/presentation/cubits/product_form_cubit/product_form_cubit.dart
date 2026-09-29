@@ -78,8 +78,7 @@ class ProductDraft {
 
   /// `base_price` is what cards and search show; the cheapest variant is the
   /// honest "mulai dari" figure.
-  int get basePrice =>
-      rows.map((r) => r.price).reduce((a, b) => a < b ? a : b);
+  int get basePrice => rows.map((r) => r.price).reduce((a, b) => a < b ? a : b);
 }
 
 /// Creating one product, or editing one that exists (S-27).
@@ -277,9 +276,8 @@ class ProductFormCubit extends Cubit<ProductFormState> {
           ? partial('memuat varian', detail.failure)
           : null;
     }
-    final generated = detail.value.variants.isEmpty
-        ? null
-        : detail.value.variants.first;
+    final generated =
+        detail.value.variants.isEmpty ? null : detail.value.variants.first;
 
     for (var i = 0; i < draft.rows.length; i++) {
       final row = draft.rows[i];
@@ -330,8 +328,8 @@ class ProductFormCubit extends Cubit<ProductFormState> {
         );
       }
       if (result is DataFailed<Product>) {
-        return partial('menyimpan varian ${row.value ?? ''}'.trim(),
-            result.failure);
+        return partial(
+            'menyimpan varian ${row.value ?? ''}'.trim(), result.failure);
       }
     }
 

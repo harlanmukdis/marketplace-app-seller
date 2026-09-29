@@ -67,7 +67,8 @@ class LiveListCubit extends Cubit<LiveListState> {
         null,
       );
     }
-    emit(LiveListState(loading: false, sessions: state.sessions, creating: true));
+    emit(LiveListState(
+        loading: false, sessions: state.sessions, creating: true));
     final result = await _live.create(
       storeId,
       title: title.trim(),
@@ -212,12 +213,13 @@ class LiveSessionCubit extends Cubit<LiveSessionState> {
         action: () => _live.end(sessionId),
       );
 
-  Future<DataError?> addProduct(int productId, int? livePrice) => _sessionAction(
-        guard: (s) => !s.isOver &&
-            !s.products.any((p) => p.productId == productId),
+  Future<DataError?> addProduct(int productId, int? livePrice) =>
+      _sessionAction(
+        guard: (s) =>
+            !s.isOver && !s.products.any((p) => p.productId == productId),
         refusal: 'Produk sudah ada di sesi ini, atau sesi sudah selesai.',
-        action: () =>
-            _live.addProduct(sessionId, productId: productId, livePrice: livePrice),
+        action: () => _live.addProduct(sessionId,
+            productId: productId, livePrice: livePrice),
       );
 
   Future<DataError?> pin(int productId) => _sessionAction(

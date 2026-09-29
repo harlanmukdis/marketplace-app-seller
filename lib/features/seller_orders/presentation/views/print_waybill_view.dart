@@ -195,8 +195,8 @@ class _PrintWaybillViewState extends State<PrintWaybillView> {
                 Row(
                   children: <Widget>[
                     Expanded(
-                      child: Text('Metode Penyerahan Paket',
-                          style: XText.titleL),
+                      child:
+                          Text('Metode Penyerahan Paket', style: XText.titleL),
                     ),
                     Text('Pilih salah satu', style: XText.caption),
                   ],
@@ -468,11 +468,13 @@ class _SecurePlusCard extends StatelessWidget {
                 for (final e in evidence)
                   InputChip(
                     avatar: Icon(
-                      e.isVideo ? Icons.videocam_outlined : Icons.photo_outlined,
+                      e.isVideo
+                          ? Icons.videocam_outlined
+                          : Icons.photo_outlined,
                       size: 18,
                     ),
-                    label: Text(e.isVideo ? 'Video' : 'Foto',
-                        style: XText.labelM),
+                    label:
+                        Text(e.isVideo ? 'Video' : 'Foto', style: XText.labelM),
                     onDeleted: busy ? null : () => onRemove(e),
                   ),
               ],

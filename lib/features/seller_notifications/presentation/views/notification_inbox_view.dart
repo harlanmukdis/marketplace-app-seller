@@ -8,7 +8,6 @@ import '../../../../core/domain/model/notification/app_notification.dart';
 import '../../../../core/domain/repositories/staff_repository.dart';
 import '../../../../di/injector.dart';
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
@@ -16,6 +15,7 @@ import '../../../../core/widgets/state_widgets.dart';
 import '../../../seller_home/presentation/views/widgets/section_card.dart';
 import '../cubits/notification_cubit/notification_cubit.dart';
 import 'widgets/notification_preferences_sheet.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// The account's notifications.
 ///
@@ -157,8 +157,7 @@ class _NotificationInboxBody extends StatelessWidget {
                 Expanded(
                   child: Text(
                     '${state.unreadCount} belum dibaca',
-                    style: AppStyles.styleRegular12(context)
-                        .copyWith(color: kLightThirdColor),
+                    style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
                   ),
                 ),
                 TextButton(
@@ -238,16 +237,13 @@ class _NotificationCard extends StatelessWidget {
               children: <Widget>[
                 Text(
                   notification.title,
-                  style: isUnread
-                      ? AppStyles.styleMedium14(context)
-                      : AppStyles.styleRegular14(context),
+                  style: isUnread ? XText.labelL : XText.bodyM,
                 ),
                 if (notification.body != null) ...<Widget>[
                   4.sbh,
                   Text(
                     notification.body!,
-                    style: AppStyles.styleRegular12(context)
-                        .copyWith(color: kLightThirdColor),
+                    style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
                   ),
                 ],
                 6.sbh,
@@ -256,8 +252,7 @@ class _NotificationCard extends StatelessWidget {
                     NotificationType.label(notification.type),
                     formatDateTime(notification.createdAt),
                   ].join(' · '),
-                  style: AppStyles.styleRegular10(context)
-                      .copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: kLightThirdColor),
                 ),
               ],
             ),

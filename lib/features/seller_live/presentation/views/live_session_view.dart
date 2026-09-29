@@ -63,7 +63,8 @@ class _Body extends StatelessWidget {
   Future<void> _addVoucher(BuildContext context, LiveSessionState s) async {
     final cubit = LiveSessionCubit.get(context);
     final taken = s.vouchers.map((v) => v.voucherId).toSet();
-    final choices = s.storeVouchers.where((v) => !taken.contains(v.id)).toList();
+    final choices =
+        s.storeVouchers.where((v) => !taken.contains(v.id)).toList();
     if (choices.isEmpty) {
       showSuccessSnackBar(context, 'Belum ada voucher toko untuk ditambahkan.');
       return;
@@ -98,7 +99,8 @@ class _Body extends StatelessWidget {
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.digitsOnly,
                 ],
-                decoration: const InputDecoration(labelText: 'Kuota selama live'),
+                decoration:
+                    const InputDecoration(labelText: 'Kuota selama live'),
               ),
             ],
           ),
@@ -150,8 +152,8 @@ class _Body extends StatelessWidget {
                         onAdd: session.isOver
                             ? null
                             : () => _addProduct(context, s),
-                        onPin: (id) =>
-                            _run(context, () => cubit.pin(id), 'Produk di-pin.'),
+                        onPin: (id) => _run(
+                            context, () => cubit.pin(id), 'Produk di-pin.'),
                       ),
                       const SizedBox(height: XSpace.cardGap),
                       _VouchersCard(
@@ -457,7 +459,8 @@ class _ProductPickerState extends State<_ProductPicker> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: SizedBox(
           height: MediaQuery.of(context).size.height * 0.7,

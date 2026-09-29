@@ -6,7 +6,6 @@ import '../../../../config/route/app_route_seller.dart';
 import '../../../../core/domain/model/merchandising/product_bundle.dart';
 import '../../../../core/domain/model/merchandising/store_showcase.dart';
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
@@ -16,6 +15,7 @@ import '../cubits/bundle_cubit/bundle_cubit.dart';
 import '../cubits/showcase_cubit/showcase_cubit.dart';
 import 'widgets/bundle_form_sheet.dart';
 import 'widgets/showcase_form_sheet.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// How the store groups its products: **bundles** sold as one, and
 /// **showcases** — the shop's own shelves.
@@ -84,8 +84,7 @@ class _MerchandisingBodyState extends State<_MerchandisingBody> {
     final state = cubit.state;
     final draft = await showShowcaseFormSheet(
       context,
-      defaultSortOrder:
-          state is ShowcaseLoaded ? state.nextSortOrder : 0,
+      defaultSortOrder: state is ShowcaseLoaded ? state.nextSortOrder : 0,
     );
     if (draft == null || !mounted) return;
 
@@ -108,9 +107,8 @@ class _MerchandisingBodyState extends State<_MerchandisingBody> {
       floatingActionButton: FloatingActionButton(
         onPressed:
             _tab == _MerchandisingTab.bundle ? _createBundle : _createShowcase,
-        tooltip: _tab == _MerchandisingTab.bundle
-            ? 'Bundel baru'
-            : 'Etalase baru',
+        tooltip:
+            _tab == _MerchandisingTab.bundle ? 'Bundel baru' : 'Etalase baru',
         child: const Icon(Icons.add),
       ),
       body: SafeArea(
@@ -192,7 +190,8 @@ class _BundleList extends StatelessWidget {
                   isBusy: state.isBusy,
                   onTap: () async {
                     final cubit = BundleCubit.get(context);
-                    await context.push(SellerRoutes.bundleDetailPath(bundle.id));
+                    await context
+                        .push(SellerRoutes.bundleDetailPath(bundle.id));
                     if (cubit.isClosed) return;
                     await cubit.load();
                   },
@@ -232,8 +231,7 @@ class _BundleCard extends StatelessWidget {
           Row(
             children: <Widget>[
               Expanded(
-                child:
-                    Text(bundle.name, style: AppStyles.styleMedium14(context)),
+                child: Text(bundle.name, style: XText.labelL),
               ),
               8.sbw,
               _StatusPill(isActive: bundle.isActive),
@@ -244,16 +242,14 @@ class _BundleCard extends StatelessWidget {
           6.sbh,
           Text(
             formatRupiah(bundle.bundlePrice),
-            style: AppStyles.styleSemiBold18(context)
-                .copyWith(color: kLightPrimaryColor),
+            style: XText.headingM.copyWith(color: kLightPrimaryColor),
           ),
           if (!bundle.isActive) ...<Widget>[
             8.sbh,
             Text(
               'Nonaktif — isinya juga tidak bisa dibaca selama begini, '
               'karena API hanya melayani bundel aktif.',
-              style: AppStyles.styleRegular10(context)
-                  .copyWith(color: kWarningColor),
+              style: XText.caption.copyWith(color: kWarningColor),
             ),
           ],
           8.sbh,
@@ -287,7 +283,7 @@ class _StatusPill extends StatelessWidget {
       ),
       child: Text(
         isActive ? 'Aktif' : 'Nonaktif',
-        style: AppStyles.styleRegular12(context).copyWith(color: color),
+        style: XText.bodySPrimary.copyWith(color: color),
       ),
     );
   }
@@ -396,14 +392,14 @@ class _ShowcaseList extends StatelessWidget {
                           children: <Widget>[
                             Text(
                               showcase.name,
-                              style: AppStyles.styleRegular14(context),
+                              style: XText.bodyM,
                             ),
                             2.sbh,
                             Text(
                               // The list carries no product count, so saying
                               // one would mean a call per showcase.
                               'Urutan ${showcase.sortOrder}',
-                              style: AppStyles.styleRegular10(context)
+                              style: XText.caption
                                   .copyWith(color: kLightThirdColor),
                             ),
                           ],

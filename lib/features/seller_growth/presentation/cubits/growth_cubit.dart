@@ -87,8 +87,8 @@ class GrowthCubit extends Cubit<GrowthState> {
       return;
     }
     emit(GrowthLoaded(products: products));
-    final initial = initialProductId ??
-        (products.isEmpty ? null : products.first.id);
+    final initial =
+        initialProductId ?? (products.isEmpty ? null : products.first.id);
     if (initial != null) await select(initial);
   }
 

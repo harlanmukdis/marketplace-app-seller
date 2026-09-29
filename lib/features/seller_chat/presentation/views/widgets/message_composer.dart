@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/function/components.dart';
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 /// The write box.
 ///
@@ -74,11 +74,10 @@ class _MessageComposerState extends State<MessageComposer> {
                 maxLines: 4,
                 textInputAction: TextInputAction.newline,
                 keyboardType: TextInputType.multiline,
-                style: AppStyles.styleRegular14(context),
+                style: XText.bodyM,
                 decoration: InputDecoration(
                   hintText: 'Tulis balasan…',
-                  hintStyle: AppStyles.styleRegular14(context)
-                      .copyWith(color: kLightThirdColor),
+                  hintStyle: XText.bodyM.copyWith(color: kLightThirdColor),
                   filled: true,
                   fillColor: isDark ? kDarkColor : const Color(0xffF6F7FB),
                   contentPadding:

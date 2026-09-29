@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/route/app_route_seller.dart';
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/widgets/state_widgets.dart';
@@ -14,6 +13,7 @@ import 'widgets/flash_sale_card.dart';
 import 'widgets/flash_sale_form_sheet.dart';
 import 'widgets/voucher_card.dart';
 import 'widgets/voucher_form_sheet.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// The store's promotions: vouchers and flash sales.
 ///
@@ -113,12 +113,10 @@ class _PromotionBodyState extends State<_PromotionBody> {
     return Scaffold(
       appBar: customAppBar(context, 'Promosi'),
       floatingActionButton: FloatingActionButton(
-        onPressed: _tab == _PromotionTab.voucher
-            ? _createVoucher
-            : _createFlashSale,
-        tooltip: _tab == _PromotionTab.voucher
-            ? 'Voucher baru'
-            : 'Flash sale baru',
+        onPressed:
+            _tab == _PromotionTab.voucher ? _createVoucher : _createFlashSale,
+        tooltip:
+            _tab == _PromotionTab.voucher ? 'Voucher baru' : 'Flash sale baru',
         child: const Icon(Icons.add),
       ),
       body: SafeArea(
@@ -180,7 +178,7 @@ class _OneWayNotice extends StatelessWidget {
               size: 16, color: kLightPrimaryColor),
           8.sbw,
           Expanded(
-            child: Text(message, style: AppStyles.styleRegular12(context)),
+            child: Text(message, style: XText.bodySPrimary),
           ),
         ],
       ),

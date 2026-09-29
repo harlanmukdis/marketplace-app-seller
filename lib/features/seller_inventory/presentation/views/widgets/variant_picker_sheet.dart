@@ -5,12 +5,12 @@ import '../../../../../core/domain/model/catalog/product.dart';
 import '../../../../../core/domain/model/catalog/product_variant.dart';
 import '../../../../../core/domain/repositories/auth_repository.dart';
 import '../../../../../core/domain/repositories/catalog_repository.dart';
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/widgets/state_widgets.dart';
 import '../../../../../di/injector.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 /// The variant a stock movement will apply to.
 class PickedVariant {
@@ -118,7 +118,7 @@ class _VariantPickerState extends State<_VariantPicker> {
                 Expanded(
                   child: Text(
                     _openProduct == null ? 'Pilih produk' : 'Pilih varian',
-                    style: AppStyles.styleSemiBold18(context),
+                    style: XText.headingM,
                   ),
                 ),
               ],
@@ -155,11 +155,10 @@ class _VariantPickerState extends State<_VariantPicker> {
         final product = products[index];
         return ListTile(
           contentPadding: EdgeInsets.zero,
-          title: Text(product.name, style: AppStyles.styleRegular14(context)),
+          title: Text(product.name, style: XText.bodyM),
           subtitle: Text(
             ProductStatus.label(product.status),
-            style: AppStyles.styleRegular10(context)
-                .copyWith(color: kLightThirdColor),
+            style: XText.caption.copyWith(color: kLightThirdColor),
           ),
           trailing: const Icon(Icons.chevron_right, size: 18),
           onTap: () => _openVariants(product),
@@ -186,12 +185,11 @@ class _VariantPickerState extends State<_VariantPicker> {
             variant.optionsLabel.isEmpty
                 ? 'Varian bawaan'
                 : variant.optionsLabel,
-            style: AppStyles.styleRegular14(context),
+            style: XText.bodyM,
           ),
           subtitle: Text(
             '${variant.sku} · ${formatRupiah(variant.price)}',
-            style: AppStyles.styleRegular10(context)
-                .copyWith(color: kLightThirdColor),
+            style: XText.caption.copyWith(color: kLightThirdColor),
           ),
           onTap: () => Navigator.of(context).pop(
             PickedVariant(variant: variant, productName: product.name),

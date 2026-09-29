@@ -23,7 +23,8 @@ class VerificationCubit extends Cubit<VerificationState> {
   static VerificationCubit get(BuildContext context) =>
       BlocProvider.of(context);
 
-  final VerificationRepository _verification = injector<VerificationRepository>();
+  final VerificationRepository _verification =
+      injector<VerificationRepository>();
   final AuthRepository _auth = injector<AuthRepository>();
 
   int? get storeId => _auth.activeStoreId;

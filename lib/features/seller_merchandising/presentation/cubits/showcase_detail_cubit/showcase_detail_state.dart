@@ -34,8 +34,7 @@ final class ShowcaseDetailLoaded extends ShowcaseDetailState {
 
   final bool isBusy;
 
-  Set<int> get productIds =>
-      products.map((product) => product.id).toSet();
+  Set<int> get productIds => products.map((product) => product.id).toSet();
 
   ShowcaseDetailLoaded copyWith({
     StoreShowcase? showcase,

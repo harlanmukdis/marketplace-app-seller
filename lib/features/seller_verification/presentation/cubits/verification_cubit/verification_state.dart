@@ -43,7 +43,8 @@ final class VerificationLoaded extends VerificationState {
   /// everything already uploaded.
   bool get canResubmit => verification.isRejected;
 
-  VerificationLoaded copyWith({StoreVerification? verification, bool? isBusy}) =>
+  VerificationLoaded copyWith(
+          {StoreVerification? verification, bool? isBusy}) =>
       VerificationLoaded(
         verification ?? this.verification,
         isBusy: isBusy ?? this.isBusy,

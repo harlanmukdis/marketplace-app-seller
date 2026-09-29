@@ -97,7 +97,8 @@ class _CoverageSheetState extends State<_CoverageSheet> {
     final valid = !restricted || _locations.isNotEmpty;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(XSpace.screen),

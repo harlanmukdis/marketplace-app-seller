@@ -100,14 +100,12 @@ class _SupportBody extends StatelessWidget {
                               height: 44,
                               decoration: BoxDecoration(
                                 color: XColors.brandSubtle,
-                                borderRadius:
-                                    BorderRadius.circular(XRadius.md),
+                                borderRadius: BorderRadius.circular(XRadius.md),
                               ),
                               child: Icon(_icon(c), color: XColors.primary),
                             ),
                             const SizedBox(height: XSpace.s12),
-                            Text(SupportCategory.label(c),
-                                style: XText.titleM),
+                            Text(SupportCategory.label(c), style: XText.titleM),
                             const SizedBox(height: XSpace.s4),
                             Expanded(
                               child: Text(
@@ -205,7 +203,8 @@ class _TicketCard extends StatelessWidget {
               Expanded(
                 child: Text('#${ticket.ticketNumber}', style: XText.overline),
               ),
-              XChip(label: SupportTicketStatus.label(ticket.status), tone: tone),
+              XChip(
+                  label: SupportTicketStatus.label(ticket.status), tone: tone),
             ],
           ),
           const SizedBox(height: XSpace.s8),
@@ -259,7 +258,8 @@ class _NewTicketSheetState extends State<_NewTicketSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(XSpace.screen),
@@ -301,9 +301,8 @@ class _NewTicketSheetState extends State<_NewTicketSheet> {
                     hintText: 'Sertakan nomor pesanan bila ada.',
                     alignLabelWithHint: true,
                   ),
-                  validator: (v) => (v ?? '').trim().isEmpty
-                      ? 'Deskripsi wajib diisi'
-                      : null,
+                  validator: (v) =>
+                      (v ?? '').trim().isEmpty ? 'Deskripsi wajib diisi' : null,
                 ),
                 const SizedBox(height: XSpace.s20),
                 XButton(

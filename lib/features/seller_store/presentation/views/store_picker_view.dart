@@ -6,12 +6,12 @@ import '../../../../config/route/app_route_seller.dart';
 import '../../../../core/domain/model/store/store.dart';
 import '../../../../core/function/components.dart';
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../../../seller_home/presentation/views/widgets/section_card.dart';
 import '../cubits/store_cubit/store_cubit.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// Which of the account's stores the app is acting as.
 ///
@@ -78,13 +78,13 @@ class StorePickerView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(store.name, style: AppStyles.styleMedium16(context)),
+                    Text(store.name, style: XText.titleL),
                     4.sbh,
                     Text(
                       '${StoreType.label(store.type)} · '
                       '${StoreStatus.label(store.status)}',
-                      style: AppStyles.styleRegular12(context)
-                          .copyWith(color: kLightThirdColor),
+                      style:
+                          XText.bodySPrimary.copyWith(color: kLightThirdColor),
                     ),
                   ],
                 ),

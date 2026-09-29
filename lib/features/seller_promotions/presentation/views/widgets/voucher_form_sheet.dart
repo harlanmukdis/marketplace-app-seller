@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/domain/model/promotion/store_voucher.dart';
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/utils/validators.dart';
 import '../../../../../core/widgets/app_dropdown_field.dart';
 import '../../../../../core/widgets/custom_text_form_field.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 class VoucherDraft {
   const VoucherDraft({
@@ -80,8 +80,7 @@ class _VoucherFormSheetState extends State<_VoucherFormSheet> {
 
   /// Free shipping and cashback still need a value — the column is `NOT NULL`
   /// and the model reads it without a fallback.
-  String get _valueLabel =>
-      _isPercentage ? 'Besar diskon (%)' : 'Nilai (Rp)';
+  String get _valueLabel => _isPercentage ? 'Besar diskon (%)' : 'Nilai (Rp)';
 
   @override
   void dispose() {
@@ -138,8 +137,7 @@ class _VoucherFormSheetState extends State<_VoucherFormSheet> {
         validFrom: _from,
         validUntil: DateTime(_until.year, _until.month, _until.day, 23, 59, 59),
         code: _code.text.trim().toUpperCase(),
-        maxDiscount:
-            _isPercentage ? parseRupiahInput(_maxDiscount.text) : null,
+        maxDiscount: _isPercentage ? parseRupiahInput(_maxDiscount.text) : null,
         minSpend: parseRupiahInput(_minSpend.text) ?? 0,
         maxUsePerUser: parseRupiahInput(_maxPerUser.text) ?? 1,
       ),
@@ -160,14 +158,13 @@ class _VoucherFormSheetState extends State<_VoucherFormSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('Voucher baru', style: AppStyles.styleSemiBold18(context)),
+              Text('Voucher baru', style: XText.headingM),
               4.sbh,
               Text(
                 'Voucher tidak bisa diubah, dijeda, atau dihapus setelah '
                 'dibuat — API-nya tidak menyediakan jalan itu. Periksa dulu '
                 'sebelum mengirim.',
-                style: AppStyles.styleRegular10(context)
-                    .copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: kLightThirdColor),
               ),
               16.sbh,
               CustomTextFormField(
@@ -186,8 +183,7 @@ class _VoucherFormSheetState extends State<_VoucherFormSheet> {
                 'Dikosongkan berarti server yang membuatkan kodenya. Kode '
                 'harus unik di seluruh marketplace, termasuk terhadap toko '
                 'lain yang tidak bisa dilihat dari sini.',
-                style: AppStyles.styleRegular10(context)
-                    .copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: kLightThirdColor),
               ),
               20.sbh,
               AppDropdownField<String>(
@@ -237,7 +233,7 @@ class _VoucherFormSheetState extends State<_VoucherFormSheet> {
                 validator: Validators.positiveAmount('Batas per pembeli'),
               ),
               20.sbh,
-              Text('Masa berlaku', style: AppStyles.styleMedium14(context)),
+              Text('Masa berlaku', style: XText.labelL),
               8.sbh,
               Row(
                 children: <Widget>[
@@ -301,7 +297,7 @@ class _DateField extends StatelessWidget {
         ),
         child: Text(
           formatDate(value),
-          style: AppStyles.styleRegular14(context),
+          style: XText.bodyM,
         ),
       ),
     );

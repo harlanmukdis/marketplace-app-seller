@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/domain/model/promotion/flash_sale.dart';
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../seller_home/presentation/views/widgets/section_card.dart';
 import 'promotion_pill.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 /// One flash sale in the store's list. Tappable, because a sale does have
 /// contents to open — unlike a voucher.
@@ -32,7 +32,7 @@ class FlashSaleCard extends StatelessWidget {
           Row(
             children: <Widget>[
               Expanded(
-                child: Text(sale.name, style: AppStyles.styleMedium14(context)),
+                child: Text(sale.name, style: XText.labelL),
               ),
               8.sbw,
               PromotionPill.flashSale(phase),
@@ -43,8 +43,7 @@ class FlashSaleCard extends StatelessWidget {
           8.sbh,
           Text(
             '${formatDateTime(sale.startAt)} – ${formatDateTime(sale.endAt)}',
-            style: AppStyles.styleRegular12(context)
-                .copyWith(color: kLightThirdColor),
+            style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
           ),
           if (phase == FlashSalePhase.stalled) ...<Widget>[
             10.sbh,
@@ -93,7 +92,7 @@ class _StalledNotice extends StatelessWidget {
               'ini. Status dipindahkan oleh proses terjadwal di server dan '
               'tidak ada tombol untuk memaksanya. Kalau tetap begini, buat '
               'flash sale baru yang waktu mulainya sudah lewat.',
-              style: AppStyles.styleRegular12(context),
+              style: XText.bodySPrimary,
             ),
           ),
         ],
@@ -124,7 +123,7 @@ class _ImpossibleWindowNotice extends StatelessWidget {
             child: Text(
               'Waktu berakhirnya lebih awal dari waktu mulai, jadi flash sale '
               'ini tidak akan pernah berjalan.',
-              style: AppStyles.styleRegular12(context),
+              style: XText.bodySPrimary,
             ),
           ),
         ],

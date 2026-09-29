@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/domain/model/promotion/flash_sale.dart';
 import '../../../../core/domain/model/promotion/flash_sale_product.dart';
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
@@ -13,6 +12,7 @@ import '../../../seller_home/presentation/views/widgets/section_card.dart';
 import '../cubits/flash_sale_detail_cubit/flash_sale_detail_cubit.dart';
 import 'widgets/flash_sale_product_sheet.dart';
 import 'widgets/promotion_pill.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// What is inside one flash sale, and the only way to put something there.
 ///
@@ -118,7 +118,7 @@ class _FlashSaleDetailBody extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 sale.name,
-                                style: AppStyles.styleSemiBold18(context),
+                                style: XText.headingM,
                               ),
                             ),
                             8.sbw,
@@ -143,13 +143,12 @@ class _FlashSaleDetailBody extends StatelessWidget {
                     const _StalledBanner(),
                   ],
                   20.sbh,
-                  Text('Produk', style: AppStyles.styleMedium14(context)),
+                  Text('Produk', style: XText.labelL),
                   4.sbh,
                   Text(
                     'Kuota di sini milik flash sale, terpisah dari stok gudang '
                     '— tidak ada yang mencocokkan keduanya.',
-                    style: AppStyles.styleRegular10(context)
-                        .copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: kLightThirdColor),
                   ),
                   12.sbh,
                   if (state.products.isEmpty)
@@ -197,7 +196,7 @@ class _StalledBanner extends StatelessWidget {
               '"active" — dan pembeli hanya melihat harga flash sale kalau '
               'kedua-duanya terpenuhi. Menambah produk ke sini sekarang tidak '
               'akan mengubah harga yang dilihat pembeli.',
-              style: AppStyles.styleRegular12(context),
+              style: XText.bodySPrimary,
             ),
           ),
         ],
@@ -217,26 +216,24 @@ class _ProductRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(row.productName, style: AppStyles.styleMedium14(context)),
+          Text(row.productName, style: XText.labelL),
           2.sbh,
           Text(
             row.sku,
-            style: AppStyles.styleRegular10(context)
-                .copyWith(color: kLightThirdColor),
+            style: XText.caption.copyWith(color: kLightThirdColor),
           ),
           12.sbh,
           Row(
             children: <Widget>[
               Text(
                 formatRupiah(row.flashPrice),
-                style: AppStyles.styleSemiBold18(context)
-                    .copyWith(color: kLightPrimaryColor),
+                style: XText.headingM.copyWith(color: kLightPrimaryColor),
               ),
               8.sbw,
               if (row.isDiscounted) ...<Widget>[
                 Text(
                   formatRupiah(row.originalPrice),
-                  style: AppStyles.styleRegular12(context).copyWith(
+                  style: XText.bodySPrimary.copyWith(
                     color: kLightThirdColor,
                     decoration: TextDecoration.lineThrough,
                   ),
@@ -244,8 +241,7 @@ class _ProductRow extends StatelessWidget {
                 8.sbw,
                 Text(
                   '-${row.discountPercent}%',
-                  style: AppStyles.styleRegular12(context)
-                      .copyWith(color: kSuccessColor),
+                  style: XText.bodySPrimary.copyWith(color: kSuccessColor),
                 ),
               ] else
                 // The server accepts a "discount" that is not one, so it has
@@ -254,8 +250,7 @@ class _ProductRow extends StatelessWidget {
                   child: Text(
                     'Tidak lebih murah dari harga normal '
                     '(${formatRupiah(row.originalPrice)})',
-                    style: AppStyles.styleRegular12(context)
-                        .copyWith(color: kWarningColor),
+                    style: XText.bodySPrimary.copyWith(color: kWarningColor),
                   ),
                 ),
             ],

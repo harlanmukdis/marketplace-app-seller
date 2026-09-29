@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/utils/validators.dart';
 import '../../../../../core/widgets/custom_text_form_field.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 /// What the sheet collected. Null from [showVariantSheet] means cancelled.
 class VariantDraft {
@@ -100,7 +100,7 @@ class _VariantSheetState extends State<_VariantSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('Varian baru', style: AppStyles.styleSemiBold18(context)),
+              Text('Varian baru', style: XText.headingM),
               16.sbh,
               CustomTextFormField(
                 controller: _skuController,
@@ -125,18 +125,19 @@ class _VariantSheetState extends State<_VariantSheet> {
                 validator: Validators.optionalAmount,
               ),
               20.sbh,
-              Text('Opsi', style: AppStyles.styleMedium14(context)),
+              Text('Opsi', style: XText.labelL),
               4.sbh,
               Text(
                 'Misalnya warna: merah, ukuran: L. Kosongkan kalau varian ini '
                 'tidak punya opsi.',
-                style: AppStyles.styleRegular10(context)
-                    .copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: kLightThirdColor),
               ),
               12.sbh,
-              _OptionRow(keyController: _optionKey1, valueController: _optionValue1),
+              _OptionRow(
+                  keyController: _optionKey1, valueController: _optionValue1),
               12.sbh,
-              _OptionRow(keyController: _optionKey2, valueController: _optionValue2),
+              _OptionRow(
+                  keyController: _optionKey2, valueController: _optionValue2),
               24.sbh,
               FilledButton(
                 onPressed: _submit,
@@ -155,7 +156,8 @@ class _VariantSheetState extends State<_VariantSheet> {
 }
 
 class _OptionRow extends StatelessWidget {
-  const _OptionRow({required this.keyController, required this.valueController});
+  const _OptionRow(
+      {required this.keyController, required this.valueController});
 
   final TextEditingController keyController;
   final TextEditingController valueController;

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/domain/model/inventory/warehouse.dart';
 import '../../../../../core/domain/model/location/master_location.dart';
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/validators.dart';
 import '../../../../../core/widgets/app_dropdown_field.dart';
 import '../../../../../core/widgets/custom_text_form_field.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 /// What the sheet collected. Null from [showWarehouseSheet] means cancelled.
 class WarehouseDraft {
@@ -132,8 +132,7 @@ class _WarehouseSheetState extends State<_WarehouseSheet> {
     setState(() {
       _selectedProvince = province;
       _selectedCity = null;
-      _citiesFuture =
-          province == null ? null : widget.citiesOf(province.id);
+      _citiesFuture = province == null ? null : widget.citiesOf(province.id);
     });
   }
 
@@ -161,8 +160,7 @@ class _WarehouseSheetState extends State<_WarehouseSheet> {
         // The text columns are filled either way — from the chosen row when
         // the master list was used, from the box when it was not.
         city: _isFreeText ? _city.text.trim() : _selectedCity!.name,
-        province:
-            _isFreeText ? _province.text.trim() : _selectedProvince!.name,
+        province: _isFreeText ? _province.text.trim() : _selectedProvince!.name,
         postalCode: _postalCode.text.trim(),
         cityId: _isFreeText ? null : _selectedCity!.id,
         status: _isEditing ? _status : null,
@@ -186,15 +184,14 @@ class _WarehouseSheetState extends State<_WarehouseSheet> {
             children: <Widget>[
               Text(
                 _isEditing ? 'Ubah gudang' : 'Gudang baru',
-                style: AppStyles.styleSemiBold18(context),
+                style: XText.headingM,
               ),
               if (!_isEditing) ...<Widget>[
                 8.sbh,
                 Text(
                   'Gudang pertama otomatis jadi gudang utama — itu keputusan '
                   'server, bukan pilihan di sini.',
-                  style: AppStyles.styleRegular10(context)
-                      .copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: kLightThirdColor),
                 ),
               ],
               16.sbh,
@@ -293,8 +290,7 @@ class _WarehouseSheetState extends State<_WarehouseSheet> {
               Text(
                 'Daftar wilayah tidak bisa dimuat. Ketik kota dan provinsi '
                 'secara manual.',
-                style: AppStyles.styleRegular12(context)
-                    .copyWith(color: kWarningColor),
+                style: XText.bodySPrimary.copyWith(color: kWarningColor),
               ),
               12.sbh,
               _freeTextPlace(context),
@@ -377,8 +373,7 @@ class _FreeTextToggle extends StatelessWidget {
             Expanded(
               child: Text(
                 'Kota saya tidak ada di daftar — ketik manual',
-                style: AppStyles.styleRegular12(context)
-                    .copyWith(color: kLightThirdColor),
+                style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
               ),
             ),
           ],

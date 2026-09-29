@@ -146,8 +146,10 @@ class NotificationCubit extends Cubit<NotificationState> {
 
     return switch (result) {
       DataSuccess<List<NotificationPreference>>(:final value) => (null, value),
-      DataEmpty<List<NotificationPreference>>() =>
-        (null, const <NotificationPreference>[]),
+      DataEmpty<List<NotificationPreference>>() => (
+          null,
+          const <NotificationPreference>[]
+        ),
       DataFailed<List<NotificationPreference>>(:final failure) => (
           failure,
           const <NotificationPreference>[]

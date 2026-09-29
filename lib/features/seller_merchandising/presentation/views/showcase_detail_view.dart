@@ -4,13 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/domain/model/catalog/product.dart';
 import '../../../../core/domain/model/merchandising/store_showcase.dart';
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../../../seller_home/presentation/views/widgets/section_card.dart';
 import '../cubits/showcase_detail_cubit/showcase_detail_cubit.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// What is on one showcase, and how to change it.
 ///
@@ -113,15 +113,13 @@ class _ShowcaseDetailBody extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Text(state.showcase.name,
-                      style: AppStyles.styleSemiBold18(context)),
+                  Text(state.showcase.name, style: XText.headingM),
                   4.sbh,
                   Text(
                     'Hanya produk aktif yang tampil di sini. Produk draf tetap '
                     'bisa dimasukkan, tapi tidak akan pernah muncul sampai '
                     'produknya diaktifkan.',
-                    style: AppStyles.styleRegular10(context)
-                        .copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: kLightThirdColor),
                   ),
                   16.sbh,
                   if (state.products.isEmpty)
@@ -171,7 +169,7 @@ class _ShowcaseProductCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(product.name, style: AppStyles.styleRegular14(context)),
+                Text(product.name, style: XText.bodyM),
                 2.sbh,
                 Text(
                   <String>[
@@ -180,8 +178,7 @@ class _ShowcaseProductCard extends StatelessWidget {
                       '${product.ratingAvg.toStringAsFixed(1)} '
                           '(${product.ratingCount})',
                   ].join(' · '),
-                  style: AppStyles.styleRegular10(context)
-                      .copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: kLightThirdColor),
                 ),
               ],
             ),
@@ -224,8 +221,7 @@ class _ProductPickerSheet extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('Tambah produk',
-                  style: AppStyles.styleSemiBold18(context)),
+              Text('Tambah produk', style: XText.headingM),
               12.sbh,
               Flexible(
                 child: FutureBuilder<List<Product>>(
@@ -257,14 +253,14 @@ class _ProductPickerSheet extends StatelessWidget {
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             product.name,
-                            style: AppStyles.styleRegular14(context),
+                            style: XText.bodyM,
                           ),
                           subtitle: Text(
                             product.isDraft
                                 ? '${formatRupiah(product.basePrice)} · draf — '
                                     'tidak akan tampil sampai diaktifkan'
                                 : formatRupiah(product.basePrice),
-                            style: AppStyles.styleRegular10(context).copyWith(
+                            style: XText.caption.copyWith(
                               color: product.isDraft
                                   ? kWarningColor
                                   : kLightThirdColor,

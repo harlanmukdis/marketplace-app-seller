@@ -77,16 +77,14 @@ class _SellerRegisterBodyState extends State<_SellerRegisterBody> {
     return BlocBuilder<SellerAuthCubit, SellerAuthState>(
       builder: (context, state) => AuthLayout(
         isRegister: true,
-        onSwitch: () => context.canPop()
-            ? context.pop()
-            : context.go(SellerRoutes.login),
+        onSwitch: () =>
+            context.canPop() ? context.pop() : context.go(SellerRoutes.login),
         actionLabel: 'Lanjutkan Registrasi',
         busy: state is SellerAuthInProgress,
         onAction: _submit,
         footer: TextButton(
-          onPressed: () => context.canPop()
-              ? context.pop()
-              : context.go(SellerRoutes.login),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go(SellerRoutes.login),
           child: Text.rich(
             TextSpan(
               children: <InlineSpan>[

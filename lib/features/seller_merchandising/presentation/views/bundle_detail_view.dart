@@ -3,13 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/domain/model/merchandising/product_bundle.dart';
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../../../seller_home/presentation/views/widgets/section_card.dart';
 import '../cubits/bundle_detail_cubit/bundle_detail_cubit.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// One bundle: what is in it, and what it saves.
 ///
@@ -88,8 +88,7 @@ class _BundleDetailBody extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(bundle.name,
-                            style: AppStyles.styleSemiBold18(context)),
+                        Text(bundle.name, style: XText.headingM),
                         8.sbh,
                         StatRow(
                           label: 'Harga bundel',
@@ -100,8 +99,8 @@ class _BundleDetailBody extends StatelessWidget {
                           label: 'Status',
                           value: BundleStatus.label(bundle.status),
                         ),
-                        if (!state.itemsAreHidden && bundle.items.isNotEmpty)
-                          ...<Widget>[
+                        if (!state.itemsAreHidden &&
+                            bundle.items.isNotEmpty) ...<Widget>[
                           StatRow(
                             label: 'Bila dibeli satuan',
                             value: formatRupiah(bundle.itemsTotal),
@@ -133,14 +132,13 @@ class _BundleDetailBody extends StatelessWidget {
                     ),
                   ),
                   20.sbh,
-                  Text('Isi bundel', style: AppStyles.styleMedium14(context)),
+                  Text('Isi bundel', style: XText.labelL),
                   4.sbh,
                   Text(
                     'Isi tidak bisa diubah — tidak ada endpoint untuk '
                     'menambah atau mengeluarkan produk dari bundel yang sudah '
                     'jadi.',
-                    style: AppStyles.styleRegular10(context)
-                        .copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: kLightThirdColor),
                   ),
                   12.sbh,
                   if (state.itemsAreHidden)
@@ -195,7 +193,7 @@ class _HiddenItemsNotice extends StatelessWidget {
               'API hanya melayani bundel yang aktif, termasuk untuk '
               'pemiliknya sendiri. Isinya tidak hilang: aktifkan kembali dan '
               'daftarnya muncul lagi.',
-              style: AppStyles.styleRegular12(context),
+              style: XText.bodySPrimary,
             ),
           ),
         ],
@@ -218,16 +216,14 @@ class _ItemRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(item.productName,
-                    style: AppStyles.styleRegular14(context)),
+                Text(item.productName, style: XText.bodyM),
                 2.sbh,
                 Text(
                   <String>[
                     '${item.quantity} ×  ${formatRupiah(item.unitPrice)}',
                     if (item.variantId != null) 'varian #${item.variantId}',
                   ].join(' · '),
-                  style: AppStyles.styleRegular10(context)
-                      .copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: kLightThirdColor),
                 ),
               ],
             ),
@@ -235,7 +231,7 @@ class _ItemRow extends StatelessWidget {
           12.sbw,
           Text(
             formatRupiah(item.lineTotal),
-            style: AppStyles.styleMedium14(context),
+            style: XText.labelL,
           ),
         ],
       ),

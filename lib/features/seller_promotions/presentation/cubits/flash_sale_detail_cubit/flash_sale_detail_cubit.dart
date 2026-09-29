@@ -78,7 +78,8 @@ class FlashSaleDetailCubit extends Cubit<FlashSaleDetailState> {
       case DataSuccess<List<FlashSaleProduct>>(:final value):
         emit(FlashSaleDetailLoaded(sale: sale, products: value));
       case DataEmpty<List<FlashSaleProduct>>():
-        emit(FlashSaleDetailLoaded(sale: sale, products: const <FlashSaleProduct>[]));
+        emit(FlashSaleDetailLoaded(
+            sale: sale, products: const <FlashSaleProduct>[]));
       case DataFailed<List<FlashSaleProduct>>(:final failure):
         emit(FlashSaleDetailFailure(failure));
       default:

@@ -344,11 +344,12 @@ class _LedgerState extends State<_Ledger> {
 
   @override
   Widget build(BuildContext context) {
-    final rows = widget.state.wallet.transactions.where((t) => switch (_filter) {
-          _LedgerFilter.all => true,
-          _LedgerFilter.credit => t.isCredit,
-          _LedgerFilter.debit => !t.isCredit,
-        });
+    final rows =
+        widget.state.wallet.transactions.where((t) => switch (_filter) {
+              _LedgerFilter.all => true,
+              _LedgerFilter.credit => t.isCredit,
+              _LedgerFilter.debit => !t.isCredit,
+            });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -368,9 +369,8 @@ class _LedgerState extends State<_Ledger> {
                 selected: _filter == f,
                 showCheckmark: false,
                 labelStyle: XText.labelM.copyWith(
-                  color: _filter == f
-                      ? XColors.textOnBrand
-                      : XColors.textPrimary,
+                  color:
+                      _filter == f ? XColors.textOnBrand : XColors.textPrimary,
                 ),
                 selectedColor: XColors.primary,
                 backgroundColor: XColors.surface,

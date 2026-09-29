@@ -198,8 +198,8 @@ class _GrowthBodyState extends State<_GrowthBody> {
                                 ),
                         ),
                         Text('Ganti',
-                            style: XText.labelL
-                                .copyWith(color: XColors.primary)),
+                            style:
+                                XText.labelL.copyWith(color: XColors.primary)),
                         Icon(Icons.chevron_right, color: XColors.primary),
                       ],
                     ),
@@ -436,8 +436,7 @@ class _Report extends StatelessWidget {
                         textAlign: TextAlign.end, style: XText.overline),
                     Text('7 HARI TERAKHIR',
                         textAlign: TextAlign.end,
-                        style:
-                            XText.overline.copyWith(color: XColors.primary)),
+                        style: XText.overline.copyWith(color: XColors.primary)),
                   ],
                 ),
                 row('Unit Terjual', '${p.previous.unitsSold}',

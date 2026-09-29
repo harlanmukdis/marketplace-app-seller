@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../cubits/courier_cubit/courier_cubit.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// Which couriers the store ships with.
 ///
@@ -93,7 +93,7 @@ class _CourierBody extends StatelessWidget {
                             : 'Pembeli hanya bisa memilih kurir yang dicentang '
                                 'di sini. Menyimpan akan mengganti seluruh '
                                 'daftar, bukan menambah.',
-                        style: AppStyles.styleRegular12(context)
+                        style: XText.bodySPrimary
                             .copyWith(color: kLightThirdColor),
                       ),
                       16.sbh,
@@ -103,16 +103,16 @@ class _CourierBody extends StatelessWidget {
                           value: state.isSelected(courier.code),
                           onChanged: state.isBusy
                               ? null
-                              : (_) =>
-                                  CourierCubit.get(context).toggle(courier.code),
+                              : (_) => CourierCubit.get(context)
+                                  .toggle(courier.code),
                           title: Text(
                             courier.name,
-                            style: AppStyles.styleRegular14(context),
+                            style: XText.bodyM,
                           ),
                           subtitle: Text(
                             courier.code,
-                            style: AppStyles.styleRegular10(context)
-                                .copyWith(color: kLightThirdColor),
+                            style:
+                                XText.caption.copyWith(color: kLightThirdColor),
                           ),
                         ),
                     ],
@@ -128,8 +128,9 @@ class _CourierBody extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 560),
               child: FilledButton(
-                onPressed:
-                    state.isBusy || !state.isDirty ? null : () => _save(context),
+                onPressed: state.isBusy || !state.isDirty
+                    ? null
+                    : () => _save(context),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(52),
                 ),
@@ -177,7 +178,7 @@ class _AllCouriersNotice extends StatelessWidget {
             child: Text(
               'Belum ada batasan kurir, jadi pembeli bisa memilih semua kurir '
               'yang aktif di platform. Pengiriman tetap jalan.',
-              style: AppStyles.styleRegular12(context),
+              style: XText.bodySPrimary,
             ),
           ),
         ],

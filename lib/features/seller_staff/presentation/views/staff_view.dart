@@ -33,7 +33,10 @@ class StaffView extends StatelessWidget {
                 unselectedLabelColor: XColors.textSecondary,
                 indicatorColor: XColors.primary,
                 labelStyle: XText.labelL,
-                tabs: const <Widget>[Tab(text: 'Staf'), Tab(text: 'Peran & Izin')],
+                tabs: const <Widget>[
+                  Tab(text: 'Staf'),
+                  Tab(text: 'Peran & Izin')
+                ],
               ),
             ),
             body: s.loading
@@ -151,7 +154,8 @@ class _StaffTab extends StatelessWidget {
               ),
             const Divider(height: 1),
             ListTile(
-              leading: Icon(Icons.person_remove_outlined, color: XColors.danger),
+              leading:
+                  Icon(Icons.person_remove_outlined, color: XColors.danger),
               title: Text('Keluarkan dari toko',
                   style: XText.bodyM.copyWith(color: XColors.danger)),
               onTap: () => Navigator.of(sheet).pop('remove'),
@@ -311,7 +315,9 @@ class _RolesTab extends StatelessWidget {
             child: Row(
               children: <Widget>[
                 Icon(
-                  r.isOwner ? Icons.workspace_premium_outlined : Icons.badge_outlined,
+                  r.isOwner
+                      ? Icons.workspace_premium_outlined
+                      : Icons.badge_outlined,
                   color: XColors.primary,
                 ),
                 const SizedBox(width: XSpace.s12),
@@ -380,7 +386,8 @@ class _PermissionSheetState extends State<_PermissionSheet> {
             child: Row(
               children: <Widget>[
                 Expanded(
-                  child: Text('Izin ${widget.role.name}', style: XText.headingM),
+                  child:
+                      Text('Izin ${widget.role.name}', style: XText.headingM),
                 ),
                 Text('${_on.length} dipilih', style: XText.caption),
               ],
@@ -390,7 +397,8 @@ class _PermissionSheetState extends State<_PermissionSheet> {
             child: ListView(
               controller: controller,
               children: <Widget>[
-                for (final group in StaffPermissions.groups.entries) ...<Widget>[
+                for (final group
+                    in StaffPermissions.groups.entries) ...<Widget>[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
                       XSpace.screen,

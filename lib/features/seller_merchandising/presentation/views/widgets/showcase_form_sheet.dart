@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/domain/model/merchandising/store_showcase.dart';
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/utils/validators.dart';
 import '../../../../../core/widgets/custom_text_form_field.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 class ShowcaseDraft {
   const ShowcaseDraft({required this.name, required this.sortOrder});
@@ -93,15 +93,14 @@ class _ShowcaseFormSheetState extends State<_ShowcaseFormSheet> {
             children: <Widget>[
               Text(
                 _isEditing ? 'Ubah etalase' : 'Etalase baru',
-                style: AppStyles.styleSemiBold18(context),
+                style: XText.headingM,
               ),
               4.sbh,
               Text(
                 'Etalase adalah pengelompokan versi toko sendiri, lepas dari '
                 'kategori platform — satu produk boleh masuk ke beberapa '
                 'etalase sekaligus.',
-                style: AppStyles.styleRegular10(context)
-                    .copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: kLightThirdColor),
               ),
               16.sbh,
               CustomTextFormField(
@@ -120,8 +119,7 @@ class _ShowcaseFormSheetState extends State<_ShowcaseFormSheet> {
               Text(
                 'Angka kecil tampil lebih dulu. Server mengizinkan angka yang '
                 'sama dan tidak menata ulang, jadi urutan kembar mungkin.',
-                style: AppStyles.styleRegular10(context)
-                    .copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: kLightThirdColor),
               ),
               24.sbh,
               FilledButton(

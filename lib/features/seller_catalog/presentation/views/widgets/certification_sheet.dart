@@ -88,7 +88,8 @@ class _CertificationSheetState extends State<_CertificationSheet> {
   Widget build(BuildContext context) {
     final ready = _number.text.trim().isNotEmpty && _document != null;
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(XSpace.screen),

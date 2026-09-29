@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/domain/model/promotion/flash_sale.dart';
 import '../../../../../core/domain/model/promotion/store_voucher.dart';
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 /// The state of a promotion, at a glance.
 ///
@@ -44,7 +44,7 @@ class PromotionPill extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppStyles.styleRegular12(context).copyWith(color: color),
+        style: XText.bodySPrimary.copyWith(color: color),
       ),
     );
   }

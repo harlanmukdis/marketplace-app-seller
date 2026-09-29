@@ -93,7 +93,8 @@ class StaffCubit extends Cubit<StaffState> {
         message: 'Email ini sudah menjadi staf atau sudah diundang.',
       );
     }
-    return _staffAction(() => _repo.invite(_storeId!, email: e, roleId: roleId));
+    return _staffAction(
+        () => _repo.invite(_storeId!, email: e, roleId: roleId));
   }
 
   Future<DataError?> changeRole(StaffMember m, int roleId) =>
@@ -110,7 +111,8 @@ class StaffCubit extends Cubit<StaffState> {
         message: 'Nama peran wajib diisi.',
       );
     }
-    final code = 'custom_${n.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}';
+    final code =
+        'custom_${n.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}';
     if (state.roles.any((r) => r.code == code)) {
       return const DataError(
         code: 'VALIDATION_ERROR',

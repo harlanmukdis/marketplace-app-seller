@@ -74,7 +74,8 @@ class OrderDetailCubit extends Cubit<OrderDetailState> {
     final latest = state;
     if (latest is OrderDetailLoaded) {
       emit(latest.copyWith(
-        shipment: tracking is DataSuccess<OrderShipment> ? tracking.value : null,
+        shipment:
+            tracking is DataSuccess<OrderShipment> ? tracking.value : null,
         evidence: evidence is DataSuccess<List<ShipmentEvidence>>
             ? evidence.value
             : null,

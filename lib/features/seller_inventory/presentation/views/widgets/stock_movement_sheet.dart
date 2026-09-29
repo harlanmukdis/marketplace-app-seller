@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/domain/model/inventory/warehouse_stock.dart';
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/validators.dart';
 import '../../../../../core/widgets/custom_text_form_field.dart';
 import 'variant_picker_sheet.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 /// Which ledger row the sheet is about to write.
 enum StockAction {
@@ -136,16 +136,14 @@ class _StockMovementSheetState extends State<_StockMovementSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text(widget.action.title,
-                  style: AppStyles.styleSemiBold18(context)),
+              Text(widget.action.title, style: XText.headingM),
               4.sbh,
               Text(
                 widget.action.hint,
-                style: AppStyles.styleRegular10(context)
-                    .copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: kLightThirdColor),
               ),
               16.sbh,
-              Text('Varian', style: AppStyles.styleMedium14(context)),
+              Text('Varian', style: XText.labelL),
               8.sbh,
               InkWell(
                 onTap: widget.stock != null ? null : _pickVariant,
@@ -163,10 +161,9 @@ class _StockMovementSheetState extends State<_StockMovementSheet> {
                       Expanded(
                         child: Text(
                           _variantLabel ?? 'Pilih varian',
-                          style: AppStyles.styleRegular14(context).copyWith(
-                            color: _variantLabel == null
-                                ? kLightThirdColor
-                                : null,
+                          style: XText.bodyM.copyWith(
+                            color:
+                                _variantLabel == null ? kLightThirdColor : null,
                           ),
                         ),
                       ),
@@ -182,16 +179,14 @@ class _StockMovementSheetState extends State<_StockMovementSheet> {
                   'Tersedia ${stock.quantityAvailable} dari '
                   '${stock.quantityOnHand} di gudang ini'
                   '${stock.quantityReserved > 0 ? ' — ${stock.quantityReserved} sedang direservasi checkout' : ''}.',
-                  style: AppStyles.styleRegular10(context)
-                      .copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: kLightThirdColor),
                 ),
               ],
               16.sbh,
               CustomTextFormField(
                 controller: _quantity,
-                labelText: _isAdjustment
-                    ? 'Selisih (boleh minus, mis. -2)'
-                    : 'Jumlah',
+                labelText:
+                    _isAdjustment ? 'Selisih (boleh minus, mis. -2)' : 'Jumlah',
                 keyboardType: TextInputType.text,
                 validator: (value) {
                   final text = (value ?? '').trim();

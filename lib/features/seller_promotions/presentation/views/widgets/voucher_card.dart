@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/domain/model/promotion/store_voucher.dart';
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../seller_home/presentation/views/widgets/section_card.dart';
 import 'promotion_pill.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 /// One voucher in the store's list.
 ///
@@ -29,7 +29,7 @@ class VoucherCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   voucher.name,
-                  style: AppStyles.styleMedium14(context),
+                  style: XText.labelL,
                 ),
               ),
               8.sbw,
@@ -47,15 +47,14 @@ class VoucherCard extends StatelessWidget {
                 ),
                 child: Text(
                   voucher.code,
-                  style: AppStyles.styleRegular12(context),
+                  style: XText.bodySPrimary,
                 ),
               ),
               8.sbw,
               Expanded(
                 child: Text(
                   VoucherDiscountType.label(voucher.discountType),
-                  style: AppStyles.styleRegular12(context)
-                      .copyWith(color: kLightThirdColor),
+                  style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
                 ),
               ),
             ],

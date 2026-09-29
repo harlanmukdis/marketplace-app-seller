@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/utils/validators.dart';
 import '../../../../../core/widgets/custom_text_form_field.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 class FlashSaleDraft {
   const FlashSaleDraft({
@@ -121,14 +121,12 @@ class _FlashSaleFormSheetState extends State<_FlashSaleFormSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('Flash sale baru',
-                  style: AppStyles.styleSemiBold18(context)),
+              Text('Flash sale baru', style: XText.headingM),
               4.sbh,
               Text(
                 'Flash sale tidak bisa diubah, dijadwal ulang, atau dibatalkan '
                 'setelah dibuat.',
-                style: AppStyles.styleRegular10(context)
-                    .copyWith(color: kLightThirdColor),
+                style: XText.caption.copyWith(color: kLightThirdColor),
               ),
               16.sbh,
               CustomTextFormField(
@@ -137,7 +135,7 @@ class _FlashSaleFormSheetState extends State<_FlashSaleFormSheet> {
                 validator: Validators.required('Nama flash sale'),
               ),
               20.sbh,
-              Text('Waktu berjalan', style: AppStyles.styleMedium14(context)),
+              Text('Waktu berjalan', style: XText.labelL),
               8.sbh,
               _DateTimeField(
                 label: 'Mulai',
@@ -154,8 +152,7 @@ class _FlashSaleFormSheetState extends State<_FlashSaleFormSheet> {
                 8.sbh,
                 Text(
                   'Waktu berakhir harus setelah waktu mulai.',
-                  style: AppStyles.styleRegular12(context)
-                      .copyWith(color: kErrorColor),
+                  style: XText.bodySPrimary.copyWith(color: kErrorColor),
                 ),
               ],
               if (_startsLater) ...<Widget>[
@@ -204,7 +201,7 @@ class _ScheduledWarning extends StatelessWidget {
               'proses terjadwal di server — kalau proses itu tidak hidup, '
               'harga flash sale tidak akan pernah muncul ke pembeli. '
               'Kalau ingin langsung jalan, setel waktu mulainya ke sekarang.',
-              style: AppStyles.styleRegular12(context),
+              style: XText.bodySPrimary,
             ),
           ),
         ],
@@ -237,7 +234,7 @@ class _DateTimeField extends StatelessWidget {
         ),
         child: Text(
           formatDateTime(value),
-          style: AppStyles.styleRegular14(context),
+          style: XText.bodyM,
         ),
       ),
     );

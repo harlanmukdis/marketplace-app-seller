@@ -26,7 +26,8 @@ class ReviewView extends StatelessWidget {
           backgroundColor: XColors.canvas,
           appBar: const XAppBar(title: 'Ulasan Produk'),
           body: s.loading
-              ? const LoadingIndicatorView(message: 'Membaca ulasan tiap produk')
+              ? const LoadingIndicatorView(
+                  message: 'Membaca ulasan tiap produk')
               : s.error != null
                   ? ErrorStateView(
                       error: s.error!,
@@ -478,8 +479,8 @@ class _ReviewCard extends StatelessWidget {
                       const SizedBox(width: XSpace.s6),
                       Expanded(
                         child: Text('Balasan Toko',
-                            style:
-                                XText.titleM.copyWith(color: XColors.brandNavy)),
+                            style: XText.titleM
+                                .copyWith(color: XColors.brandNavy)),
                       ),
                       Text(formatDateTime(reply.createdAt),
                           style: XText.caption),

@@ -296,14 +296,14 @@ class _SessionsCardState extends State<_SessionsCard> {
                       label: 'Keluarkan',
                       size: XButtonSize.small,
                       loading: _busyId == s.id,
-                      onPressed:
-                          _busyId == null ? () => _revoke(s) : null,
+                      onPressed: _busyId == null ? () => _revoke(s) : null,
                     ),
                   ],
                 ),
               ),
           if (sessions != null && sessions.length > 10)
-            Text('+${sessions.length - 10} sesi lebih lama', style: XText.caption),
+            Text('+${sessions.length - 10} sesi lebih lama',
+                style: XText.caption),
         ],
       ),
     );

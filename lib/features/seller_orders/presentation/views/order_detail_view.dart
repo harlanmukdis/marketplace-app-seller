@@ -186,14 +186,14 @@ class _OrderDetailBody extends StatelessWidget {
               canResolve: order.canResolveRefund && !state.isBusy,
               onApprove: () => _run(
                 context,
-                () => OrderDetailCubit.get(context)
-                    .resolveRefund(approve: true),
+                () =>
+                    OrderDetailCubit.get(context).resolveRefund(approve: true),
                 'Refund disetujui.',
               ),
               onReject: () => _run(
                 context,
-                () => OrderDetailCubit.get(context)
-                    .resolveRefund(approve: false),
+                () =>
+                    OrderDetailCubit.get(context).resolveRefund(approve: false),
                 'Refund ditolak.',
               ),
             ),
@@ -244,8 +244,8 @@ class _Header extends StatelessWidget {
               IconButton(
                 tooltip: 'Salin',
                 visualDensity: VisualDensity.compact,
-                icon: Icon(Icons.copy_rounded,
-                    size: 16, color: XColors.primary),
+                icon:
+                    Icon(Icons.copy_rounded, size: 16, color: XColors.primary),
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: order.orderNumber));
                   showSuccessSnackBar(context, 'Nomor pesanan disalin.');
@@ -463,7 +463,8 @@ class _Shipping extends StatelessWidget {
             label: 'Kurir',
             value: (order.courierCode ?? '-').toUpperCase(),
           ),
-          XKeyValue(label: 'Ongkos kirim', value: formatRupiah(order.shippingCost)),
+          XKeyValue(
+              label: 'Ongkos kirim', value: formatRupiah(order.shippingCost)),
           if (shipment?.handoverMethod != null)
             XKeyValue(
               label: 'Penyerahan',
@@ -538,7 +539,9 @@ class _RefundCard extends StatelessWidget {
             children: <Widget>[
               Expanded(child: Text('Komplain & Refund', style: XText.titleL)),
               XChip(
-                label: refund.isPending ? 'Perlu Tindakan' : (refund.status ?? '-'),
+                label: refund.isPending
+                    ? 'Perlu Tindakan'
+                    : (refund.status ?? '-'),
                 tone: refund.isPending ? XTone.actionNeeded : XTone.neutral,
               ),
             ],
@@ -693,7 +696,8 @@ class _RejectSheetState extends State<_RejectSheet> {
     final reason = isOther ? _note.text.trim() : _picked;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(XSpace.screen),
@@ -774,7 +778,8 @@ class _CustomConfirmSheetState extends State<_CustomConfirmSheet> {
   Widget build(BuildContext context) {
     final days = int.tryParse(_days.text.trim());
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(XSpace.screen),

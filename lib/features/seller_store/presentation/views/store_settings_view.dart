@@ -292,7 +292,8 @@ class _HoursCard extends StatelessWidget {
     if (picked == null) return;
     String two(int n) => n.toString().padLeft(2, '0');
     final value = '${two(picked.hour)}:${two(picked.minute)}';
-    onChanged(open ? hours.copyWith(open: value) : hours.copyWith(close: value));
+    onChanged(
+        open ? hours.copyWith(open: value) : hours.copyWith(close: value));
   }
 
   @override

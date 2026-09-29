@@ -104,14 +104,16 @@ class OrderListCubit extends Cubit<OrderListState> {
 
     for (var i = 0; i < missing.length; i += _batch) {
       final chunk = missing.skip(i).take(_batch);
-      final results = await Future.wait(chunk.map((o) => _orders.getOrder(o.id)));
+      final results =
+          await Future.wait(chunk.map((o) => _orders.getOrder(o.id)));
       if (isClosed) return;
 
       final latest = state;
       if (latest is! OrderListLoaded) return;
       final details = Map<int, Order>.of(latest.details);
       for (final result in results) {
-        if (result is DataSuccess<Order>) details[result.value.id] = result.value;
+        if (result is DataSuccess<Order>)
+          details[result.value.id] = result.value;
       }
       emit(latest.copyWith(details: details));
     }

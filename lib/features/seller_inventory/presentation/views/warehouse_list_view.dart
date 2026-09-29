@@ -5,12 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/route/app_route_seller.dart';
 import '../../../../core/domain/model/inventory/warehouse.dart';
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../cubits/warehouse_cubit/warehouse_cubit.dart';
 import 'widgets/warehouse_sheet.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// The store's warehouses. Stock hangs off these, so an empty list here is why
 /// a catalogue cannot be sold.
@@ -180,13 +180,14 @@ class _WarehouseCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     warehouse.name,
-                    style: AppStyles.styleMedium14(context),
+                    style: XText.labelL,
                   ),
                 ),
-                if (warehouse.isDefault) const _Pill(
-                  label: 'Utama',
-                  color: kLightPrimaryColor,
-                ),
+                if (warehouse.isDefault)
+                  const _Pill(
+                    label: 'Utama',
+                    color: kLightPrimaryColor,
+                  ),
                 if (!warehouse.isActive) ...<Widget>[
                   6.sbw,
                   const _Pill(label: 'Nonaktif', color: kLightThirdColor),
@@ -196,8 +197,7 @@ class _WarehouseCard extends StatelessWidget {
             6.sbh,
             Text(
               warehouse.shortAddress.isEmpty ? '-' : warehouse.shortAddress,
-              style: AppStyles.styleRegular12(context)
-                  .copyWith(color: kLightThirdColor),
+              style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
             ),
             8.sbh,
             Row(
@@ -234,7 +234,7 @@ class _Pill extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppStyles.styleRegular12(context).copyWith(color: color),
+        style: XText.bodySPrimary.copyWith(color: color),
       ),
     );
   }

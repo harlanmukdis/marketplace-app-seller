@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../../../core/data/datasources/remote/service/merchandising_service.dart'
     show BundleItemDraft;
 import '../../../../../core/domain/model/catalog/product.dart';
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
 import '../../../../../core/utils/validators.dart';
 import '../../../../../core/widgets/custom_text_form_field.dart';
 import '../../../../../core/widgets/state_widgets.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 class BundleDraft {
   const BundleDraft({
@@ -135,14 +135,13 @@ class _BundleFormSheetState extends State<_BundleFormSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Text('Bundel baru', style: AppStyles.styleSemiBold18(context)),
+                Text('Bundel baru', style: XText.headingM),
                 4.sbh,
                 Text(
                   'Isi bundel tidak bisa diubah setelah dibuat — nama, harga, '
                   'dan status masih bisa, produknya tidak. Bundel juga tidak '
                   'bisa dihapus, hanya dinonaktifkan.',
-                  style: AppStyles.styleRegular10(context)
-                      .copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: kLightThirdColor),
                 ),
                 16.sbh,
                 CustomTextFormField(
@@ -159,7 +158,7 @@ class _BundleFormSheetState extends State<_BundleFormSheet> {
                   validator: Validators.positiveAmount('Harga bundel'),
                 ),
                 20.sbh,
-                Text('Isi bundel', style: AppStyles.styleMedium14(context)),
+                Text('Isi bundel', style: XText.labelL),
                 8.sbh,
                 _ProductPicker(
                   future: _productsFuture,
@@ -216,7 +215,7 @@ class _SavingsLine extends StatelessWidget {
         children: <Widget>[
           Text(
             'Harga satuan bila dibeli terpisah: ${formatRupiah(partsTotal)}',
-            style: AppStyles.styleRegular12(context),
+            style: XText.bodySPrimary,
           ),
           4.sbh,
           Text(
@@ -226,7 +225,7 @@ class _SavingsLine extends StatelessWidget {
                     ? 'Pembeli hemat ${formatRupiah(difference)}.'
                     : 'Bundel ini ${formatRupiah(difference)} lebih mahal '
                         'daripada beli satuan — server tetap menerimanya.',
-            style: AppStyles.styleRegular12(context)
+            style: XText.bodySPrimary
                 .copyWith(color: saves ? kSuccessColor : kWarningColor),
           ),
         ],
@@ -268,8 +267,7 @@ class _ProductPicker extends StatelessWidget {
         if (products.isEmpty) {
           return Text(
             'Toko ini belum punya produk untuk dibundel.',
-            style: AppStyles.styleRegular12(context)
-                .copyWith(color: kLightThirdColor),
+            style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
           );
         }
 
@@ -323,14 +321,13 @@ class _PickerRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(product.name, style: AppStyles.styleRegular14(context)),
+                Text(product.name, style: XText.bodyM),
                 Text(
                   // A draft can go into a bundle; unlike a showcase, the
                   // bundle detail does list it.
                   '${formatRupiah(product.basePrice)}'
                   '${product.isDraft ? ' · draf' : ''}',
-                  style: AppStyles.styleRegular10(context)
-                      .copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: kLightThirdColor),
                 ),
               ],
             ),
@@ -344,7 +341,7 @@ class _PickerRow extends StatelessWidget {
                   icon: const Icon(Icons.remove_circle_outline, size: 18),
                   onPressed: () => onQuantity(quantity! - 1),
                 ),
-                Text('$quantity', style: AppStyles.styleMedium14(context)),
+                Text('$quantity', style: XText.labelL),
                 IconButton(
                   visualDensity: VisualDensity.compact,
                   icon: const Icon(Icons.add_circle_outline, size: 18),

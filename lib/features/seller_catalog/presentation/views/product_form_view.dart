@@ -139,8 +139,7 @@ class _ProductFormBodyState extends State<_ProductFormBody> {
         : <VariantRowDraft>[
             for (final r in _rows)
               VariantRowDraft(
-                value:
-                    r.value.text.trim().isEmpty ? null : r.value.text.trim(),
+                value: r.value.text.trim().isEmpty ? null : r.value.text.trim(),
                 price: parseRupiahInput(r.price.text) ?? 0,
                 sku: r.sku.text.trim(),
                 photo: r.photo,
@@ -358,8 +357,7 @@ class _ProductFormBodyState extends State<_ProductFormBody> {
     );
     if (!mounted) return;
     error == null
-        ? showSuccessSnackBar(
-            context, 'Sertifikat dikirim untuk diverifikasi.')
+        ? showSuccessSnackBar(context, 'Sertifikat dikirim untuk diverifikasi.')
         : showErrorSnackBar(context, error);
   }
 
@@ -661,8 +659,7 @@ class _ProductFormBodyState extends State<_ProductFormBody> {
       title: 'Mode Stok & Pemenuhan',
       trailing: Tooltip(
         message: StockMode.describe(_mode),
-        child:
-            Icon(Icons.help_outline, size: 20, color: XColors.textTertiary),
+        child: Icon(Icons.help_outline, size: 20, color: XColors.textTertiary),
       ),
       children: <Widget>[
         for (var r = 0; r < 2; r++) ...<Widget>[
@@ -696,8 +693,8 @@ class _ProductFormBodyState extends State<_ProductFormBody> {
             dense: true,
             contentPadding: EdgeInsets.zero,
             controlAffinity: ListTileControlAffinity.leading,
-            title: Text('Hentikan penjualan (Discontinued)',
-                style: XText.bodyM),
+            title:
+                Text('Hentikan penjualan (Discontinued)', style: XText.bodyM),
             subtitle: Text(StockMode.describe(FulfillmentMode.discontinued),
                 style: XText.caption),
             onChanged: (v) => setState(() => _mode = v == true
@@ -1138,8 +1135,7 @@ class _Segmented<T> extends StatelessWidget {
                 child: Container(
                   height: 40,
                   decoration: BoxDecoration(
-                    color:
-                        o.$1 == value ? XColors.surface : Colors.transparent,
+                    color: o.$1 == value ? XColors.surface : Colors.transparent,
                     borderRadius: BorderRadius.circular(XRadius.sm),
                   ),
                   alignment: Alignment.center,
@@ -1278,8 +1274,7 @@ class _StatusBanner extends StatelessWidget {
                   style: XText.bodyS,
                 ),
                 if (p?.stock != null)
-                  Text('Stok tersedia: ${p!.stock} unit',
-                      style: XText.caption),
+                  Text('Stok tersedia: ${p!.stock} unit', style: XText.caption),
               ],
             ),
           ),
@@ -1374,8 +1369,7 @@ class _PhotoTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(XRadius.xs),
                   ),
                   child: Text('Utama',
-                      style:
-                          XText.labelS.copyWith(color: XColors.textOnBrand)),
+                      style: XText.labelS.copyWith(color: XColors.textOnBrand)),
                 ),
               ),
             if (onRemove != null)
@@ -1580,8 +1574,7 @@ class _LeadTimeBox extends StatelessWidget {
                   children: <Widget>[
                     IconButton(
                       tooltip: 'Kurangi',
-                      onPressed:
-                          value > 1 ? () => onChanged(value - 1) : null,
+                      onPressed: value > 1 ? () => onChanged(value - 1) : null,
                       icon: const Icon(Icons.remove),
                     ),
                     Text('$value Hari', style: XText.titleM),
@@ -1591,8 +1584,7 @@ class _LeadTimeBox extends StatelessWidget {
                         backgroundColor: XColors.primary,
                         foregroundColor: XColors.textOnBrand,
                       ),
-                      onPressed:
-                          value < 90 ? () => onChanged(value + 1) : null,
+                      onPressed: value < 90 ? () => onChanged(value + 1) : null,
                       icon: const Icon(Icons.add),
                     ),
                   ],
@@ -1992,8 +1984,7 @@ class _BadgeSection extends StatelessWidget {
                 message: ProductBadge.explain(badge),
                 child: XChip(
                   label: ProductBadge.label(badge),
-                  tone:
-                      earned.contains(badge) ? XTone.success : XTone.neutral,
+                  tone: earned.contains(badge) ? XTone.success : XTone.neutral,
                   icon: earned.contains(badge)
                       ? Icons.check_circle
                       : Icons.circle_outlined,

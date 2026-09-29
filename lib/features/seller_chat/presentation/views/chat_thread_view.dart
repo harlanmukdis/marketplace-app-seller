@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../cubits/chat_thread_cubit/chat_thread_cubit.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/message_composer.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// One conversation with a buyer.
 ///
@@ -140,7 +140,7 @@ class _ConnectionLostNotice extends StatelessWidget {
             child: Text(
               'Pesan baru tidak lagi masuk otomatis. Buka ulang percakapan '
               'ini untuk menyambungkannya lagi.',
-              style: AppStyles.styleRegular12(context),
+              style: XText.bodySPrimary,
             ),
           ),
         ],
@@ -169,7 +169,7 @@ class _UnknownIdentityNotice extends StatelessWidget {
             child: Text(
               'Identitas akun belum termuat, jadi semua pesan ditampilkan di '
               'sisi pembeli. Masuk ulang untuk memperbaikinya.',
-              style: AppStyles.styleRegular12(context),
+              style: XText.bodySPrimary,
             ),
           ),
         ],

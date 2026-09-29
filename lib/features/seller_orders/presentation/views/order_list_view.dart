@@ -292,7 +292,8 @@ class _OrderCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: XSpace.s8),
-          OrderBuyerLine(order: order, trailing: OrderCourierLabel(order: order)),
+          OrderBuyerLine(
+              order: order, trailing: OrderCourierLabel(order: order)),
           const SizedBox(height: XSpace.s12),
           if (first != null)
             Row(
@@ -345,7 +346,8 @@ class _OrderCard extends StatelessWidget {
               Text(formatRupiah(order.grandTotal), style: XText.priceM),
             ],
           ),
-          if (order.needsAction && OrderSla.deadlineFor(order) != null) ...<Widget>[
+          if (order.needsAction &&
+              OrderSla.deadlineFor(order) != null) ...<Widget>[
             const SizedBox(height: XSpace.s12),
             OrderSlaBanner(order: order, compact: true),
           ],
@@ -363,9 +365,7 @@ class _OrderCard extends StatelessWidget {
                 const SizedBox(width: XSpace.s12),
                 Expanded(
                   child: XButton(
-                    label: order.canCustomConfirm
-                        ? 'Konfirmasi'
-                        : 'Cetak Resi',
+                    label: order.canCustomConfirm ? 'Konfirmasi' : 'Cetak Resi',
                     icon: order.canCustomConfirm
                         ? Icons.handyman_outlined
                         : Icons.print_outlined,

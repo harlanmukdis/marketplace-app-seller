@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/route/app_route_seller.dart';
 import '../../../../core/domain/model/store/store.dart';
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/validators.dart';
@@ -13,6 +12,7 @@ import '../../../../core/widgets/app_dropdown_field.dart';
 import '../../../../core/widgets/custom_text_form_field.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../cubits/store_cubit/store_cubit.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// Opens a shop under the logged-in account.
 class StoreCreateView extends StatefulWidget {
@@ -74,13 +74,13 @@ class _StoreCreateViewState extends State<StoreCreateView> {
                       children: <Widget>[
                         Text(
                           'Toko baru',
-                          style: AppStyles.styleSemiBold18(context),
+                          style: XText.headingM,
                         ),
                         8.sbh,
                         Text(
                           'Toko dibuat dalam keadaan belum aktif. Ajukan '
                           'verifikasi dari halaman toko untuk mulai berjualan.',
-                          style: AppStyles.styleRegular12(context)
+                          style: XText.bodySPrimary
                               .copyWith(color: kLightThirdColor),
                         ),
                         24.sbh,
@@ -113,8 +113,8 @@ class _StoreCreateViewState extends State<StoreCreateView> {
                           'Alamat toko dipilih server sendiri dari nama — '
                           'server menambahkan akhiran unik, jadi alamat yang '
                           'jadi bisa berbeda dari yang Anda bayangkan.',
-                          style: AppStyles.styleRegular10(context)
-                              .copyWith(color: kLightThirdColor),
+                          style:
+                              XText.caption.copyWith(color: kLightThirdColor),
                         ),
                         32.sbh,
                         FilledButton(

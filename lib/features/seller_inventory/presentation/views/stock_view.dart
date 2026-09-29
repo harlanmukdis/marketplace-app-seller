@@ -4,13 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/domain/model/inventory/stock_movement.dart';
 import '../../../../core/domain/model/inventory/warehouse_stock.dart';
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../cubits/stock_cubit/stock_cubit.dart';
 import 'widgets/stock_movement_sheet.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// One warehouse's stock, with the ledger behind it.
 class StockView extends StatelessWidget {
@@ -116,8 +116,7 @@ class _StockBody extends StatelessWidget {
                 else ...<Widget>[
                   _Summary(state: state),
                   16.sbh,
-                  Text('Stok per varian',
-                      style: AppStyles.styleMedium14(context)),
+                  Text('Stok per varian', style: XText.labelL),
                   8.sbh,
                   for (final stock in state.stocks)
                     _StockRow(
@@ -129,14 +128,12 @@ class _StockBody extends StatelessWidget {
                 ],
                 if (state.movements.isNotEmpty) ...<Widget>[
                   24.sbh,
-                  Text('Riwayat pergerakan',
-                      style: AppStyles.styleMedium14(context)),
+                  Text('Riwayat pergerakan', style: XText.labelL),
                   4.sbh,
                   Text(
                     'Setiap perubahan stok tercatat di sini dan tidak pernah '
                     'ditimpa.',
-                    style: AppStyles.styleRegular10(context)
-                        .copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: kLightThirdColor),
                   ),
                   8.sbh,
                   for (final movement in state.movements)
@@ -235,12 +232,11 @@ class _Metric extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(value, style: AppStyles.styleSemiBold16(context)),
+          Text(value, style: XText.titleL),
           2.sbh,
           Text(
             label,
-            style: AppStyles.styleRegular10(context)
-                .copyWith(color: kLightThirdColor),
+            style: XText.caption.copyWith(color: kLightThirdColor),
           ),
         ],
       ),
@@ -269,7 +265,7 @@ class _StockRow extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     stock.productName ?? stock.sku ?? '-',
-                    style: AppStyles.styleRegular14(context),
+                    style: XText.bodyM,
                   ),
                   2.sbh,
                   Text(
@@ -277,8 +273,7 @@ class _StockRow extends StatelessWidget {
                       if (stock.sku != null) stock.sku!,
                       if (stock.optionsLabel.isNotEmpty) stock.optionsLabel,
                     ].join(' · '),
-                    style: AppStyles.styleRegular10(context)
-                        .copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: kLightThirdColor),
                   ),
                 ],
               ),
@@ -288,7 +283,7 @@ class _StockRow extends StatelessWidget {
               children: <Widget>[
                 Text(
                   '${stock.quantityAvailable}',
-                  style: AppStyles.styleSemiBold16(context).copyWith(
+                  style: XText.titleL.copyWith(
                     color: stock.isOutOfStock
                         ? kErrorColor
                         : (stock.isLow ? kWarningColor : null),
@@ -297,8 +292,7 @@ class _StockRow extends StatelessWidget {
                 if (stock.quantityReserved > 0)
                   Text(
                     '${stock.quantityReserved} direservasi',
-                    style: AppStyles.styleRegular10(context)
-                        .copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: kLightThirdColor),
                   ),
               ],
             ),
@@ -322,7 +316,7 @@ class _MovementRow extends StatelessWidget {
         children: <Widget>[
           Text(
             movement.signedQuantity,
-            style: AppStyles.styleSemiBold16(context).copyWith(
+            style: XText.titleL.copyWith(
               color: movement.isIncoming ? kSuccessColor : kErrorColor,
             ),
           ),
@@ -333,21 +327,19 @@ class _MovementRow extends StatelessWidget {
               children: <Widget>[
                 Text(
                   StockMovementType.label(movement.type),
-                  style: AppStyles.styleRegular14(context),
+                  style: XText.bodyM,
                 ),
                 if (movement.notes != null)
                   Text(
                     movement.notes!,
-                    style: AppStyles.styleRegular10(context)
-                        .copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: kLightThirdColor),
                   ),
               ],
             ),
           ),
           Text(
             formatDateTime(movement.createdAt),
-            style: AppStyles.styleRegular10(context)
-                .copyWith(color: kLightThirdColor),
+            style: XText.caption.copyWith(color: kLightThirdColor),
           ),
         ],
       ),

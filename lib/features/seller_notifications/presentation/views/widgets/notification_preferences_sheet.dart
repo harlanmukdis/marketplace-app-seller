@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../../../core/data_state.dart';
 import '../../../../../core/domain/model/notification/app_notification.dart';
 import '../../../../../core/domain/model/notification/notification_preference.dart';
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/widgets/state_widgets.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 Future<void> showNotificationPreferencesSheet(
   BuildContext context, {
@@ -20,7 +20,8 @@ Future<void> showNotificationPreferencesSheet(
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => _PreferencesSheet(load: load, setPreference: setPreference),
+      builder: (_) =>
+          _PreferencesSheet(load: load, setPreference: setPreference),
     );
 
 /// Mute switches, per notification type and channel.
@@ -109,15 +110,13 @@ class _PreferencesSheetState extends State<_PreferencesSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Text('Pengaturan notifikasi',
-                style: AppStyles.styleSemiBold18(context)),
+            Text('Pengaturan notifikasi', style: XText.headingM),
             4.sbh,
             Text(
               'Mematikan sebuah channel hanya menghentikan kiriman ke luar. '
               'Notifikasi tetap masuk ke daftar di aplikasi ini — itu '
               'sekaligus riwayatnya, dan server tidak mengizinkannya dimatikan.',
-              style: AppStyles.styleRegular10(context)
-                  .copyWith(color: kLightThirdColor),
+              style: XText.caption.copyWith(color: kLightThirdColor),
             ),
             16.sbh,
             if (preferences == null)
@@ -177,14 +176,13 @@ class _PreferenceGroup extends StatelessWidget {
       children: <Widget>[
         Text(
           NotificationType.label(preference.type),
-          style: AppStyles.styleMedium14(context),
+          style: XText.labelL,
         ),
         if (preference.isFullyMuted) ...<Widget>[
           4.sbh,
           Text(
             'Semua channel luar dimatikan — tetap masuk ke daftar di aplikasi.',
-            style: AppStyles.styleRegular10(context)
-                .copyWith(color: kWarningColor),
+            style: XText.caption.copyWith(color: kWarningColor),
           ),
         ],
         8.sbh,
@@ -194,11 +192,10 @@ class _PreferenceGroup extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             title: Text(
               NotificationChannel.label(channel),
-              style: AppStyles.styleRegular14(context),
+              style: XText.bodyM,
             ),
             value: preference.isEnabled(channel),
-            onChanged:
-                isBusy ? null : (value) => onToggle(channel, value),
+            onChanged: isBusy ? null : (value) => onToggle(channel, value),
           ),
       ],
     );

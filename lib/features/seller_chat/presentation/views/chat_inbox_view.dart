@@ -5,13 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/route/app_route_seller.dart';
 import '../../../../core/domain/model/chat/chat_conversation.dart';
 import '../../../../core/function/custom_app_bar.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/widgets/state_widgets.dart';
 import '../../../seller_home/presentation/views/widgets/section_card.dart';
 import '../cubits/chat_inbox_cubit/chat_inbox_cubit.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// Chat, and the one thing the backend cannot yet do.
 ///
@@ -96,13 +96,13 @@ class _ChatInboxBody extends StatelessWidget {
                             children: <Widget>[
                               Text(
                                 'Buka percakapan lewat ID',
-                                style: AppStyles.styleRegular14(context),
+                                style: XText.bodyM,
                               ),
                               2.sbh,
                               Text(
                                 'Membaca dan membalas sudah berfungsi penuh — '
                                 'yang belum ada hanya daftarnya.',
-                                style: AppStyles.styleRegular10(context)
+                                style: XText.caption
                                     .copyWith(color: kLightThirdColor),
                               ),
                             ],
@@ -114,14 +114,12 @@ class _ChatInboxBody extends StatelessWidget {
                   ),
                   if (withOwn.isNotEmpty) ...<Widget>[
                     24.sbh,
-                    Text('Percakapan dengan toko sendiri',
-                        style: AppStyles.styleMedium14(context)),
+                    Text('Percakapan dengan toko sendiri', style: XText.labelL),
                     4.sbh,
                     Text(
                       'Akun ini pernah membuka percakapan dengan tokonya '
                       'sendiri. Server mengizinkannya, tapi tidak ada gunanya.',
-                      style: AppStyles.styleRegular10(context)
-                          .copyWith(color: kLightThirdColor),
+                      style: XText.caption.copyWith(color: kLightThirdColor),
                     ),
                     12.sbh,
                     for (final conversation in withOwn) ...<Widget>[
@@ -130,15 +128,13 @@ class _ChatInboxBody extends StatelessWidget {
                     ],
                   ],
                   24.sbh,
-                  Text('Percakapan Anda sebagai pembeli',
-                      style: AppStyles.styleMedium14(context)),
+                  Text('Percakapan Anda sebagai pembeli', style: XText.labelL),
                   4.sbh,
                   Text(
                     'Ini yang dikembalikan API: percakapan tempat akun ini '
                     'berbelanja di toko lain — bukan pesan masuk untuk toko '
                     'Anda.',
-                    style: AppStyles.styleRegular10(context)
-                        .copyWith(color: kLightThirdColor),
+                    style: XText.caption.copyWith(color: kLightThirdColor),
                   ),
                   12.sbh,
                   if (asBuyer.isEmpty)
@@ -186,7 +182,7 @@ class _MissingEndpointCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Kotak masuk toko belum bisa dibuat',
-                  style: AppStyles.styleMedium14(context),
+                  style: XText.labelL,
                 ),
               ),
             ],
@@ -198,14 +194,13 @@ class _MissingEndpointCard extends StatelessWidget {
             'masuk ke tokonya. Membaca, membalas, dan tanda dibaca semuanya '
             'sudah jalan begitu ID percakapan diketahui; yang kurang hanya '
             'cara menemukannya.',
-            style: AppStyles.styleRegular12(context),
+            style: XText.bodySPrimary,
           ),
           8.sbh,
           Text(
             'Butuh dari backend: GET /stores/{id}/chat/conversations. '
             'Tabelnya bahkan sudah punya indeks untuk query itu.',
-            style: AppStyles.styleRegular10(context)
-                .copyWith(color: kLightThirdColor),
+            style: XText.caption.copyWith(color: kLightThirdColor),
           ),
         ],
       ),
@@ -230,7 +225,7 @@ class _ConversationCard extends StatelessWidget {
               children: <Widget>[
                 Text(
                   conversation.storeName ?? 'Toko #${conversation.storeId}',
-                  style: AppStyles.styleRegular14(context),
+                  style: XText.bodyM,
                 ),
                 2.sbh,
                 Text(
@@ -238,8 +233,7 @@ class _ConversationCard extends StatelessWidget {
                       ? 'Pesan terakhir '
                           '${formatDateTime(conversation.lastMessageAt)}'
                       : 'Belum ada pesan',
-                  style: AppStyles.styleRegular10(context)
-                      .copyWith(color: kLightThirdColor),
+                  style: XText.caption.copyWith(color: kLightThirdColor),
                 ),
               ],
             ),
@@ -285,8 +279,7 @@ class _OpenByIdDialogState extends State<_OpenByIdDialog> {
           Text(
             'Masukkan ID percakapan. Server menolak dengan 403 kalau toko '
             'Anda bukan peserta di dalamnya.',
-            style: AppStyles.styleRegular12(context)
-                .copyWith(color: kLightThirdColor),
+            style: XText.bodySPrimary.copyWith(color: kLightThirdColor),
           ),
           12.sbh,
           TextField(

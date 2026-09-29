@@ -4,10 +4,10 @@ import '../../../../config/route/app_route_seller.dart';
 import '../../../../core/data/local/session_store.dart';
 import '../../../../core/function/components.dart';
 import '../../../../core/utils/app_routes.dart';
-import '../../../../core/utils/app_styles.dart';
 import '../../../../core/utils/constant.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../../di/injector.dart';
+import '../../../../core/utils/xpedia_tokens.dart';
 
 /// The app's entry point.
 ///
@@ -56,7 +56,7 @@ class _SellerBootstrapViewState extends State<SellerBootstrapView> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text('Marketplace Seller', style: AppStyles.styleSemiBold24(context)),
+            Text('Marketplace Seller', style: XText.headingXL),
             24.sbh,
             CircularProgressIndicator(
               color: isAppDarkMode() ? kDarkPrimaryColor : kLightPrimaryColor,

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/domain/model/chat/chat_message.dart';
 import '../../../../../core/function/components.dart';
-import '../../../../../core/utils/app_styles.dart';
 import '../../../../../core/utils/constant.dart';
 import '../../../../../core/utils/extensions.dart';
 import '../../../../../core/utils/format_helper.dart';
+import '../../../../../core/utils/xpedia_tokens.dart';
 
 /// One message.
 ///
@@ -29,9 +29,8 @@ class MessageBubble extends StatelessWidget {
     final background = isMine
         ? kLightPrimaryColor
         : (isDark ? kDarkColor : const Color(0xffF1F2F6));
-    final foreground = isMine
-        ? kWhiteColor
-        : (isDark ? kDarkSecondColor : kLightSecondColor);
+    final foreground =
+        isMine ? kWhiteColor : (isDark ? kDarkSecondColor : kLightSecondColor);
 
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
@@ -64,8 +63,7 @@ class MessageBubble extends StatelessWidget {
                 message.content?.isNotEmpty == true
                     ? message.content!
                     : '(pesan kosong)',
-                style: AppStyles.styleRegular14(context)
-                    .copyWith(color: foreground),
+                style: XText.bodyM.copyWith(color: foreground),
               ),
               4.sbh,
               Row(
@@ -73,7 +71,7 @@ class MessageBubble extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     formatDateTime(message.createdAt),
-                    style: AppStyles.styleRegular10(context).copyWith(
+                    style: XText.caption.copyWith(
                       color: foreground.withValues(alpha: 0.7),
                     ),
                   ),
@@ -133,8 +131,8 @@ class _TypeTag extends StatelessWidget {
         4.sbw,
         Text(
           '${ChatMessageType.label(message.type)}$reference',
-          style: AppStyles.styleRegular10(context)
-              .copyWith(color: foreground.withValues(alpha: 0.8)),
+          style:
+              XText.caption.copyWith(color: foreground.withValues(alpha: 0.8)),
         ),
       ],
     );

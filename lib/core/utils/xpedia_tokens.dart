@@ -125,6 +125,9 @@ abstract class XText {
   static TextStyle get bodyM => _s(14, 20, FontWeight.w400);
   static TextStyle get bodyS =>
       _s(12, 18, FontWeight.w400).copyWith(color: XColors.textSecondary);
+  /// Body/S in the primary text colour, for small text that is content
+  /// rather than helper copy.
+  static TextStyle get bodySPrimary => _s(12, 18, FontWeight.w400);
   static TextStyle get labelL => _s(14, 20, FontWeight.w500);
   static TextStyle get labelM => _s(12, 16, FontWeight.w500);
   static TextStyle get labelS => _s(11, 14, FontWeight.w500);
